@@ -21,6 +21,28 @@ function formatSentenceCase(str: string): string {
   return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
 }
 
+// Format concise cell previews so the table remains clean and doesn't blow out horizontally
+function formatCellPreview(val?: string, status?: string): string {
+  if (!val) {
+    if (status === 'missing') return 'Not found';
+    return 'Found';
+  }
+  // Short values
+  if (val.length <= 24) return val;
+  // Dates e.g. 31-10-2026 or 15/03/2026
+  const dateMatch = val.match(/\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b/);
+  if (dateMatch) return `Found (${dateMatch[0]})`;
+  // Currency e.g. ₹2.5 lakh or Rs 2.5
+  const currMatch = val.match(/(₹|rs\.?|inr|\$)\s*[\d,.]+\s*(lakh|crore|k|m)?/i);
+  if (currMatch) return `Found (${currMatch[0]})`;
+  // Official Portal
+  if (val.toLowerCase().includes('official') || val.includes('.gov') || val.includes('.nic')) {
+    return 'Official portal';
+  }
+  // Clean truncation
+  return val.slice(0, 22) + '…';
+}
+
 export const CoverageMap: React.FC<CoverageMapProps> = ({
   reportId,
   matrix,
@@ -43,7 +65,7 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
   };
 
   return (
-    <div className={cn("w-full rounded-sm border border-seed/10 bg-pith space-y-4 p-4 sm:p-5", className)}>
+    <div className={cn("w-full rounded-sm border border-seed/10 bg-pith space-y-3.5 p-4 sm:p-5", className)}>
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-seed/10 pb-3">
         <div>
           <h2 className="font-heading font-extrabold text-base sm:text-lg text-seed tracking-tight">
@@ -63,13 +85,13 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
           <thead>
             <tr className="border-b border-seed/10 bg-seed/[0.03]">
               {/* Expected Attribute Header */}
-              <th scope="col" className="py-3 px-3.5 font-heading font-bold text-xs text-seed min-w-[170px]">
+              <th scope="col" className="py-2.5 px-3 font-heading font-bold text-xs text-seed">
                 Expected parameter
               </th>
 
               {/* Overall Coverage Status Header (hidden if only 1 source) */}
               {showCoverageStatus && (
-                <th scope="col" className="py-3 px-3 font-heading font-bold text-xs text-seed text-center min-w-[120px]">
+                <th scope="col" className="py-2.5 px-2 font-heading font-bold text-xs text-seed text-center whitespace-nowrap">
                   Coverage status
                 </th>
               )}
@@ -79,20 +101,20 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
                 <th
                   key={source.id}
                   scope="col"
-                  className="py-3 px-3.5 font-heading font-semibold text-seed min-w-[160px]"
+                  className="py-2.5 px-3 font-heading font-semibold text-seed"
                   title={source.title}
                 >
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-0.5">
                     <span className="truncate text-xs font-bold text-seed">
-                      S{idx + 1}: {source.title}
+                      S{idx + 1}: {source.domain}
                     </span>
-                    <span className="text-[11px] text-seed-muted font-sans font-normal flex items-center gap-1.5 truncate">
+                    <span className="text-[10px] text-seed-muted font-sans font-normal flex items-center gap-1 truncate max-w-[150px]">
                       {source.detectedDate || source.detectedCycle ? (
-                        <Calendar className="w-3.5 h-3.5 text-rind shrink-0" />
+                        <Calendar className="w-3 h-3 text-rind shrink-0" />
                       ) : (
-                        <AlertCircle className="w-3.5 h-3.5 text-wilt shrink-0" />
+                        <AlertCircle className="w-3 h-3 text-wilt shrink-0" />
                       )}
-                      <span className="truncate">{source.domain}</span>
+                      <span className="truncate">{source.title}</span>
                     </span>
                   </div>
                 </th>
@@ -123,7 +145,7 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
                   )}
                 >
                   {/* Expected Attribute Name (Sentence case, no snake_case, no uppercase mono) */}
-                  <td className="py-3 px-3.5 font-sans font-medium text-seed">
+                  <td className="py-2.5 px-3 font-sans font-medium text-seed">
                     <span className="font-heading font-bold text-xs sm:text-sm text-seed">
                       {formattedName}
                     </span>
@@ -131,27 +153,27 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
 
                   {/* Overall Coverage Status Column (only if >1 source) */}
                   {showCoverageStatus && (
-                    <td className="py-3 px-3 text-center align-middle">
+                    <td className="py-2.5 px-2 text-center align-middle whitespace-nowrap">
                       {row.overallStatus === 'covered' && (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs text-[11px] font-sans font-semibold bg-rind/15 text-rind border border-rind/25">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-sans font-semibold bg-rind/15 text-rind border border-rind/25">
                           <span className="w-1.5 h-1.5 rounded-full bg-rind" />
                           Covered
                         </span>
                       )}
                       {row.overallStatus === 'gap' && (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs text-[11px] font-sans font-semibold bg-seed/10 text-seed border border-seed/20">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-sans font-semibold bg-seed/10 text-seed border border-seed/20">
                           <span className="w-1.5 h-1.5 rounded-full bg-seed" />
                           Gap
                         </span>
                       )}
                       {row.overallStatus === 'conflict' && (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs text-[11px] font-sans font-semibold bg-crack/15 text-crack border border-crack/30">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-sans font-semibold bg-crack/15 text-crack border border-crack/30">
                           <span className="w-1.5 h-1.5 rounded-full bg-crack" />
                           Conflict
                         </span>
                       )}
                       {row.overallStatus === 'thin' && (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs text-[11px] font-sans font-semibold bg-wilt/15 text-wilt border border-wilt/30">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-sans font-semibold bg-wilt/15 text-wilt border border-wilt/30">
                           <span className="w-1.5 h-1.5 rounded-full bg-wilt" />
                           Stale
                         </span>
@@ -164,11 +186,13 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
                     const cell = row.cells[source.id];
                     if (!cell) {
                       return (
-                        <td key={source.id} className="py-3 px-3.5 text-seed-muted/30 text-center font-mono">
+                        <td key={source.id} className="py-2.5 px-3 text-seed-muted/30 text-center font-mono">
                           —
                         </td>
                       );
                     }
+
+                    const previewText = formatCellPreview(cell.value, cell.status);
 
                     return (
                       <td
@@ -187,7 +211,7 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
                           e.stopPropagation();
                           handleCellClick(cell.claimId, row.attribute);
                         }}
-                        className="py-3 px-3.5 align-middle focus:outline-none focus:ring-1 focus:ring-rind rounded-xs cursor-pointer group"
+                        className="py-2 px-3 align-middle focus:outline-none focus:ring-1 focus:ring-rind rounded-xs cursor-pointer group"
                       >
                         <motion.div
                           initial={shouldReduceMotion ? { scale: 1, opacity: 1 } : { scale: 0.5, opacity: 0 }}
@@ -199,13 +223,13 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
                             damping: 24,
                             delay: shouldReduceMotion ? 0 : rowIdx * 0.04
                           }}
-                          className="inline-flex items-center gap-2 p-1 rounded-xs group-hover:bg-seed/[0.04] transition-colors"
+                          className="inline-flex items-center gap-1.5 p-1 rounded-xs group-hover:bg-seed/[0.04] transition-colors"
                           title={cell.value || (cell.status === 'missing' ? 'Not found' : cell.status)}
                         >
                           {/* Found: rind dot + check */}
                           {cell.status === 'found' && (
-                            <div className="flex items-center gap-2 text-rind">
-                              <svg viewBox="0 0 20 20" className="w-5 h-5 text-rind shrink-0" aria-hidden="true">
+                            <div className="flex items-center gap-1.5 text-rind">
+                              <svg viewBox="0 0 20 20" className="w-4 h-4 text-rind shrink-0" aria-hidden="true">
                                 <circle cx="10" cy="10" r="8" fill="currentColor" fillOpacity="0.18" />
                                 <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5" fill="none" />
                                 <path
@@ -217,16 +241,16 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
                                   fill="none"
                                 />
                               </svg>
-                              <span className="font-sans font-medium text-xs text-seed group-hover:text-rind transition-colors truncate max-w-[130px]">
-                                {cell.value || 'Found'}
+                              <span className="font-sans font-medium text-xs text-seed group-hover:text-rind transition-colors truncate max-w-[120px]">
+                                {previewText}
                               </span>
                             </div>
                           )}
 
                           {/* Not found: dark seed with ring + "Not found" */}
                           {cell.status === 'missing' && (
-                            <div className="flex items-center gap-2 text-seed-muted">
-                              <svg viewBox="0 0 20 20" className="w-5 h-5 text-seed shrink-0" aria-hidden="true">
+                            <div className="flex items-center gap-1.5 text-seed-muted">
+                              <svg viewBox="0 0 20 20" className="w-4 h-4 text-seed shrink-0" aria-hidden="true">
                                 <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.2" strokeDasharray="2 2" fill="none" opacity="0.45" />
                                 <path
                                   d="M10 5.5 C10 5.5 6.8 9.8 6.8 11.8 C6.8 13.6 8.2 15 10 15 C11.8 15 13.2 13.6 13.2 11.8 C13.2 9.8 10 5.5 10 5.5 Z"
@@ -241,8 +265,8 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
 
                           {/* Conflict: crack dot + zigzag connector that draws (0.5s) */}
                           {cell.status === 'conflict' && (
-                            <div className="flex items-center gap-2 text-crack">
-                              <svg viewBox="0 0 20 20" className="w-5 h-5 text-crack shrink-0" aria-hidden="true">
+                            <div className="flex items-center gap-1.5 text-crack">
+                              <svg viewBox="0 0 20 20" className="w-4 h-4 text-crack shrink-0" aria-hidden="true">
                                 <circle cx="10" cy="10" r="8" fill="currentColor" fillOpacity="0.2" />
                                 <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5" fill="none" />
                                 <motion.path
@@ -257,16 +281,16 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
                                   transition={{ duration: 0.5, ease: 'easeOut', delay: shouldReduceMotion ? 0 : 0.15 }}
                                 />
                               </svg>
-                              <span className="font-sans font-bold text-xs text-crack truncate max-w-[130px]">
-                                {cell.value || 'Conflict'}
+                              <span className="font-sans font-bold text-xs text-crack truncate max-w-[120px]">
+                                {previewText}
                               </span>
                             </div>
                           )}
 
                           {/* Stale: pale hatched dot */}
                           {cell.status === 'stale' && (
-                            <div className="flex items-center gap-2 text-wilt">
-                              <svg viewBox="0 0 20 20" className="w-5 h-5 text-wilt shrink-0" aria-hidden="true">
+                            <div className="flex items-center gap-1.5 text-wilt">
+                              <svg viewBox="0 0 20 20" className="w-4 h-4 text-wilt shrink-0" aria-hidden="true">
                                 <defs>
                                   <pattern
                                     id={`cell-hatch-${rowIdx}`}
@@ -281,8 +305,8 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
                                 <circle cx="10" cy="10" r="8" fill={`url(#cell-hatch-${rowIdx})`} opacity="0.6" />
                                 <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5" fill="none" />
                               </svg>
-                              <span className="font-sans font-medium text-xs text-wilt truncate max-w-[130px]">
-                                {cell.value || 'Stale'}
+                              <span className="font-sans font-medium text-xs text-wilt truncate max-w-[120px]">
+                                {previewText}
                               </span>
                             </div>
                           )}
@@ -315,10 +339,9 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
           </span>
         </div>
         <span className="text-[11px] font-sans text-seed-muted">
-          Hover cell to inspect • Click to open evidence drawer
+          Hover cell for details • Click to inspect verbatim evidence
         </span>
       </div>
     </div>
   );
 };
-

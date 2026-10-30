@@ -1,17 +1,17 @@
 # Graph Report - deven2  (2026-10-30)
 
 ## Corpus Check
-- 151 files · ~66,163 words
+- 151 files · ~66,899 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 4 file(s) not represented in the graph (top: (none) 2, .example 1, .css 1)
 
 ## Summary
-- 815 nodes · 1723 edges · 53 communities (43 shown, 10 thin omitted)
+- 810 nodes · 1729 edges · 55 communities (45 shown, 10 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 10 edges (avg confidence: 0.89)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `54f85556`
+- Built from commit: `f460ad14`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -40,13 +40,13 @@
 - Digital Dark Spot — Official Hackathon Project Submission Description
 - GPT & Open Source Models Adapter
 - Claude Adapter
-- ref_path
-- lucide-react
+- check-secrets.ts
+- credit-usage-card.tsx
 - Digital Dark Spot — Product Requirements Document (PRD)
-- DashboardLayout.tsx
+- error-1.tsx
 - alert.tsx
 - continuous-tabs.tsx
-- utils.ts
+- activities-card.tsx
 - Digital Dark Spot — Product Requirements Document (PRD)
 - Token Efficiency Rules
 - setup_search.sh script
@@ -54,12 +54,14 @@
 - Digital Dark Spot — UI Components Registry
 - scripts
 - search_repo.sh script
-- lucide-react
-- App.tsx
+- Button
+- utils.ts
 - Home.tsx
-- tabs.tsx
-- SummaryTab.tsx
+- feedback-action.tsx
+- drawer.tsx
 - DarkSpotSphere.tsx
+- stepper.tsx
+- HeroMelon.tsx
 
 ## God Nodes (most connected - your core abstractions)
 1. `react` - 56 edges
@@ -82,29 +84,29 @@
   COMPONENTS.md → frontend/src/components/motion/SeedCheckMorph.tsx
 - `🎬 Reusable Motion Components (`frontend/src/components/motion/`)` --references--> `SeedPopIn()`  [INFERRED]
   COMPONENTS.md → frontend/src/components/motion/SeedPopIn.tsx
-- `DashboardLayout()` --indirect_call--> `SeedIcon()`  [INFERRED]
-  frontend/src/pages/Dashboard/DashboardLayout.tsx → frontend/src/components/common/Icons.tsx
+- `Counter()` --calls--> `cn()`  [EXTRACTED]
+  frontend/src/components/ui/counter.tsx → frontend/src/lib/utils.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (53 total, 10 thin omitted)
+## Communities (55 total, 10 thin omitted)
 
 ### Community 0 - "react"
-Cohesion: 0.17
-Nodes (17): 🎬 Reusable Motion Components (`frontend/src/components/motion/`), BowlIcon(), IconProps, SeedIcon(), AnimatedText(), CopyConfirm(), SkillCardProps, EvidenceDrawerMotion() (+9 more)
+Cohesion: 0.06
+Nodes (79): 🎬 Reusable Motion Components (`frontend/src/components/motion/`), Analyzing, App(), Discover, Home, HowItWorks, NotFound, RouteLoading() (+71 more)
 
 ### Community 1 - "pipeline.ts"
 Cohesion: 0.06
-Nodes (77): __dirname, DOCS_DIR, EvalResult, __filename, FIXTURES_DIR, generateMarkdownReport(), runEvaluation(), ScenarioFixture (+69 more)
+Nodes (76): __dirname, DOCS_DIR, EvalResult, __filename, FIXTURES_DIR, generateMarkdownReport(), runEvaluation(), ScenarioFixture (+68 more)
 
 ### Community 2 - "discoveryService.ts"
 Cohesion: 0.16
 Nodes (16): braveAdapter, isOfficialDomain(), tavilyAdapter, discoveryService, SAMPLE_DISCOVERY_RESULTS, searchManager, generateDiverseSearchQueries(), normalizeUrl() (+8 more)
 
 ### Community 3 - "cn"
-Cohesion: 0.09
-Nodes (23): FloatingInput(), FloatingInputProps, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle (+15 more)
+Cohesion: 0.18
+Nodes (15): FloatingInput(), FloatingInputProps, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle (+7 more)
 
 ### Community 4 - "src/index.ts"
 Cohesion: 0.07
@@ -115,24 +117,24 @@ Cohesion: 0.06
 Nodes (34): Anti-Patterns to Avoid, Banners, Brevity with Substance, Checkpoint Structure, Commit Conventions, Context Engineering, Core Philosophy, Decision Gates (+26 more)
 
 ### Community 6 - "fetcher.ts"
-Cohesion: 0.14
-Nodes (18): BINARY_EXTENSIONS, IGNORED_PATHS, SECRET_PATTERNS, cleanExtractedText(), ingestSources(), processSource(), DetectedTemporalInfo, detectTemporalMetadata() (+10 more)
+Cohesion: 0.20
+Nodes (15): cleanExtractedText(), ingestSources(), processSource(), DetectedTemporalInfo, detectTemporalMetadata(), MONTHS, isPrivateOrLoopbackIP(), validateUrlForSSRF() (+7 more)
 
 ### Community 7 - "Digital Dark Spot 🍉"
 Cohesion: 0.06
 Nodes (29): 1. Prerequisites, 2. Environment Variables, 3. Build & Run Commands, 4. Reverse Proxy Configuration, 5. Health Checks & Verification, Caddy Example, Development, Digital Dark Spot — Deployment & Operations Guide (+21 more)
 
 ### Community 8 - "card-split-accordian.tsx"
-Cohesion: 0.11
-Nodes (19): AccordionApp(), AccordionItem(), AccordionItemData, AccordionItemProps, AccordionProps, DEFAULT_ITEMS, springTransition, AnimatedText() (+11 more)
+Cohesion: 0.25
+Nodes (8): AccordionApp(), AccordionItem(), AccordionItemData, AccordionItemProps, AccordionProps, DEFAULT_ITEMS, springTransition, react-use-measure
 
 ### Community 9 - "compilerOptions"
 Cohesion: 0.10
 Nodes (19): compilerOptions, allowImportingTsExtensions, baseUrl, isolatedModules, jsx, lib, module, moduleResolution (+11 more)
 
 ### Community 10 - "scripts"
-Cohesion: 0.05
-Nodes (43): dependencies, cheerio, cors, dotenv, express, zod, devDependencies, tsx (+35 more)
+Cohesion: 0.04
+Nodes (44): dependencies, cheerio, cors, dotenv, express, zod, devDependencies, tsx (+36 more)
 
 ### Community 11 - "components.json"
 Cohesion: 0.11
@@ -186,33 +188,33 @@ Nodes (8): Anti-Patterns, Context Optimization, Function Calling, GPT Models, GP
 Cohesion: 0.29
 Nodes (7): Anti-Patterns, Artifacts Mode, Claude Adapter, Context Optimization, Effort Levels, Extended Thinking Mode, File Conventions
 
-### Community 24 - "ref_path"
-Cohesion: 0.40
-Nodes (3): @tailwindcss/vite, vite, @vitejs/plugin-react
+### Community 24 - "check-secrets.ts"
+Cohesion: 0.18
+Nodes (6): BINARY_EXTENSIONS, IGNORED_PATHS, SECRET_PATTERNS, @tailwindcss/vite, vite, @vitejs/plugin-react
 
-### Community 25 - "lucide-react"
-Cohesion: 0.11
-Nodes (13): ActivitiesCard(), ActivitiesCardProps, ActivityItem(), ActivityItemType, BreakdownItem, BudgetCardProps, months, CreditUsageCardProps (+5 more)
+### Community 25 - "credit-usage-card.tsx"
+Cohesion: 0.33
+Nodes (4): CreditUsageCardProps, PERIOD_OPTIONS, popoverAnim, UsageHistoryItem
 
 ### Community 26 - "Digital Dark Spot — Product Requirements Document (PRD)"
 Cohesion: 0.40
 Nodes (4): Architecture & System Design, Digital Dark Spot — Product Requirements Document (PRD), Problem Statement, Workflow Pipeline
 
-### Community 27 - "DashboardLayout.tsx"
+### Community 27 - "error-1.tsx"
 Cohesion: 0.33
-Nodes (8): CoverageMap(), formatSentenceCase(), getReport(), FullAnalysisReport, CounterNumber(), DashboardLayout(), ReportContext, ReportContextType
+Nodes (7): defaultErrorOneAction, ErrorOne(), ErrorOneAction, ErrorOneProps, GradientCode(), PillButton(), NotFound()
 
 ### Community 28 - "alert.tsx"
-Cohesion: 0.42
-Nodes (7): Alert1(), Alert1Props, Alert, AlertDescription, AlertTitle, alertVariants, class-variance-authority
+Cohesion: 0.50
+Nodes (6): Alert1(), Alert1Props, Alert, AlertDescription, AlertTitle, alertVariants
 
 ### Community 29 - "continuous-tabs.tsx"
 Cohesion: 0.40
 Nodes (3): ContinuousTabsProps, DEFAULT_TABS, TabItem
 
-### Community 30 - "utils.ts"
-Cohesion: 0.22
-Nodes (12): CoverageMapProps, CoverageMatrixTableProps, HalfMelonSliceViewProps, ChecklistItem, CoverageMatrixRow, ExtractedClaim, FreshnessWarning, IngestedSource (+4 more)
+### Community 30 - "activities-card.tsx"
+Cohesion: 0.50
+Nodes (4): ActivitiesCard(), ActivitiesCardProps, ActivityItem(), ActivityItemType
 
 ### Community 31 - "Digital Dark Spot — Product Requirements Document (PRD)"
 Cohesion: 0.40
@@ -238,29 +240,37 @@ Nodes (3): Digital Dark Spot — UI Components Registry, 🛡️ Radix & shadcn 
 Cohesion: 0.50
 Nodes (4): scripts, build, dev, preview
 
-### Community 47 - "lucide-react"
+### Community 47 - "Button"
 Cohesion: 0.25
-Nodes (16): CrackIcon(), VerifiedCheckIcon(), WiltIcon(), StatusTag(), StatusTagProps, StatusType, CrackLineDraw(), CrackLineDrawProps (+8 more)
+Nodes (8): Button, ButtonProps, buttonVariants, EmptyStateProps, NotFoundBlock(), NotFoundBlockProps, SettingsAi(), class-variance-authority
 
-### Community 48 - "App.tsx"
-Cohesion: 0.12
-Nodes (23): Analyzing, App(), ChecklistTab, ConflictsTab, DashboardLayout, Discover, EvidenceDrawerSubRoute, FreshnessTab (+15 more)
+### Community 48 - "utils.ts"
+Cohesion: 0.17
+Nodes (8): EvidenceStack(), EvidenceStackProps, Counter(), CounterProps, Column, DataTable(), DataTableProps, HowItWorks()
 
 ### Community 49 - "Home.tsx"
-Cohesion: 0.13
-Nodes (24): DotField(), V, AnimatedCheckbox(), AnimatedCheckboxProps, Button, ButtonProps, buttonVariants, NotFoundBlock() (+16 more)
+Cohesion: 0.20
+Nodes (16): DotField(), V, AnimatedCheckbox(), RedactedDocumentBackground(), DiscoveredSource, fetchSampleData(), getDiscoveryJob(), getJobStatus() (+8 more)
 
-### Community 50 - "tabs.tsx"
-Cohesion: 0.29
-Nodes (6): Tabs, TabsContent, TabsList, TabsTrigger, TabsTriggerProps, @radix-ui/react-tabs
+### Community 50 - "feedback-action.tsx"
+Cohesion: 0.50
+Nodes (4): AnimatedText(), FeedbackAction(), InlineFeedbackProps, react-icons
 
-### Community 51 - "SummaryTab.tsx"
-Cohesion: 0.48
-Nodes (5): DeadlineInfo, parseDeadlineFromText(), formatSentenceCase(), HighlightedQuote(), SummaryTab()
+### Community 51 - "drawer.tsx"
+Cohesion: 0.50
+Nodes (3): Drawer(), DrawerProps, @radix-ui/react-dialog
 
 ### Community 52 - "DarkSpotSphere.tsx"
 Cohesion: 0.40
 Nodes (3): G, GAP, gl
+
+### Community 53 - "stepper.tsx"
+Cohesion: 0.50
+Nodes (3): StepItem, Stepper(), StepperProps
+
+### Community 54 - "HeroMelon.tsx"
+Cohesion: 0.50
+Nodes (3): HeroMelon(), HeroMelonProps, InformationDarkSpot
 
 ## Knowledge Gaps
 - **13 isolated node(s):** `@types/cors`, `@types/express`, `@types/node`, `tsx`, `typescript` (+8 more)
@@ -270,17 +280,17 @@ Nodes (3): G, GAP, gl
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `react` connect `react` to `cn`, `card-split-accordian.tsx`, `frontend/package.json`, `lucide-react`, `App.tsx`, `Home.tsx`, `tabs.tsx`, `SummaryTab.tsx`, `DarkSpotSphere.tsx`, `lucide-react`, `DashboardLayout.tsx`, `alert.tsx`, `continuous-tabs.tsx`, `utils.ts`?**
-  _High betweenness centrality (0.137) - this node is a cross-community bridge._
+- **Why does `react` connect `react` to `cn`, `card-split-accordian.tsx`, `frontend/package.json`, `Button`, `utils.ts`, `Home.tsx`, `feedback-action.tsx`, `drawer.tsx`, `DarkSpotSphere.tsx`, `stepper.tsx`, `HeroMelon.tsx`, `credit-usage-card.tsx`, `error-1.tsx`, `alert.tsx`, `continuous-tabs.tsx`, `activities-card.tsx`?**
+  _High betweenness centrality (0.136) - this node is a cross-community bridge._
 - **What connects `@types/cors`, `@types/express`, `@types/node` to the rest of the system?**
   _13 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `react` be split into smaller, more focused modules?**
+  _Cohesion score 0.05847029077117573 - nodes in this community are weakly interconnected._
+- **Why does `@tailwindcss/vite` connect `check-secrets.ts` to `frontend/package.json`?**
+  _High betweenness centrality (0.080) - this node is a cross-community bridge._
 - **Should `pipeline.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.05621351125938282 - nodes in this community are weakly interconnected._
-- **Why does `@tailwindcss/vite` connect `ref_path` to `frontend/package.json`?**
-  _High betweenness centrality (0.081) - this node is a cross-community bridge._
-- **Should `cn` be split into smaller, more focused modules?**
-  _Cohesion score 0.09425287356321839 - nodes in this community are weakly interconnected._
-- **Why does `@vitejs/plugin-react` connect `ref_path` to `frontend/package.json`?**
-  _High betweenness centrality (0.081) - this node is a cross-community bridge._
+  _Cohesion score 0.05742439687393816 - nodes in this community are weakly interconnected._
+- **Why does `@vitejs/plugin-react` connect `check-secrets.ts` to `frontend/package.json`?**
+  _High betweenness centrality (0.080) - this node is a cross-community bridge._
 - **Should `src/index.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.07477288609364081 - nodes in this community are weakly interconnected._

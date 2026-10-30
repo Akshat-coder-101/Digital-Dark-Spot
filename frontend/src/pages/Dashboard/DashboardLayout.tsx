@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { SeedIcon, CrackIcon, WiltIcon, VerifiedCheckIcon, BowlIcon } from '@/components/common/Icons';
@@ -50,6 +50,8 @@ export const DashboardLayout: React.FC = () => {
   const [selectedAttribute, setSelectedAttribute] = useState<string | null>(null);
   const [isRerunning, setIsRerunning] = useState(false);
   const [copiedChecklist, setCopiedChecklist] = useState(false);
+  const [isMapCollapsed, setIsMapCollapsed] = useState(false);
+  const tabsNavRef = useRef<HTMLDivElement>(null);
 
   // Extract current tab from pathname e.g. /report/123/conflicts -> 'conflicts'
   const pathParts = location.pathname.split('/');
@@ -84,8 +86,19 @@ export const DashboardLayout: React.FC = () => {
     loadData();
   }, [loadData]);
 
+  // Tab change: Switch tab IN PLACE without scrolling to the top of the website
   const handleTabChange = (val: string) => {
-    navigate(`/report/${id}/${val}`);
+    const currentY = window.scrollY;
+    navigate(`/report/${id}/${val}`, { preventScrollReset: true });
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: currentY });
+    });
+  };
+
+  // Signal strip counter click: smoothly scroll down to the tabs section
+  const handleSignalStripClick = (val: string) => {
+    navigate(`/report/${id}/${val}`, { preventScrollReset: true });
+    tabsNavRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const handleRerun = async () => {
@@ -351,7 +364,7 @@ export const DashboardLayout: React.FC = () => {
           {/* Sources */}
           <button
             type="button"
-            onClick={() => handleTabChange('sources')}
+            onClick={() => handleSignalStripClick('sources')}
             className="p-4 text-left hover:bg-seed/[0.02] transition-colors cursor-pointer group"
           >
             <div className="flex items-center justify-between">
@@ -371,7 +384,7 @@ export const DashboardLayout: React.FC = () => {
           {/* Potential Gaps */}
           <button
             type="button"
-            onClick={() => handleTabChange('gaps')}
+            onClick={() => handleSignalStripClick('gaps')}
             className="p-4 text-left hover:bg-seed/[0.02] transition-colors cursor-pointer group"
           >
             <div className="flex items-center justify-between">
@@ -391,7 +404,7 @@ export const DashboardLayout: React.FC = () => {
           {/* Possible Conflicts */}
           <button
             type="button"
-            onClick={() => handleTabChange('conflicts')}
+            onClick={() => handleSignalStripClick('conflicts')}
             className="p-4 text-left hover:bg-seed/[0.02] transition-colors cursor-pointer group"
           >
             <div className="flex items-center justify-between">
@@ -411,7 +424,7 @@ export const DashboardLayout: React.FC = () => {
           {/* Stale or undated */}
           <button
             type="button"
-            onClick={() => handleTabChange('freshness')}
+            onClick={() => handleSignalStripClick('freshness')}
             className="p-4 text-left hover:bg-seed/[0.02] transition-colors cursor-pointer group"
           >
             <div className="flex items-center justify-between">
@@ -429,15 +442,44 @@ export const DashboardLayout: React.FC = () => {
           </button>
         </div>
 
-        {/* 5. COVERAGE MAP (Full width, single unified component, replaces slice view and old matrix) */}
+        {/* 5. COVERAGE MAP (Full width with compact / collapse toggle) */}
         <div className="space-y-2.5">
-          <CoverageMap
-            reportId={report.id}
-            matrix={report.coverageMatrix}
-            sources={report.sources}
-            selectedAttribute={selectedAttribute}
-            onSelectAttribute={(attr) => setSelectedAttribute(selectedAttribute === attr ? null : attr)}
-          />
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs text-seed-muted font-sans">
+              Parameter verification matrix across {report.sources.length} sources
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsMapCollapsed(!isMapCollapsed)}
+              className="text-xs font-mono text-rind hover:underline inline-flex items-center gap-1 cursor-pointer"
+            >
+              {isMapCollapsed ? 'Expand Coverage Map ▼' : 'Collapse Coverage Map ▲'}
+            </button>
+          </div>
+
+          {!isMapCollapsed ? (
+            <CoverageMap
+              reportId={report.id}
+              matrix={report.coverageMatrix}
+              sources={report.sources}
+              selectedAttribute={selectedAttribute}
+              onSelectAttribute={(attr) => setSelectedAttribute(selectedAttribute === attr ? null : attr)}
+            />
+          ) : (
+            <div
+              onClick={() => setIsMapCollapsed(false)}
+              className="p-3.5 rounded-sm border border-seed/10 bg-seed/[0.02] flex items-center justify-between text-xs text-seed-muted hover:border-rind/30 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <span className="font-heading font-bold text-seed">Coverage Map (Collapsed)</span>
+                <span>•</span>
+                <span>{report.coverageMatrix.length} parameters inspected</span>
+                <span>•</span>
+                <span className="text-rind font-medium">Click to expand matrix</span>
+              </div>
+              <span className="text-rind font-mono text-xs">Expand ▼</span>
+            </div>
+          )}
 
           {/* Under Coverage Map: Expected information disclaimer with edit link */}
           <div className="flex items-center justify-between text-xs text-seed-muted px-1">
@@ -457,7 +499,7 @@ export const DashboardLayout: React.FC = () => {
         </div>
 
         {/* 6. TABS (nested routes with shared layoutId underline 0.2s) */}
-        <div className="border-b border-seed/10 pt-2">
+        <div ref={tabsNavRef} className="border-b border-seed/10 pt-2 scroll-mt-4">
           <nav className="flex items-center gap-1 sm:gap-6 overflow-x-auto" aria-label="Report sections">
             {tabs.map((tab) => {
               const isActive = currentTab === tab.id || (tab.id === 'summary' && currentTab === 'evidence');

@@ -9,7 +9,8 @@ import { buildPrioritizedChecklist } from './checklist.js';
 import { runSecondPassTargetedGapSearch } from '../search/secondPass.js';
 import { FullAnalysisReport, JobProgress, AnalysisStage } from './types.js';
 import { LLMCache, llmCache } from '../llm/cache.js';
-import { normalizeAttributeName } from './canonicalization.js';
+import { normalizeAttributeName, areAttributesMatching } from './canonicalization.js';
+import { isOfficialDomain } from '../search/adapters/tavily.js';
 import crypto from 'crypto';
 
 export type ProgressCallback = (progress: JobProgress) => void;
@@ -135,6 +136,45 @@ export class AnalysisPipeline {
         llmCache.set(cacheKey, extractionData, usedProvider, usedModel);
       } else if (customExpectedAttributes && customExpectedAttributes.length > 0) {
         extractionData.expected_attributes = customExpectedAttributes.map(normalizeAttributeName);
+      }
+
+      // Auto-recognize official portal sources (.gov, .gov.in, .nic.in, etc.) for portal-related attributes
+      const portalAttrs = (extractionData.expected_attributes || []).filter((a: string) =>
+        areAttributesMatching(a, 'official_application_portal')
+      );
+      if (portalAttrs.length > 0) {
+        for (const source of readySources) {
+          const isGov = isOfficialDomain(source.domain) ||
+                        source.domain.endsWith('.gov') ||
+                        source.domain.includes('.gov.') ||
+                        source.domain.endsWith('.nic.in') ||
+                        source.domain.includes('.nic.');
+          const isReferencedInClaims = extractionData.verified_claims.some((c: any) =>
+            c.value.toLowerCase().includes(source.domain.toLowerCase()) ||
+            (source.url && c.value.toLowerCase().includes(source.url.toLowerCase()))
+          );
+          if (isGov || isReferencedInClaims) {
+            for (const pAttr of portalAttrs) {
+              const hasClaim = extractionData.verified_claims.some((c: any) =>
+                c.source_id === source.id && areAttributesMatching(c.attribute, pAttr)
+              );
+              if (!hasClaim) {
+                extractionData.verified_claims.push({
+                  id: `claim-portal-${source.id}`,
+                  source_id: source.id,
+                  source_title: source.title,
+                  source_domain: source.domain,
+                  attribute: pAttr,
+                  original_attribute: pAttr,
+                  value: source.url || `https://${source.domain}`,
+                  quote: source.cleanedText.slice(0, 100) || source.title,
+                  verified: true,
+                  charOffset: 0
+                });
+              }
+            }
+          }
+        }
       }
 
       // STAGE 3: Comparing (Deterministic Gaps & Conflicts)

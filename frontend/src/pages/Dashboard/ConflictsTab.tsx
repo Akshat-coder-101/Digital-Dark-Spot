@@ -7,6 +7,12 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { ExternalLink, AlertTriangle, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+function formatSentenceCase(str: string): string {
+  if (!str) return '';
+  const clean = str.replace(/_/g, ' ').trim();
+  return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
+}
+
 export const ConflictsTab: React.FC = () => {
   const { report } = useReport();
   const navigate = useNavigate();
@@ -45,8 +51,8 @@ export const ConflictsTab: React.FC = () => {
             <div className="px-5 py-3 border-b border-seed/10 bg-seed/[0.02] flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <StatusTag status="conflict" />
-                <span className="font-mono text-xs text-seed font-bold uppercase tracking-wider">
-                  {conflict.attribute}
+                <span className="font-heading text-xs text-seed font-bold">
+                  {formatSentenceCase(conflict.attribute)}
                 </span>
               </div>
               <span className="text-[11px] font-mono text-crack font-semibold inline-flex items-center gap-1">

@@ -31,18 +31,19 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { AnimatePresence, motion } from 'motion/react';
 import { SeedIcon } from '@/components/common/Icons';
 
-// Code-split Lazy-Loaded Route Components
+import { DashboardLayout } from '@/pages/Dashboard/DashboardLayout';
+import { SummaryTab } from '@/pages/Dashboard/SummaryTab';
+import { GapsTab } from '@/pages/Dashboard/GapsTab';
+import { ConflictsTab } from '@/pages/Dashboard/ConflictsTab';
+import { FreshnessTab } from '@/pages/Dashboard/FreshnessTab';
+import { ChecklistTab } from '@/pages/Dashboard/ChecklistTab';
+import { SourcesTab } from '@/pages/Dashboard/SourcesTab';
+import { EvidenceDrawerSubRoute } from '@/pages/Dashboard/EvidenceDrawerSubRoute';
+
+// Code-split Lazy-Loaded Independent Page Routes
 const Home = lazy(() => import('@/pages/Home').then(m => ({ default: m.Home })));
 const Discover = lazy(() => import('@/pages/Discover').then(m => ({ default: m.Discover })));
 const Analyzing = lazy(() => import('@/pages/Analyzing').then(m => ({ default: m.Analyzing })));
-const DashboardLayout = lazy(() => import('@/pages/Dashboard/DashboardLayout').then(m => ({ default: m.DashboardLayout })));
-const SummaryTab = lazy(() => import('@/pages/Dashboard/SummaryTab').then(m => ({ default: m.SummaryTab })));
-const GapsTab = lazy(() => import('@/pages/Dashboard/GapsTab').then(m => ({ default: m.GapsTab })));
-const ConflictsTab = lazy(() => import('@/pages/Dashboard/ConflictsTab').then(m => ({ default: m.ConflictsTab })));
-const FreshnessTab = lazy(() => import('@/pages/Dashboard/FreshnessTab').then(m => ({ default: m.FreshnessTab })));
-const ChecklistTab = lazy(() => import('@/pages/Dashboard/ChecklistTab').then(m => ({ default: m.ChecklistTab })));
-const SourcesTab = lazy(() => import('@/pages/Dashboard/SourcesTab').then(m => ({ default: m.SourcesTab })));
-const EvidenceDrawerSubRoute = lazy(() => import('@/pages/Dashboard/EvidenceDrawerSubRoute').then(m => ({ default: m.EvidenceDrawerSubRoute })));
 const HowItWorks = lazy(() => import('@/pages/HowItWorks').then(m => ({ default: m.HowItWorks })));
 const SettingsAi = lazy(() => import('@/pages/SettingsAi').then(m => ({ default: m.SettingsAi })));
 const NotFound = lazy(() => import('@/pages/NotFound').then(m => ({ default: m.NotFound })));
