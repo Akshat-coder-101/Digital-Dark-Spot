@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-const N = 2200;
+const N = 2400;
 const V = (() => {
   const g = [0.35, 0.12, 0.93];
   const l = Math.hypot(...g);
@@ -37,6 +37,7 @@ export function DotField({ className = "" }: { className?: string }) {
     });
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 
+    // Generate points on Fibonacci sphere with dense equatorial belt
     const pts = Array.from({ length: N }, (_, i) => {
       const y = 1 - (2 * (i + 0.5)) / N;
       const r = Math.sqrt(1 - y * y);
@@ -44,6 +45,7 @@ export function DotField({ className = "" }: { className?: string }) {
       const x = Math.cos(th) * r;
       const z = Math.sin(th) * r;
       const d = x * V[0] + y * V[1] + z * V[2];
+      const inBelt = Math.abs(y) < 0.22;
       return {
         mx: x,
         my: y,
@@ -54,17 +56,26 @@ export function DotField({ className = "" }: { className?: string }) {
         vy: 0,
         k: 0.012 + Math.random() * 0.02,
         hole: d > 0.93,
-        edge: d > 0.9 && d <= 0.93
+        edge: d > 0.89 && d <= 0.93,
+        belt: inBelt
       };
     });
 
     let size = 0, dpr = 1, ang = 0.6, placed = false;
     let mx = -9999, my = -9999;
+    let tiltX = 0, targetTiltX = 0;
+    let tiltY = 0, targetTiltY = 0;
+    let angVel = 0;
+    let isDragging = false;
+    let lastClientX = 0;
     const RADIUS = 90, PUSH = 7;
 
     const target = (p: typeof pts[number]) => {
-      const R = size * 0.38, c = size / 2, tilt = 0.35;
-      const ca = Math.cos(ang), sa = Math.sin(ang), ct = Math.cos(tilt), st = Math.sin(tilt);
+      const R = size * 0.38, c = size / 2;
+      const currentTilt = 0.35 + tiltX;
+      const currentAng = ang + tiltY;
+      const ca = Math.cos(currentAng), sa = Math.sin(currentAng);
+      const ct = Math.cos(currentTilt), st = Math.sin(currentTilt);
       const x1 = p.mx * ca + p.mz * sa, z1 = -p.mx * sa + p.mz * ca;
       const y2 = p.my * ct - z1 * st, z2 = p.my * st + z1 * ct;
       const s = 3 / (3 - z2);
@@ -93,17 +104,56 @@ export function DotField({ className = "" }: { className?: string }) {
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
 
+    // Interactive 3D hover and drag listeners
     const onMove = (e: PointerEvent) => {
       if (e.pointerType === "touch") return;
       const r = canvas.getBoundingClientRect();
-      mx = e.clientX - r.left;
-      my = e.clientY - r.top;
+      const cx = e.clientX - r.left;
+      const cy = e.clientY - r.top;
+
+      // Active parallax zone (over and around the canvas)
+      if (cx >= -80 && cx <= size + 80 && cy >= -80 && cy <= size + 80) {
+        mx = cx;
+        my = cy;
+        const normX = Math.max(-1.5, Math.min(1.5, (cx - size / 2) / (size / 2)));
+        const normY = Math.max(-1.5, Math.min(1.5, (cy - size / 2) / (size / 2)));
+        targetTiltX = -normY * 0.45;
+        targetTiltY = normX * 0.65;
+
+        if (isDragging) {
+          const dx = e.clientX - lastClientX;
+          ang += dx * 0.006;
+          angVel = dx * 0.002;
+          lastClientX = e.clientX;
+        }
+      } else {
+        targetTiltX = 0;
+        targetTiltY = 0;
+        mx = my = -9999;
+      }
     };
+
+    const onDown = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
+      isDragging = true;
+      lastClientX = e.clientX;
+    };
+
+    const onUp = () => {
+      isDragging = false;
+    };
+
     const onLeave = () => {
+      targetTiltX = 0;
+      targetTiltY = 0;
+      isDragging = false;
       mx = my = -9999;
     };
+
     if (!reduce) {
       window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+      canvas.addEventListener("pointerdown", onDown);
       document.addEventListener("pointerleave", onLeave);
     }
 
@@ -115,7 +165,14 @@ export function DotField({ className = "" }: { className?: string }) {
       if (size <= 0) return;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, size, size);
-      if (!reduce) ang += 0.0012;
+
+      if (!reduce) {
+        ang += 0.0012 + angVel;
+        angVel *= 0.92;
+        tiltX += (targetTiltX - tiltX) * 0.08;
+        tiltY += (targetTiltY - tiltY) * 0.08;
+      }
+
       for (const p of pts) {
         if (p.hole) continue;
         const t = target(p);
@@ -136,10 +193,16 @@ export function DotField({ className = "" }: { className?: string }) {
           p.x += p.vx;
           p.y += p.vy;
         }
+
         const rim = 1 - Math.abs(t.z), back = t.z < 0 ? 0.45 : 1;
+
         if (p.edge) {
           ctx.fillStyle = cEdge;
-          ctx.globalAlpha = 0.9 * back;
+          ctx.globalAlpha = 0.95 * back;
+        } else if (p.belt && Math.random() > 0.28) {
+          // Equatorial amber belt matching motion.dev
+          ctx.fillStyle = cEdge;
+          ctx.globalAlpha = (0.35 + 0.6 * rim) * back;
         } else if (rim > 0.82) {
           ctx.fillStyle = cRim;
           ctx.globalAlpha = (0.3 + 0.7 * rim * rim) * back;
@@ -147,7 +210,9 @@ export function DotField({ className = "" }: { className?: string }) {
           ctx.fillStyle = cBody;
           ctx.globalAlpha = (0.12 + 0.35 * rim) * back;
         }
-        const s = (p.edge ? 1.9 : 1.4) * t.s;
+
+        const isSpecial = p.edge || p.belt;
+        const s = (isSpecial ? 1.75 : 1.35) * t.s;
         ctx.fillRect(p.x, p.y, s, s);
       }
       ctx.globalAlpha = 1;
@@ -170,6 +235,8 @@ export function DotField({ className = "" }: { className?: string }) {
       io.disconnect();
       themeObserver.disconnect();
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      canvas.removeEventListener("pointerdown", onDown);
       document.removeEventListener("pointerleave", onLeave);
     };
   }, []);
@@ -177,9 +244,9 @@ export function DotField({ className = "" }: { className?: string }) {
   return (
     <canvas
       ref={ref}
-      className={`aspect-square w-full ${className}`}
+      className={`aspect-square w-full cursor-grab active:cursor-grabbing select-none ${className}`}
       role="img"
-      aria-label="Sphere of dots representing sources, with a void marking a potential information gap and amber dots at its edge."
+      aria-label="3D particle sphere representing sources with an interactive hover parallax tilt and a void marking potential information gaps."
     />
   );
 }

@@ -558,8 +558,8 @@
     "semantic_hash": ""
   },
   "frontend/src/components/visual/RedactedDocumentBackground.tsx": {
-    "mtime": 1793374520.4502363,
-    "seen": 1793374905.5186205,
+    "mtime": 1793374963.1461985,
+    "seen": 1793375263.7479885,
     "ast_hash": "850fe8ab4ea44810f57bf037fc2fe06a",
     "semantic_hash": ""
   },
@@ -606,8 +606,8 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/Dashboard/DashboardLayout.tsx": {
-    "mtime": 1793374662.1438398,
-    "seen": 1793374905.5186565,
+    "mtime": 1793374963.3181832,
+    "seen": 1793375263.7480364,
     "ast_hash": "7fdf846949cee4b349892934ac0aff9e",
     "semantic_hash": ""
   },
@@ -642,8 +642,8 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/Dashboard/SummaryTab.tsx": {
-    "mtime": 1793374716.1589248,
-    "seen": 1793374905.5186787,
+    "mtime": 1793374963.4475038,
+    "seen": 1793375263.7480652,
     "ast_hash": "2c4e590c62c688828568123681573c57",
     "semantic_hash": ""
   },
@@ -654,8 +654,8 @@
     "semantic_hash": ""
   },
   "frontend/src/pages/Home.tsx": {
-    "mtime": 1793374477.7596085,
-    "seen": 1793374905.518687,
+    "mtime": 1793374963.5975366,
+    "seen": 1793375263.748074,
     "ast_hash": "006ae7057941c9a610cef21e233cfc29",
     "semantic_hash": ""
   },
@@ -858,9 +858,9 @@
     "semantic_hash": ""
   },
   "docs/EVAL.md": {
-    "mtime": 1793374761.0549922,
-    "seen": 1793374905.5189815,
-    "ast_hash": "fa883cce2ba67ffcb114ca65d926d5f5",
+    "mtime": 1793375049.546729,
+    "seen": 1793375263.748252,
+    "ast_hash": "36b9a2d0df394368fc2f7d653f8319c6",
     "semantic_hash": ""
   },
   "docs/PRD.md": {
@@ -894,9 +894,9 @@
     "semantic_hash": ""
   },
   "frontend/src/components/DotField.tsx": {
-    "mtime": 1793374706.2597897,
-    "seen": 1793374905.5184834,
-    "ast_hash": "88abf56fa1c57cae010faf07a3ba902a",
+    "mtime": 1793375178.1335573,
+    "seen": 1793375263.747825,
+    "ast_hash": "2b19d5475b04c158fd9083f52c4b773d",
     "semantic_hash": ""
   },
   "frontend/src/components/EvidenceStack.tsx": {
@@ -906,14 +906,14 @@
     "semantic_hash": ""
   },
   "frontend/src/components/visual/CoverageMap.tsx": {
-    "mtime": 1793374568.7622201,
-    "seen": 1793374905.5186048,
-    "ast_hash": "ecddbdf49ee74997914e8b12057a07a4",
+    "mtime": 1793374948.1606624,
+    "seen": 1793375263.7479684,
+    "ast_hash": "4a5ab24a3eda1a5c059f9fcb03e691c5",
     "semantic_hash": ""
   },
   "frontend/src/lib/deadline.ts": {
-    "mtime": 1793374710.6824472,
-    "seen": 1793374905.5186286,
+    "mtime": 1793374963.2135003,
+    "seen": 1793375263.7479985,
     "ast_hash": "6b58f5f885b5ed01e7e98a1058acb926",
     "semantic_hash": ""
   }
