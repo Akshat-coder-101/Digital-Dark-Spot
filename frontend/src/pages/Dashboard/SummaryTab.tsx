@@ -72,29 +72,31 @@ export const SummaryTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* 0. Investigated Scheme Identity Banner */}
-      <div className="p-4 sm:p-5 rounded-sm border border-rind/25 bg-rind/[0.04] flex flex-wrap items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-rind" />
-            <span className="text-[11px] font-mono uppercase tracking-wider text-rind font-bold">
-              Identified Scholarship / Target Scheme
-            </span>
+      {/* 0. Investigated Scheme Identity Banner (Only when a specific scheme was identified) */}
+      {schemeInfo.isSpecific && (
+        <div className="p-4 sm:p-5 rounded-sm border border-rind/25 bg-rind/[0.04] flex flex-wrap items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-rind" />
+              <span className="text-[11px] font-mono uppercase tracking-wider text-rind font-bold">
+                Identified Scholarship / Target Scheme
+              </span>
+            </div>
+            <h2 className="font-heading font-extrabold text-base sm:text-lg text-seed">
+              {schemeInfo.name}
+            </h2>
+            <p className="text-xs text-seed-muted">
+              {schemeInfo.cycle ? `Application cycle: ${schemeInfo.cycle} • ` : ''}
+              Primary authority: <span className="font-mono text-seed font-medium">{schemeInfo.officialDomain || 'Verified primary notice'}</span>
+            </p>
           </div>
-          <h2 className="font-heading font-extrabold text-base sm:text-lg text-seed">
-            {schemeInfo.name}
-          </h2>
-          <p className="text-xs text-seed-muted">
-            {schemeInfo.cycle ? `Application cycle: ${schemeInfo.cycle} • ` : ''}
-            Primary authority: <span className="font-mono text-seed font-medium">{schemeInfo.officialDomain || 'Verified primary notice'}</span>
-          </p>
+          {schemeInfo.hasOfficialSource && (
+            <div className="px-2.5 py-1 rounded-xs bg-rind/15 border border-rind/30 text-rind text-xs font-semibold flex items-center gap-1.5 self-start sm:self-center font-sans">
+              <span>Official Portal Identified</span>
+            </div>
+          )}
         </div>
-        {schemeInfo.hasOfficialSource && (
-          <div className="px-2.5 py-1 rounded-xs bg-rind/15 border border-rind/30 text-rind text-xs font-semibold flex items-center gap-1.5 self-start sm:self-center font-sans">
-            <span>Official Portal Identified</span>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* 1. Summary Block (Renamed from Executive Synthesis, hidden if empty, tagged "AI-suggested") */}
       {hasRealSummary && (

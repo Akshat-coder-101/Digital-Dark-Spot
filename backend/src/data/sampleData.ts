@@ -7,7 +7,7 @@ import { auditFreshness } from '../analysis/freshness.js';
 import { buildCoverageMatrix } from '../analysis/matrix.js';
 import { buildPrioritizedChecklist } from '../analysis/checklist.js';
 
-export const SAMPLE_RESEARCH_QUESTION = "What should I verify before applying for the National Scholarship Scheme 2026 (NSP)?";
+export const SAMPLE_RESEARCH_QUESTION = "What should I verify before applying for this scholarship?";
 
 export const SAMPLE_SOURCES: IngestedSource[] = [
   {
