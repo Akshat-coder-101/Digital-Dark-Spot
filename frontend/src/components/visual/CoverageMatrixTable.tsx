@@ -35,11 +35,11 @@ export const CoverageMatrixTable: React.FC<CoverageMatrixTableProps> = ({
       <table className="w-full text-left text-xs border-collapse" role="table">
         <thead>
           <tr className="border-b border-seed/10 bg-seed/[0.02]">
-            <th scope="col" className="py-2.5 px-3 font-mono text-[11px] font-bold text-seed uppercase tracking-wider">
-              Expected Attribute
+            <th scope="col" className="py-2.5 px-3 font-heading font-bold text-xs text-seed">
+              Expected parameter
             </th>
-            <th scope="col" className="py-2.5 px-2 font-mono text-[11px] font-bold text-seed uppercase tracking-wider text-center">
-              Coverage
+            <th scope="col" className="py-2.5 px-2 font-heading font-bold text-xs text-seed text-center">
+              Coverage status
             </th>
             {readySources.map((source, idx) => (
               <th

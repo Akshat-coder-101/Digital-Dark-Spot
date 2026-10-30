@@ -133,26 +133,26 @@ export const DashboardLayout: React.FC = () => {
         <div className="space-y-3 border-b border-seed/10 pb-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded-xs bg-rind/10 text-rind border border-rind/20 uppercase tracking-wider">
-                Research Report
+              <span className="font-sans text-xs font-semibold px-2 py-0.5 rounded-xs bg-rind/10 text-rind border border-rind/20">
+                Research report
               </span>
               <span className="text-xs text-seed-muted font-mono">
                 Session: <strong className="text-seed">{shortSessionId}</strong>
               </span>
               <span className="text-seed-muted/40">•</span>
-              <span className="text-xs text-seed-muted font-mono">
+              <span className="text-xs text-seed-muted">
                 {reportDate}
               </span>
               <span className="text-seed-muted/40">•</span>
-              <span className="text-xs text-seed-muted flex items-center gap-1 font-mono">
+              <span className="text-xs text-seed-muted flex items-center gap-1">
                 <Sparkles className="w-3 h-3 text-rind" />
                 {report.analyzedWith.provider ? (
-                  <>Analyzed with: <strong className="text-seed">{report.analyzedWith.provider}</strong></>
+                  <>Analyzed with: <strong className="text-seed font-mono">{report.analyzedWith.provider}</strong></>
                 ) : (
-                  <strong className="text-seed">Sample Data</strong>
+                  <strong className="text-seed font-mono">Sample data</strong>
                 )}
                 {report.analyzedWith.cached && (
-                  <span className="text-[10px] text-seed-muted/70">(cached)</span>
+                  <span className="text-[10px] text-seed-muted/70 font-mono">(cached)</span>
                 )}
               </span>
             </div>
@@ -183,8 +183,8 @@ export const DashboardLayout: React.FC = () => {
             className="p-4 text-left hover:bg-seed/[0.02] transition-colors cursor-pointer group"
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[10px] uppercase tracking-wider text-seed-muted">
-                Sources Reviewed
+              <span className="font-sans text-xs text-seed-muted font-medium">
+                Sources reviewed
               </span>
               <VerifiedCheckIcon className="w-3.5 h-3.5 text-rind" />
             </div>
@@ -203,8 +203,8 @@ export const DashboardLayout: React.FC = () => {
             className="p-4 text-left hover:bg-seed/[0.02] transition-colors cursor-pointer group"
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[10px] uppercase tracking-wider text-seed-muted">
-                Potential Gaps
+              <span className="font-sans text-xs text-seed-muted font-medium">
+                Potential gaps
               </span>
               <SeedIcon className="w-3.5 h-3.5 fill-current text-seed" />
             </div>
@@ -223,8 +223,8 @@ export const DashboardLayout: React.FC = () => {
             className="p-4 text-left hover:bg-seed/[0.02] transition-colors cursor-pointer group"
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[10px] uppercase tracking-wider text-seed-muted">
-                Possible Conflicts
+              <span className="font-sans text-xs text-seed-muted font-medium">
+                Possible conflicts
               </span>
               <CrackIcon className="w-3.5 h-3.5 text-crack" />
             </div>
@@ -243,8 +243,8 @@ export const DashboardLayout: React.FC = () => {
             className="p-4 text-left hover:bg-seed/[0.02] transition-colors cursor-pointer group"
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[10px] uppercase tracking-wider text-seed-muted">
-                Stale / Undated
+              <span className="font-sans text-xs text-seed-muted font-medium">
+                Stale / undated
               </span>
               <WiltIcon className="w-3.5 h-3.5 text-wilt" />
             </div>

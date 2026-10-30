@@ -152,8 +152,8 @@ export const Analyzing: React.FC = () => {
       {/* Current Status Callout */}
       <div className="p-4 rounded-sm bg-seed/[0.02] border border-seed/10 flex items-center justify-between text-xs">
         <div className="space-y-0.5">
-          <span className="font-mono text-[10px] uppercase tracking-wider text-seed-muted block">
-            Current Operation
+          <span className="font-sans text-xs text-seed-muted font-medium block">
+            Current operation
           </span>
           <p className="font-medium text-seed">
             {currentAction}
@@ -166,8 +166,8 @@ export const Analyzing: React.FC = () => {
 
       {/* Forensic Vertical Timeline */}
       <div className="space-y-6">
-        <h3 className="font-mono text-xs uppercase tracking-wider text-seed-muted">
-          Pipeline Audit Stages
+        <h3 className="font-heading font-bold text-sm text-seed">
+          Pipeline audit stages
         </h3>
 
         <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[1px] before:bg-seed/10">
@@ -229,8 +229,8 @@ export const Analyzing: React.FC = () => {
       {sourceChips.length > 0 && (
         <div className="space-y-3 pt-6 border-t border-seed/10">
           <div className="flex items-center justify-between">
-            <span className="font-mono text-xs uppercase tracking-wider text-seed-muted">
-              Source Material Status ({sourceChips.length})
+            <span className="font-heading font-bold text-sm text-seed">
+              Source material status ({sourceChips.length})
             </span>
           </div>
 

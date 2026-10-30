@@ -77,7 +77,7 @@ export const EvidenceDrawerSubRoute: React.FC = () => {
                 </span>
                 <span className="text-rind text-[11px] font-mono font-semibold inline-flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  Verbatim Match (100%)
+                  Verified Verbatim Substring
                 </span>
               </div>
 
