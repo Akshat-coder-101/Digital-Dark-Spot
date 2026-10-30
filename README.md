@@ -58,13 +58,13 @@ flowchart TD
 
 ## 3. Technology Stack
 
-- **Frontend (`/client`):**
+- **Frontend (`/frontend`):**
   - **Framework:** Vite + React + TypeScript
   - **Routing:** React Router v6 (lazy-loaded routes, nested dashboard tab outlets)
   - **Styling:** Tailwind CSS v4 with custom **"Watermelon Seed"** tokens (Light & Dark modes)
   - **Components:** [Watermelon UI](https://ui.watermelon.sh) + Radix UI primitives + shadcn/ui
   - **Motion & Animation:** [Motion](https://motion.dev) (`motion/react`) with `<MotionConfig reducedMotion="user">`
-- **Backend (`/server`):**
+- **Backend (`/backend`):**
   - **Runtime:** Node.js + Express (TypeScript with ES modules)
   - **Storage:** In-memory job pipeline and caching
   - **Ingestion:** Cheerio HTML text cleaner, SSRF IPv4/IPv6 guard, temporal cycle regex engine
@@ -120,7 +120,6 @@ npm run dev
 ```
 - Frontend UI: `http://localhost:5173`
 - Backend API: `http://localhost:3001`
-- Styleguide: `http://localhost:5173/styleguide`
 
 ---
 

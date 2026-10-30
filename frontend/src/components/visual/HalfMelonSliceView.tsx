@@ -86,7 +86,7 @@ export const HalfMelonSliceView: React.FC<HalfMelonSliceViewProps> = ({
           viewBox={`0 0 ${width} ${height}`}
           className="w-full h-full select-none"
           role="img"
-          aria-label="Half watermelon visualization of attribute coverage"
+          aria-label="Half-melon slice visualization of attribute coverage"
         >
           {/* Outer Green Rind */}
           <path
