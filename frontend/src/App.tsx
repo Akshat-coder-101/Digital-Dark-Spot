@@ -22,7 +22,6 @@
  * │   └── /evidence/:id     -> Slide-Over Evidence Drawer with Verbatim Quotes
  * ├── /how-it-works         -> Methodology & Architecture Guide
  * ├── /settings/ai          -> Multi-Provider LLM Status & Diagnostics (Masked Keys)
- * ├── /styleguide           -> Design Token Palette & 10 Watermelon UI Showcase
  * └── *                     -> 404 Error Block (Watermelon ErrorOne)
  */
 
@@ -46,7 +45,6 @@ const SourcesTab = lazy(() => import('@/pages/Dashboard/SourcesTab').then(m => (
 const EvidenceDrawerSubRoute = lazy(() => import('@/pages/Dashboard/EvidenceDrawerSubRoute').then(m => ({ default: m.EvidenceDrawerSubRoute })));
 const HowItWorks = lazy(() => import('@/pages/HowItWorks').then(m => ({ default: m.HowItWorks })));
 const SettingsAi = lazy(() => import('@/pages/SettingsAi').then(m => ({ default: m.SettingsAi })));
-const Styleguide = lazy(() => import('@/pages/Styleguide').then(m => ({ default: m.Styleguide })));
 const NotFound = lazy(() => import('@/pages/NotFound').then(m => ({ default: m.NotFound })));
 
 /**
@@ -102,10 +100,7 @@ export const App: React.FC = () => {
             {/* 6. AI Multi-Provider Diagnostics */}
             <Route path="/settings/ai" element={<SettingsAi />} />
 
-            {/* 7. Design Tokens & Watermelon UI Catalog */}
-            <Route path="/styleguide" element={<Styleguide />} />
-
-            {/* 8. Catch-All 404 Route */}
+            {/* 7. Catch-All 404 Route */}
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

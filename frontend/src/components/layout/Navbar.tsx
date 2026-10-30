@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { SeedIcon } from '../common/Icons';
-import { Sun, Moon, Sparkles, HelpCircle, Palette } from 'lucide-react';
+import { Sun, Moon, Sparkles, HelpCircle, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const Navbar: React.FC = () => {
@@ -20,38 +20,29 @@ export const Navbar: React.FC = () => {
   }, [isDark]);
 
   const navLinks = [
-    { to: '/', label: 'Detect' },
+    { to: '/', label: 'Investigate', icon: Search },
     { to: '/how-it-works', label: 'How it Works', icon: HelpCircle },
     { to: '/settings/ai', label: 'AI Status', icon: Sparkles },
-    { to: '/styleguide', label: 'Styleguide', icon: Palette },
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/80 bg-pith/80 backdrop-blur-md transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand Logo */}
+    <header className="sticky top-0 z-40 w-full border-b border-seed/10 bg-pith/90 backdrop-blur-md transition-colors">
+      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+        {/* Brand Wordmark with small seed mark */}
         <Link
           to="/"
-          className="flex items-center gap-2.5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rind rounded-lg p-1"
+          className="flex items-center gap-2 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rind rounded-sm"
         >
-          <div className="w-8 h-8 rounded-xl bg-rind flex items-center justify-center text-white shadow-sm transition-transform group-hover:scale-105">
-            <SeedIcon className="w-4 h-4 fill-white" />
+          <div className="w-5 h-5 rounded-xs bg-rind flex items-center justify-center text-white transition-transform group-hover:scale-105">
+            <SeedIcon className="w-3 h-3 fill-white" />
           </div>
-          <div className="flex flex-col">
-            <span className="font-heading font-extrabold text-base tracking-tight text-seed flex items-center gap-1.5">
-              Digital Dark Spot
-              <span className="text-[10px] uppercase font-mono font-bold px-1.5 py-0.5 rounded-full bg-flesh/15 text-flesh">
-                Beta
-              </span>
-            </span>
-            <span className="text-[11px] text-seed-muted hidden sm:inline-block leading-tight">
-              Information Gap & Contradiction Detection
-            </span>
-          </div>
+          <span className="font-heading font-bold text-base tracking-tight text-seed">
+            Digital Dark Spot
+          </span>
         </Link>
 
         {/* Navigation links & Theme toggle */}
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-1 sm:gap-2">
           <nav className="flex items-center gap-1">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.to;
@@ -60,27 +51,25 @@ export const Navbar: React.FC = () => {
                   key={link.to}
                   to={link.to}
                   className={cn(
-                    "px-3 py-1.5 text-xs sm:text-sm font-medium rounded-xl transition-colors select-none",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rind",
+                    'px-2.5 py-1.5 rounded-sm text-xs font-medium transition-colors inline-flex items-center gap-1.5',
                     isActive
-                      ? "bg-pith-card text-rind font-semibold shadow-2xs border border-border"
-                      : "text-seed-muted hover:text-seed hover:bg-pith-muted/60"
+                      ? 'text-seed font-semibold border-b border-rind'
+                      : 'text-seed-muted hover:text-seed hover:bg-seed/5'
                   )}
                 >
-                  {link.label}
+                  {link.icon && <link.icon className="w-3.5 h-3.5 opacity-70" />}
+                  <span>{link.label}</span>
                 </Link>
               );
             })}
           </nav>
 
-          {/* Dark mode toggle */}
           <button
-            type="button"
             onClick={() => setIsDark(!isDark)}
-            className="p-2 rounded-xl text-seed-muted hover:text-seed hover:bg-pith-muted transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rind"
-            aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            className="p-1.5 rounded-sm text-seed-muted hover:text-seed hover:bg-seed/5 transition-colors cursor-pointer ml-1"
+            aria-label="Toggle theme"
           >
-            {isDark ? <Sun className="w-4 h-4 text-crack" /> : <Moon className="w-4 h-4" />}
+            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
         </div>
       </div>
