@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { HelpCircle, Globe, FileJson, CheckCircle2, GitCompare, Sparkles, AlertTriangle } from 'lucide-react';
+import { EvidenceStack } from '@/components/EvidenceStack';
 
 export const HowItWorks: React.FC = () => {
   const shouldReduceMotion = useReducedMotion();
@@ -58,6 +59,24 @@ export const HowItWorks: React.FC = () => {
         <p className="text-seed-muted text-xs sm:text-sm max-w-2xl leading-relaxed">
           The difference between generative AI summarization and deterministic information gap detection.
         </p>
+      </div>
+
+      {/* Forensic Pipeline Illustration: EvidenceStack */}
+      <div className="rounded-sm border border-seed/10 bg-pith p-6 sm:p-8 flex flex-col lg:flex-row items-center justify-between gap-8">
+        <div className="space-y-3 max-w-lg">
+          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-rind/10 text-rind text-xs font-mono font-medium">
+            <span>Pipeline illustration</span>
+          </div>
+          <h2 className="font-heading font-extrabold text-lg sm:text-xl text-seed">
+            Cross-Document Layering & Fracture Discovery
+          </h2>
+          <p className="text-xs sm:text-sm text-seed-muted leading-relaxed">
+            By layering multiple primary sources—from official notices to public forums—the deterministic engine compares corresponding provisions row by row to detect unstated eligibility conditions and contradictory rules.
+          </p>
+        </div>
+        <div className="w-full max-w-[440px] shrink-0 flex justify-center">
+          <EvidenceStack />
+        </div>
       </div>
 
       {/* Horizontal Forensic Process Flow (Vertical on Mobile) */}

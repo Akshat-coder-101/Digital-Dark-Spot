@@ -1,5 +1,5 @@
 {
-  "0": "DashboardLayout.tsx",
+  "0": "react",
   "1": "pipeline.ts",
   "2": "discoveryService.ts",
   "3": "cn",
@@ -23,13 +23,13 @@
   "21": "Digital Dark Spot — Official Hackathon Project Submission Description",
   "22": "GPT & Open Source Models Adapter",
   "23": "Claude Adapter",
-  "24": "check-secrets.ts",
-  "25": "credit-usage-card.tsx",
+  "24": "ref_path",
+  "25": "lucide-react",
   "26": "Digital Dark Spot — Product Requirements Document (PRD)",
-  "27": "error-1.tsx",
-  "28": "react",
+  "27": "DashboardLayout.tsx",
+  "28": "alert.tsx",
   "29": "continuous-tabs.tsx",
-  "30": "lib/types.ts",
+  "30": "utils.ts",
   "31": "Digital Dark Spot — Product Requirements Document (PRD)",
   "32": "Token Efficiency Rules",
   "33": "setup_search.sh script",
@@ -49,7 +49,7 @@
   "47": "lucide-react",
   "48": "App.tsx",
   "49": "Home.tsx",
-  "50": "Button",
-  "51": "budget-card.tsx",
-  "52": "feedback-action.tsx"
+  "50": "tabs.tsx",
+  "51": "SummaryTab.tsx",
+  "52": "DarkSpotSphere.tsx"
 }

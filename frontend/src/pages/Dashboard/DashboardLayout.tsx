@@ -4,10 +4,9 @@ import { Button } from '@/components/ui/button';
 import { SeedIcon, CrackIcon, WiltIcon, VerifiedCheckIcon, BowlIcon } from '@/components/common/Icons';
 import { FullAnalysisReport } from '@/lib/types';
 import { getReport, fetchSampleData, startAnalysis } from '@/lib/api';
-import { HalfMelonSliceView } from '@/components/visual/HalfMelonSliceView';
-import { CoverageMatrixTable } from '@/components/visual/CoverageMatrixTable';
+import { CoverageMap } from '@/components/visual/CoverageMap';
 import { ReportContext } from './ReportContext';
-import { RefreshCw, Sparkles, AlertCircle, ArrowLeft, FileText, Info, Copy, Check, Edit3 } from 'lucide-react';
+import { RefreshCw, Sparkles, AlertCircle, ArrowLeft, FileText, Info, Copy, Check, Edit3, ArrowRight } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { cn } from '@/lib/utils';
 
@@ -61,7 +60,7 @@ export const DashboardLayout: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      if (id === 'sample-scholarship-report') {
+      if (id === 'sample-scholarship-report' || id === 'sample-scholarship') {
         const sampleRes = await fetchSampleData();
         setReport(sampleRes.report);
       } else {
@@ -93,7 +92,7 @@ export const DashboardLayout: React.FC = () => {
     if (!report) return;
     setIsRerunning(true);
     try {
-      const inputs = report.sources.map(s => ({
+      const inputs = report.sources.map((s) => ({
         id: s.id,
         type: s.type,
         value: s.type === 'url' ? s.url! : s.rawText,
@@ -123,11 +122,10 @@ export const DashboardLayout: React.FC = () => {
     });
   };
 
-  // 7. Loading Skeleton (Clean editorial blocks, NO spinner)
+  // Loading Skeleton
   if (loading) {
     return (
       <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-6 space-y-8 animate-pulse">
-        {/* Header Skeleton */}
         <div className="space-y-3 border-b border-seed/10 pb-6">
           <div className="flex items-center gap-2">
             <div className="h-5 w-28 bg-seed/10 rounded-xs" />
@@ -137,7 +135,9 @@ export const DashboardLayout: React.FC = () => {
           <div className="h-8 w-3/4 bg-seed/10 rounded-xs" />
         </div>
 
-        {/* Signal Strip Skeleton */}
+        <div className="h-10 w-full bg-seed/5 rounded-xs" />
+        <div className="h-24 w-full bg-seed/5 rounded-xs" />
+
         <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-seed/10 border border-seed/10 rounded-sm bg-pith">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="p-4 space-y-2">
@@ -147,11 +147,7 @@ export const DashboardLayout: React.FC = () => {
           ))}
         </div>
 
-        {/* 2-Column Main Body Skeleton */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          <div className="lg:col-span-5 h-[320px] rounded-sm border border-seed/10 bg-seed/[0.02]" />
-          <div className="lg:col-span-7 h-[320px] rounded-sm border border-seed/10 bg-seed/[0.02]" />
-        </div>
+        <div className="h-[340px] rounded-sm border border-seed/10 bg-seed/[0.02]" />
       </div>
     );
   }
@@ -186,6 +182,12 @@ export const DashboardLayout: React.FC = () => {
     day: 'numeric'
   });
 
+  // Top 3 checklist items for "Verify next" section
+  const priorityRank: Record<string, number> = { High: 1, Medium: 2, Low: 3 };
+  const topChecklistItems = [...report.checklist]
+    .sort((a, b) => (priorityRank[a.priority] || 4) - (priorityRank[b.priority] || 4))
+    .slice(0, 3);
+
   const tabs = [
     { id: 'summary', label: 'Summary', icon: FileText, count: null },
     { id: 'gaps', label: 'Potential Gaps', icon: SeedIcon, count: report.metrics.gapsCount },
@@ -204,8 +206,8 @@ export const DashboardLayout: React.FC = () => {
         refetchReport: loadData
       }}
     >
-      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-5 sm:py-6 space-y-6 sm:space-y-8 pb-16">
-        {/* 1. HEADER */}
+      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-5 sm:py-6 space-y-6 sm:space-y-7 pb-16">
+        {/* 1. HEADER (question, session ID, date, "Analyzed with" or "Sample data", Re-run, Copy checklist) */}
         <div className="space-y-3 border-b border-seed/10 pb-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
@@ -272,8 +274,80 @@ export const DashboardLayout: React.FC = () => {
           </h1>
         </div>
 
-        {/* 2. SIGNAL STRIP: 4 compact counters with hairline dividers & 0.6s count-up */}
-        <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-seed/10 border border-seed/10 rounded-sm bg-pith">
+        {/* 2. AT A GLANCE LINE */}
+        <div className="px-4 py-3 rounded-xs border border-seed/10 bg-seed/[0.025] flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex flex-wrap items-center gap-2 text-seed">
+            <span className="font-heading font-bold text-seed">At a glance:</span>
+            <span className="text-seed-muted">
+              <strong className="text-seed font-semibold">{report.metrics.gapsCount}</strong> potential gap{report.metrics.gapsCount === 1 ? '' : 's'},{' '}
+              <strong className="text-crack font-semibold">{report.metrics.conflictsCount}</strong> possible conflict{report.metrics.conflictsCount === 1 ? '' : 's'} in{' '}
+              <strong className="text-seed font-semibold">{report.metrics.sourcesCount}</strong> source{report.metrics.sourcesCount === 1 ? '' : 's'}
+            </span>
+          </div>
+          <span className="text-[11px] text-seed-muted font-mono">
+            {report.coverageMatrix.length} parameters inspected
+          </span>
+        </div>
+
+        {/* 3. VERIFY NEXT: Top 3 checklist items with link to full checklist */}
+        {topChecklistItems.length > 0 && (
+          <div className="p-4 sm:p-5 rounded-sm border border-seed/10 bg-pith space-y-3.5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-crack" />
+                <h3 className="font-heading font-bold text-xs sm:text-sm text-seed">
+                  Verify next
+                </h3>
+                <span className="text-xs text-seed-muted hidden sm:inline">
+                  — High priority items before making decisions
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleTabChange('checklist')}
+                className="text-xs text-rind hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
+              >
+                <span>View full checklist ({report.checklist.length})</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {topChecklistItems.map((item, idx) => (
+                <div
+                  key={item.id || idx}
+                  onClick={() => handleTabChange('checklist')}
+                  className="p-3.5 rounded-xs border border-seed/10 bg-seed/[0.015] hover:border-rind/30 transition-colors cursor-pointer space-y-1.5 group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={cn(
+                        "text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-xs border",
+                        item.priority === 'High'
+                          ? "bg-flesh/10 text-flesh border-flesh/20"
+                          : "bg-crack/10 text-crack border-crack/20"
+                      )}
+                    >
+                      {item.priority} Priority
+                    </span>
+                    <span className="text-[10px] text-seed-muted font-sans truncate max-w-[120px]">
+                      {item.signalTag}
+                    </span>
+                  </div>
+                  <h4 className="font-heading font-bold text-xs text-seed line-clamp-1 group-hover:text-rind transition-colors">
+                    {item.title}
+                  </h4>
+                  <p className="text-[11px] text-seed-muted line-clamp-2 leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 4. SIGNAL STRIP: 4 counters with hairline dividers */}
+        <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-seed/10 border border-seed/10 rounded-sm bg-pith shadow-2xs">
           {/* Sources */}
           <button
             type="button"
@@ -355,32 +429,17 @@ export const DashboardLayout: React.FC = () => {
           </button>
         </div>
 
-        {/* 3. MAIN BODY, two columns (stack on mobile) */}
-        <div className="space-y-3">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* Left: Half-Melon Slice View */}
-            <div className="lg:col-span-5">
-              <HalfMelonSliceView
-                reportId={report.id}
-                matrix={report.coverageMatrix}
-                selectedAttribute={selectedAttribute}
-                onSelectAttribute={(attr) => setSelectedAttribute(selectedAttribute === attr ? null : attr)}
-              />
-            </div>
+        {/* 5. COVERAGE MAP (Full width, single unified component, replaces slice view and old matrix) */}
+        <div className="space-y-2.5">
+          <CoverageMap
+            reportId={report.id}
+            matrix={report.coverageMatrix}
+            sources={report.sources}
+            selectedAttribute={selectedAttribute}
+            onSelectAttribute={(attr) => setSelectedAttribute(selectedAttribute === attr ? null : attr)}
+          />
 
-            {/* Right: Coverage Matrix Table */}
-            <div className="lg:col-span-7">
-              <CoverageMatrixTable
-                reportId={report.id}
-                matrix={report.coverageMatrix}
-                sources={report.sources}
-                selectedAttribute={selectedAttribute}
-                onSelectAttribute={(attr) => setSelectedAttribute(selectedAttribute === attr ? null : attr)}
-              />
-            </div>
-          </div>
-
-          {/* Under both: Expected information disclaimer with edit link */}
+          {/* Under Coverage Map: Expected information disclaimer with edit link */}
           <div className="flex items-center justify-between text-xs text-seed-muted px-1">
             <span className="flex items-center gap-1.5">
               <Info className="w-3.5 h-3.5 text-rind shrink-0" />
@@ -397,8 +456,8 @@ export const DashboardLayout: React.FC = () => {
           </div>
         </div>
 
-        {/* 4. TABS (nested routes with shared layoutId indicator 0.2s) */}
-        <div className="border-b border-seed/10">
+        {/* 6. TABS (nested routes with shared layoutId underline 0.2s) */}
+        <div className="border-b border-seed/10 pt-2">
           <nav className="flex items-center gap-1 sm:gap-6 overflow-x-auto" aria-label="Report sections">
             {tabs.map((tab) => {
               const isActive = currentTab === tab.id || (tab.id === 'summary' && currentTab === 'evidence');
@@ -418,10 +477,12 @@ export const DashboardLayout: React.FC = () => {
                   <IconComp className="w-3.5 h-3.5 shrink-0 opacity-80" />
                   <span>{tab.label}</span>
                   {tab.count !== null && (
-                    <span className={cn(
-                      "font-mono text-[10px] px-1.5 py-0.2 rounded-xs",
-                      isActive ? "bg-seed/10 text-seed font-semibold" : "bg-seed/5 text-seed-muted"
-                    )}>
+                    <span
+                      className={cn(
+                        "font-mono text-[10px] px-1.5 py-0.2 rounded-xs",
+                        isActive ? "bg-seed/10 text-seed font-semibold" : "bg-seed/5 text-seed-muted"
+                      )}
+                    >
                       {tab.count}
                     </span>
                   )}
@@ -445,7 +506,7 @@ export const DashboardLayout: React.FC = () => {
           <Outlet />
         </div>
 
-        {/* 8. FOOTER DISCLAIMER */}
+        {/* 7. FOOTER DISCLAIMER */}
         <div className="p-3.5 rounded-sm bg-seed/[0.02] border border-seed/10 flex items-center gap-2.5 text-xs text-seed-muted">
           <span className="w-1.5 h-1.5 rounded-full bg-flesh shrink-0" />
           <span>

@@ -20,6 +20,7 @@
     "test:temporal": "tsx test/test-temporal.ts",
     "test:malformed": "tsx test/test-malformed.ts",
     "test:custom-attr": "tsx test/test-custom-attributes.ts",
+    "test:slice": "tsx test/test-slice-matrix-agreement.ts",
     "eval": "tsx scripts/eval.ts",
     "check:secrets": "tsx scripts/check-secrets.ts"
   },

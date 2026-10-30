@@ -121,8 +121,8 @@ export const RedactedDocumentBackground: React.FC = () => {
       <div
         className="absolute inset-0"
         style={{
-          maskImage: 'linear-gradient(to right, transparent 0%, transparent 28%, black 65%, black 100%)',
-          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, transparent 28%, black 65%, black 100%)',
+          maskImage: 'radial-gradient(ellipse 70% 85% at 85% 45%, black 20%, transparent 80%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 70% 85% at 85% 45%, black 20%, transparent 80%)',
         }}
       >
         {/* Base Redacted Document layer */}
