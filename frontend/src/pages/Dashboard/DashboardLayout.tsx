@@ -6,6 +6,7 @@ import { FullAnalysisReport } from '@/lib/types';
 import { getReport, fetchSampleData, startAnalysis } from '@/lib/api';
 import { CoverageMap } from '@/components/visual/CoverageMap';
 import { ReportContext } from './ReportContext';
+import { extractSchemeInfo } from '@/lib/scheme';
 import { RefreshCw, Sparkles, AlertCircle, ArrowLeft, FileText, Info, Copy, Check, Edit3, ArrowRight } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { cn } from '@/lib/utils';
@@ -201,6 +202,8 @@ export const DashboardLayout: React.FC = () => {
     .sort((a, b) => (priorityRank[a.priority] || 4) - (priorityRank[b.priority] || 4))
     .slice(0, 3);
 
+  const schemeInfo = extractSchemeInfo(report);
+
   const tabs = [
     { id: 'summary', label: 'Summary', icon: FileText, count: null },
     { id: 'gaps', label: 'Potential Gaps', icon: SeedIcon, count: report.metrics.gapsCount },
@@ -280,6 +283,24 @@ export const DashboardLayout: React.FC = () => {
                 <span>Re-run</span>
               </Button>
             </div>
+          </div>
+
+          {/* Explicit Scheme & Target Program Badge */}
+          <div className="flex flex-wrap items-center gap-2 pt-0.5">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xs bg-rind/15 text-rind border border-rind/30 text-xs font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-rind" />
+              <span>Investigated Scheme: <strong className="text-seed font-bold underline decoration-rind/40">{schemeInfo.name}</strong></span>
+              {schemeInfo.cycle && (
+                <span className="ml-1 px-1.5 py-0.2 rounded-2xs bg-rind/20 text-[10px] font-mono">
+                  Cycle {schemeInfo.cycle}
+                </span>
+              )}
+            </span>
+            {schemeInfo.officialDomain && (
+              <span className="text-xs text-seed-muted flex items-center gap-1 font-mono">
+                Official authority: <span className="text-seed font-medium underline decoration-seed/30">{schemeInfo.officialDomain}</span>
+              </span>
+            )}
           </div>
 
           <h1 className="font-heading text-xl sm:text-2xl lg:text-3xl font-extrabold text-seed tracking-tight leading-snug">

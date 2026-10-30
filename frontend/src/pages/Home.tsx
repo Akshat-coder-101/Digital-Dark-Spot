@@ -31,8 +31,8 @@ export const Home: React.FC = () => {
 
   // Quick suggestions
   const suggestions = [
-    "What should I verify before applying for this scholarship?",
-    "What are the conflicting eligibility rules across these aid programs?",
+    "What should I verify before applying for the National Merit Scholarship 2026?",
+    "What are the conflicting eligibility rules across National Scholarship Portal (NSP) schemes?",
     "What critical renewal criteria are missing in these contracts?"
   ];
 

@@ -7,7 +7,7 @@ import { auditFreshness } from '../analysis/freshness.js';
 import { buildCoverageMatrix } from '../analysis/matrix.js';
 import { buildPrioritizedChecklist } from '../analysis/checklist.js';
 
-export const SAMPLE_RESEARCH_QUESTION = "What should I verify before applying for this scholarship?";
+export const SAMPLE_RESEARCH_QUESTION = "What should I verify before applying for the National Merit Scholarship 2026?";
 
 export const SAMPLE_SOURCES: IngestedSource[] = [
   {
@@ -125,11 +125,11 @@ export const PRECOMPUTED_SAMPLE_LLM_OUTPUT: RawLLMExtraction = {
     }
   ],
   open_questions: [
-    'What are the official renewal conditions for continuing the scholarship into subsequent academic years?',
-    'Which income documentation is officially mandated for the 2026 cycle: tax returns or 6-month bank statements?',
-    'Is there an official minimum GPA requirement stated in government regulations, or is selection ranking purely comparative?'
+    'What are the official renewal conditions for continuing the National Merit Scholarship into subsequent academic years?',
+    'Which income documentation is officially mandated for the 2026 National Merit cycle: tax returns or 6-month bank statements?',
+    'Is there an official minimum GPA requirement stated in National Merit Scholarship regulations, or is selection ranking purely comparative?'
   ],
-  summary: 'Reviewed 3 fictional scholarship documents across official 2026 notice, earlier 2024-25 guide, and forum comments. Discovered conflicting income limits ($50k vs $40k) and document requirements, alongside a total information gap on renewal criteria.'
+  summary: 'Reviewed 3 primary documents for the National Merit Scholarship 2026 (AY 2026-27): the official guidelines notice, an unofficial 2024-25 blog guide, and a student forum thread. Discovered conflicting income limits ($50k vs $40k) and document requirements, alongside a total information gap on renewal criteria.'
 };
 
 /**
