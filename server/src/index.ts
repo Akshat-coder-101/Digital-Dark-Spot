@@ -2,10 +2,12 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import { llmManager } from './llm/index.js';
 
 // Load environment variables
 dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
 dotenv.config(); // fallback
+llmManager.reloadEnvironment();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -22,37 +24,18 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-// Mock LLM status endpoint (implemented fully in Step 2)
+// Diagnostic LLM status endpoint (keys masked, never returned)
 app.get('/api/llm/status', (_req, res) => {
-  const geminiKeys = (process.env.GEMINI_API_KEYS || '').split(',').filter(Boolean);
-  const openaiKeys = (process.env.OPENAI_API_KEYS || '').split(',').filter(Boolean);
-  const anthropicKeys = (process.env.ANTHROPIC_API_KEYS || '').split(',').filter(Boolean);
-
-  res.json({
-    providers: [
-      {
-        name: 'Google Gemini',
-        enabled: geminiKeys.length > 0,
-        model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
-        keyCount: geminiKeys.length,
-        inCooldown: false
-      },
-      {
-        name: 'OpenAI',
-        enabled: openaiKeys.length > 0,
-        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-        keyCount: openaiKeys.length,
-        inCooldown: false
-      },
-      {
-        name: 'Anthropic',
-        enabled: anthropicKeys.length > 0,
-        model: process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022',
-        keyCount: anthropicKeys.length,
-        inCooldown: false
-      }
-    ]
-  });
+  try {
+    const diagnostics = llmManager.getDiagnostics();
+    res.json({
+      providers: diagnostics,
+      hasConfiguredKeys: llmManager.hasAnyKeys(),
+      timestamp: new Date().toISOString()
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.listen(PORT, () => {
