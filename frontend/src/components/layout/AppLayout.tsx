@@ -18,9 +18,9 @@ export const AppLayout: React.FC = () => {
         <AnimatePresence mode="wait">
           <motion.div
             key={rootKey}
-            initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
+            initial={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: -4 }}
             transition={{ duration: 0.2, ease: 'easeInOut' }}
           >
             <Outlet />

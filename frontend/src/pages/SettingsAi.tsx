@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, ShieldAlert, Cpu } from 'lucide-react';
+import { motion, useReducedMotion } from 'motion/react';
 
 interface ProviderStatus {
   name: string;
@@ -12,6 +13,7 @@ interface ProviderStatus {
 }
 
 export const SettingsAi: React.FC = () => {
+  const shouldReduceMotion = useReducedMotion();
   const [providers, setProviders] = useState<ProviderStatus[]>([
     { name: 'Google Gemini', enabled: true, model: 'gemini-3-flash-preview', keyCount: 2, inCooldown: false },
     { name: 'Groq (Ultra-Fast Failover)', enabled: true, model: 'qwen/qwen3.8-27b', keyCount: 1, inCooldown: false },
@@ -30,7 +32,7 @@ export const SettingsAi: React.FC = () => {
         }
       }
     } catch {
-      // Mock / fallback
+      // Offline fallback state
     } finally {
       setLoading(false);
     }
@@ -41,7 +43,8 @@ export const SettingsAi: React.FC = () => {
   }, []);
 
   return (
-    <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-10 space-y-8">
+    <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-8">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-seed/10 pb-6">
         <div>
           <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-rind/10 text-rind text-xs font-sans font-medium mb-2">
@@ -51,7 +54,7 @@ export const SettingsAi: React.FC = () => {
             AI Engine Diagnostics
           </h1>
           <p className="text-seed-muted text-xs sm:text-sm mt-1">
-            Multi-provider round-robin, key rotation, and cooldown monitoring (server-side isolated).
+            Calm status monitoring for multi-provider round-robin, key rotation, and isolated server cooldowns.
           </p>
         </div>
         <Button
@@ -59,45 +62,70 @@ export const SettingsAi: React.FC = () => {
           size="sm"
           onClick={fetchStatus}
           disabled={loading}
-          className="text-xs self-start sm:self-auto"
+          className="text-xs self-start sm:self-auto cursor-pointer"
         >
           <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
           Refresh Status
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {providers.map((p) => (
-          <div key={p.name} className="p-5 rounded-sm border border-seed/10 bg-pith space-y-4">
+      {/* Provider Status Cards with Staggered Entrance and Calm Indicator Dots */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {providers.map((p, idx) => (
+          <motion.div
+            key={p.name}
+            initial={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{
+              duration: 0.35,
+              delay: shouldReduceMotion ? 0 : idx * 0.08,
+              ease: 'easeOut'
+            }}
+            className="p-5 rounded-xs border border-seed/10 bg-pith hover:border-seed/25 hover:bg-seed/[0.015] transition-all duration-200 space-y-4 shadow-xs"
+          >
+            {/* Provider Title & Active/Disabled Badge */}
             <div className="flex items-center justify-between pb-3 border-b border-seed/10">
-              <span className="font-heading font-bold text-seed flex items-center gap-1.5 text-sm">
-                <Cpu className="w-4 h-4 text-rind" />
-                {p.name}
+              <span className="font-heading font-bold text-seed flex items-center gap-1.5 text-xs sm:text-sm">
+                <Cpu className="w-4 h-4 text-rind shrink-0" />
+                <span className="truncate">{p.name}</span>
               </span>
-              <span
-                className={`text-[10px] font-mono uppercase font-bold px-1.5 py-0.2 rounded-xs ${
-                  p.enabled
-                    ? 'bg-rind/10 text-rind border border-rind/20'
-                    : 'bg-seed/5 text-seed-muted border border-seed/10'
-                }`}
-              >
-                {p.enabled ? 'Active' : 'Disabled'}
-              </span>
+
+              {/* Status indicator: Soft green pulse for Active, Muted dot for Disabled */}
+              <div className="flex items-center gap-1.5 text-[11px] font-sans">
+                {p.enabled ? (
+                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-rind/10 border border-rind/20 text-rind">
+                    <span className="relative flex h-2 w-2">
+                      {!shouldReduceMotion && (
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rind opacity-75" />
+                      )}
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-rind" />
+                    </span>
+                    <span className="font-semibold text-[10px]">Active</span>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-seed/5 border border-seed/10 text-seed-muted">
+                    <span className="inline-block h-2 w-2 rounded-full bg-seed-muted/40" />
+                    <span className="text-[10px]">Disabled</span>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="space-y-2 text-xs text-seed-muted font-mono">
+            {/* Parameter Rows */}
+            <div className="space-y-2 text-xs text-seed-muted font-sans">
               <div className="flex justify-between items-center">
-                <span>Model:</span>
-                <span className="text-seed font-semibold truncate max-w-[150px]">{p.model}</span>
+                <span>Model</span>
+                <span className="font-mono text-seed font-medium truncate max-w-[150px]">{p.model}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span>Configured Keys:</span>
-                <span className="text-seed font-semibold">{p.keyCount}</span>
+                <span>Configured Keys</span>
+                <span className="font-mono text-seed font-medium">{p.keyCount}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span>Cooldown State:</span>
+                <span>Cooldown State</span>
                 <span
-                  className={`font-semibold ${
+                  className={`font-sans text-[11px] font-medium ${
                     p.inCooldown ? 'text-crack' : 'text-rind'
                   }`}
                 >
@@ -105,12 +133,18 @@ export const SettingsAi: React.FC = () => {
                 </span>
               </div>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
       {/* Key Security Guarantee */}
-      <div className="p-5 rounded-sm border border-seed/10 border-l-2 border-l-rind bg-seed/[0.01]">
+      <motion.div
+        initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.35, delay: 0.25 }}
+        className="p-5 rounded-xs border border-seed/10 border-l-2 border-l-rind bg-seed/[0.01]"
+      >
         <div className="flex items-start gap-3">
           <ShieldAlert className="w-5 h-5 text-rind shrink-0 mt-0.5" />
           <div className="space-y-1 text-xs text-seed-muted leading-relaxed">
@@ -122,7 +156,7 @@ export const SettingsAi: React.FC = () => {
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

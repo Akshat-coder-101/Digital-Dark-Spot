@@ -1,82 +1,167 @@
 import React from 'react';
-import { CrackIcon, WiltIcon, VerifiedCheckIcon } from '@/components/common/Icons';
-import { AlertTriangle } from 'lucide-react';
+import { motion, useReducedMotion } from 'motion/react';
+import { HelpCircle, Globe, FileJson, CheckCircle2, GitCompare, Sparkles, AlertTriangle } from 'lucide-react';
 
 export const HowItWorks: React.FC = () => {
+  const shouldReduceMotion = useReducedMotion();
+
+  // 6 Horizontal Forensic Pipeline Stages
+  const stages = [
+    {
+      num: '01',
+      title: 'Question',
+      icon: HelpCircle,
+      desc: 'Formulates verification intent and defines scope for cross-source inquiry.'
+    },
+    {
+      num: '02',
+      title: 'Sources',
+      icon: Globe,
+      desc: 'Ingests documents and URLs with SSRF protection, auditing dates and academic cycles.'
+    },
+    {
+      num: '03',
+      title: 'Extraction',
+      icon: FileJson,
+      desc: 'Extracts structured claims, attributes, and candidate quotes via isolated model prompts.'
+    },
+    {
+      num: '04',
+      title: 'Verbatim check',
+      icon: CheckCircle2,
+      desc: 'Every extracted claim must match an exact verbatim substring in raw text; unmatched claims are discarded.'
+    },
+    {
+      num: '05',
+      title: 'Comparison',
+      icon: GitCompare,
+      desc: 'Executes deterministic rule-based normalizers, date checks, and synonym clusters to detect fractures.'
+    },
+    {
+      num: '06',
+      title: 'Signals',
+      icon: Sparkles,
+      desc: 'Surfaces potential gaps, possible contradictions, and an actionable verification checklist.'
+    }
+  ];
+
   return (
-    <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-10 space-y-12">
+    <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-12">
       {/* Editorial Header */}
-      <div className="space-y-3 border-b border-seed/10 pb-8">
+      <div className="space-y-3 border-b border-seed/10 pb-7">
         <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-rind/10 text-rind text-xs font-sans font-medium">
           <span>Methodology & architecture</span>
         </div>
-        <h1 className="font-heading text-3xl sm:text-4xl font-extrabold text-seed tracking-tight">
+        <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-seed tracking-tight">
           How Digital Dark Spot Works
         </h1>
-        <p className="text-seed-muted text-sm sm:text-base max-w-2xl leading-relaxed">
+        <p className="text-seed-muted text-xs sm:text-sm max-w-2xl leading-relaxed">
           The difference between generative AI summarization and deterministic information gap detection.
         </p>
       </div>
 
-      {/* 3 Core Analytical Pillars */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 rounded-sm border border-seed/10 border-l-2 border-l-rind bg-pith space-y-3">
-          <div className="p-2 rounded-xs bg-rind/10 text-rind w-fit">
-            <VerifiedCheckIcon className="w-4 h-4" />
+      {/* Horizontal Forensic Process Flow (Vertical on Mobile) */}
+      <div className="space-y-6">
+        <h2 className="font-sans text-xs font-semibold text-seed-muted tracking-normal">
+          Investigation sequence
+        </h2>
+
+        <div className="relative">
+          {/* Desktop Connecting Line that draws as it scrolls into view */}
+          <div className="hidden md:block absolute top-7 left-6 right-6 h-[2px] bg-seed/10 -z-0">
+            <motion.div
+              className="h-full bg-rind/70 origin-left"
+              initial={shouldReduceMotion ? { scaleX: 1 } : { scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
+            />
           </div>
-          <h3 className="font-heading font-bold text-base text-seed">01. Grounded Claim Verification</h3>
+
+          {/* 6 Process Stages */}
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-6 relative z-10">
+            {stages.map((st, idx) => (
+              <motion.div
+                key={st.num}
+                initial={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{
+                  duration: 0.35,
+                  delay: shouldReduceMotion ? 0 : idx * 0.08,
+                  ease: 'easeOut'
+                }}
+                className="flex md:flex-col items-start gap-3.5 md:gap-3 p-3.5 md:p-3 rounded-xs border md:border-transparent border-seed/10 bg-pith-card/40 md:bg-transparent"
+              >
+                {/* Stage Badge & Icon */}
+                <div className="w-10 h-10 rounded-xs border border-seed/15 bg-pith flex items-center justify-center shrink-0 shadow-xs">
+                  <st.icon className="w-4 h-4 text-rind" />
+                </div>
+
+                <div className="space-y-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-mono font-bold text-rind">{st.num}</span>
+                    <h3 className="font-heading font-bold text-xs sm:text-sm text-seed truncate">
+                      {st.title}
+                    </h3>
+                  </div>
+                  <p className="text-[11px] text-seed-muted leading-relaxed">
+                    {st.desc}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Rigorous Evidence & Deterministic Comparison Breakdown */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+        <div className="p-5 rounded-xs border border-seed/10 border-l-2 border-l-rind bg-pith space-y-2.5">
+          <h3 className="font-heading font-bold text-sm text-seed">
+            Verbatim Substring Verification
+          </h3>
           <p className="text-xs text-seed-muted leading-relaxed">
-            Candidate claims extracted by the language model must match an exact substring in the retrieved source document. Any claim whose quote cannot be verified verbatim against the ingested text is discarded and reported in the discarded claims tally.
+            Every candidate claim extracted by language models must match an exact substring in the ingested source text. If a quote cannot be verified verbatim against raw ground truth, it is discarded immediately and recorded in the discarded claims tally to prevent hallucinations from propagating.
           </p>
         </div>
 
-        <div className="p-6 rounded-sm border border-seed/10 border-l-2 border-l-crack bg-pith space-y-3">
-          <div className="p-2 rounded-xs bg-crack/10 text-crack w-fit">
-            <CrackIcon className="w-4 h-4" />
-          </div>
-          <h3 className="font-heading font-bold text-base text-seed">02. Deterministic Comparison</h3>
+        <div className="p-5 rounded-xs border border-seed/10 border-l-2 border-l-crack bg-pith space-y-2.5">
+          <h3 className="font-heading font-bold text-sm text-seed">
+            Rule-Based Deterministic Comparison
+          </h3>
           <p className="text-xs text-seed-muted leading-relaxed">
-            Gaps and contradictions are evaluated deterministically using value normalization and synonym matching. The system surfaces candidate gaps and highlights potential contradictions for verification across the reviewed sources.
-          </p>
-        </div>
-
-        <div className="p-6 rounded-sm border border-seed/10 border-l-2 border-l-wilt bg-pith space-y-3">
-          <div className="p-2 rounded-xs bg-wilt/15 text-wilt w-fit">
-            <WiltIcon className="w-4 h-4" />
-          </div>
-          <h3 className="font-heading font-bold text-base text-seed">03. Temporal Freshness Auditing</h3>
-          <p className="text-xs text-seed-muted leading-relaxed">
-            Sources are inspected for publication dates, academic/fiscal cycle markers (e.g. 2024-25 vs 2026-27), and temporal decay. The engine flags undated sources and earlier cycles so users can distinguish active guidelines from historical rules.
+            Cross-source contradictions and gaps are detected using deterministic code algorithms: numeric value normalization (percentages, currencies, dates), synonym cluster canonicalization, and temporal publication cycle checks.
           </p>
         </div>
       </div>
 
-      {/* Philosophy Statement */}
-      <div className="p-6 rounded-sm border border-seed/10 border-l-2 border-l-seed bg-seed/[0.01] space-y-2">
-        <h4 className="font-sans font-semibold text-sm text-seed">
+      {/* Research & Decision Philosophy */}
+      <div className="p-5 rounded-xs border border-seed/10 border-l-2 border-l-seed bg-seed/[0.01] space-y-2">
+        <h4 className="font-sans font-semibold text-xs text-seed">
           Research and Decision Philosophy
         </h4>
-        <p className="text-xs sm:text-sm text-seed-muted leading-relaxed">
-          Digital Dark Spot surfaces <strong className="text-seed">candidate gaps</strong>, highlights <strong className="text-seed">potential contradictions for human verification</strong>, and generates an actionable <strong className="text-seed">verification checklist</strong>. We help researchers identify what public web pages fail to answer before making consequential decisions.
+        <p className="text-xs text-seed-muted leading-relaxed">
+          The expected-information parameter list is <strong className="text-seed">AI-suggested</strong>, and all findings are <strong className="text-seed">potential signals</strong> rather than absolute legal truths. Digital Dark Spot provides an actionable <strong className="text-seed">verification checklist</strong> so researchers know precisely what questions to ask institutions before making consequential decisions.
         </p>
       </div>
 
       {/* Known Limitations */}
-      <div className="p-6 rounded-sm border border-crack/20 border-l-2 border-l-crack bg-crack/[0.03] space-y-3">
+      <div className="p-5 rounded-xs border border-crack/20 border-l-2 border-l-crack bg-crack/[0.03] space-y-3">
         <div className="flex items-center gap-2 text-crack">
           <AlertTriangle className="w-4 h-4" />
-          <h4 className="font-heading font-bold text-sm text-seed">
+          <h4 className="font-heading font-bold text-xs sm:text-sm text-seed">
             Known Limitations
           </h4>
         </div>
         <p className="text-xs text-seed-muted leading-relaxed">
-          While Digital Dark Spot significantly improves visibility into public web information, the engine cannot guarantee discovering offline, unindexed, or restricted materials. Please be aware of the following technical boundaries:
+          While Digital Dark Spot significantly improves visibility into public web information, the engine cannot guarantee discovering offline, unindexed, or restricted materials:
         </p>
         <ul className="text-xs text-seed-muted space-y-1.5 list-disc pl-5">
-          <li><strong>Paywalled & Restricted Content:</strong> Subscription articles, password-protected portals, and CAPTCHA-protected services cannot be ingested.</li>
-          <li><strong>Client-Side Single-Page Applications:</strong> JavaScript-heavy portals that require complex user interactions or render text exclusively post-hydration may yield limited text snippets.</li>
-          <li><strong>Non-Text PDFs & Scanned Circulars:</strong> Image-only scanned PDFs without OCR text streams cannot be parsed verbatim by the standard text extractor.</li>
-          <li><strong>Unindexed Government Notices:</strong> Newly released gazettes, physical notice boards, or internal administrative orders not indexed by search providers remain outside the search scope.</li>
+          <li><strong>Paywalled & Restricted Content:</strong> Subscription portals, password-protected databases, and CAPTCHA services cannot be ingested.</li>
+          <li><strong>Client-Side Single-Page Applications:</strong> JavaScript portals that require complex stateful sessions or render text exclusively post-hydration may yield limited text snippets.</li>
+          <li><strong>Non-Text PDFs & Scanned Circulars:</strong> Image-only scanned PDFs without OCR text streams cannot be parsed verbatim by standard text extractors.</li>
+          <li><strong>Unindexed Circulars:</strong> Newly issued physical circulars or unindexed government notices remain outside the public search index.</li>
         </ul>
       </div>
     </div>

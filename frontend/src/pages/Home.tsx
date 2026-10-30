@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { SourcePayload, startAnalysis, fetchSampleData, startDiscovery } from '@/lib/api';
-import { Plus, X, FileText, Sparkles, AlertCircle, ArrowRight } from 'lucide-react';
+import { Plus, X, FileText, Sparkles, AlertCircle, ArrowRight, CheckCircle2, Globe, FileCode2 } from 'lucide-react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { HeroMelon } from '@/components/visual/HeroMelon';
 import { RedactedDocumentBackground } from '@/components/visual/RedactedDocumentBackground';
+import { cn } from '@/lib/utils';
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ export const Home: React.FC = () => {
   const [question, setQuestion] = useState('');
   const [sources, setSources] = useState<SourcePayload[]>([]);
   const [activeModal, setActiveModal] = useState<'url' | 'text' | null>(null);
+  const [isQuestionFocused, setIsQuestionFocused] = useState(false);
 
   // Input states for intake modals
   const [urlInput, setUrlInput] = useState('');
@@ -122,20 +124,42 @@ export const Home: React.FC = () => {
     }
   };
 
-  // Helper to extract domain from URL or label
-  const getSourceLabel = (s: SourcePayload) => {
-    if (s.title) return s.title;
+  // Helper functions for evidence tray items
+  const getSourceDomain = (s: SourcePayload) => {
     if (s.type === 'url') {
       try {
         return new URL(s.value).hostname.replace('www.', '');
       } catch {
-        return s.value;
+        return 'web source';
       }
     }
-    return 'Pasted Text Document';
+    return 'local document';
   };
 
-  // Submit / "Slice it open"
+  const getSourceTitle = (s: SourcePayload) => {
+    if (s.title) return s.title;
+    if (s.type === 'url') {
+      return getSourceDomain(s);
+    }
+    return 'Pasted Text Excerpt';
+  };
+
+  const getSourceStatus = (s: SourcePayload) => {
+    if (s.type === 'url') {
+      try {
+        new URL(s.value);
+        return { label: 'Ready', tone: 'ready' as const };
+      } catch {
+        return { label: 'Failed', tone: 'failed' as const };
+      }
+    }
+    if (s.value.length < 35) {
+      return { label: 'Needs attention', tone: 'attention' as const };
+    }
+    return { label: 'Ready', tone: 'ready' as const };
+  };
+
+  // Submit / "Slice it open" — starts immediately with zero delay
   const handleSliceOpen = async () => {
     setError(null);
 
@@ -147,71 +171,81 @@ export const Home: React.FC = () => {
 
     setIsSubmitting(true);
 
-    const delay = shouldReduceMotion ? 0 : 500;
-
-    setTimeout(async () => {
-      try {
-        // CASE A: User entered ONLY a question -> Automatic Source Discovery (Step 3B)
-        if (sources.length === 0) {
-          const discRes = await startDiscovery(trimmedQuestion);
-          navigate(`/discover/${discRes.discoveryId}`);
-          return;
-        }
-
-        // CASE B: User provided sample data
-        if (sources.length === 3 && sources[0].id?.includes('sample')) {
-          navigate('/analyzing/sample-scholarship-report');
-          return;
-        }
-
-        // CASE C: User provided custom sources
-        const res = await startAnalysis(trimmedQuestion, sources);
-        navigate(`/analyzing/${res.jobId}`);
-      } catch (err: any) {
-        setError(err.message || 'Failed to initiate analysis pipeline');
-        setIsSubmitting(false);
+    try {
+      // CASE A: User entered ONLY a question -> Automatic Source Discovery (Step 3B)
+      if (sources.length === 0) {
+        const discRes = await startDiscovery(trimmedQuestion);
+        navigate(`/discover/${discRes.discoveryId}`);
+        return;
       }
-    }, delay);
+
+      // CASE B: User provided sample data
+      if (sources.length === 3 && sources[0].id?.includes('sample')) {
+        navigate('/analyzing/sample-scholarship-report');
+        return;
+      }
+
+      // CASE C: User provided custom sources
+      const res = await startAnalysis(trimmedQuestion, sources);
+      navigate(`/analyzing/${res.jobId}`);
+    } catch (err: any) {
+      setError(err.message || 'Failed to initiate analysis pipeline');
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="relative max-w-[1100px] mx-auto py-6 sm:py-8 space-y-8 sm:space-y-10">
-      {/* Background "Redacted Document" with soft cursor spotlight */}
+    <div className="relative max-w-[1100px] mx-auto py-3 sm:py-5 space-y-6 sm:space-y-8">
+      {/* Background "Redacted Document" with soft cursor spotlight and radial depth */}
       <RedactedDocumentBackground />
 
       {/* Hero Section Container */}
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Headline and Form */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Animated Headline revealed line by line */}
-          <div className="space-y-2.5">
-            <motion.h1
+        {/* Left Column: Staggered Headline and Form (visible without scrolling at 1440x900 and 390px) */}
+        <div className="lg:col-span-7 space-y-5">
+          {/* Staggered Load: Small label, Headline, Description */}
+          <div className="space-y-2">
+            <motion.div
               initial={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: 'easeOut' }}
-              className="font-heading text-3xl sm:text-4xl lg:text-[42px] font-extrabold text-seed tracking-tight leading-[1.12]"
+              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-rind/10 text-rind text-xs font-sans font-medium"
+            >
+              <span>Information gap & conflict detection</span>
+            </motion.div>
+
+            <motion.h1
+              initial={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.08, ease: 'easeOut' }}
+              className="font-heading text-2xl sm:text-3xl lg:text-[34px] font-extrabold text-seed tracking-tight leading-tight"
             >
               Find what the sources don't tell you.
             </motion.h1>
 
             <motion.p
-              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.1, ease: 'easeOut' }}
-              className="font-sans text-sm sm:text-base text-seed-muted leading-relaxed max-w-xl"
+              initial={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.16, ease: 'easeOut' }}
+              className="font-sans text-xs sm:text-sm text-seed-muted leading-relaxed max-w-xl"
             >
-              Digital Dark Spot cross-examines sources to uncover potential gaps, possible conflicts, and stale information, with verbatim evidence quotes you can inspect.
+              Cross-examines ground-truth sources to uncover potential information gaps, possible conflicts, and stale temporal cycles, backed by verified verbatim substrings.
             </motion.p>
           </div>
 
           {/* Mobile Hero Melon (visible below text on screens < lg) */}
-          <div className="block lg:hidden w-full max-w-[340px] sm:max-w-[420px] mx-auto pt-1 pb-2">
+          <div className="block lg:hidden w-full max-w-[320px] sm:max-w-[380px] mx-auto pt-1 pb-1">
             <HeroMelon />
           </div>
 
-          {/* Three short investigation steps in one cohesive column */}
-          <div className="space-y-6 pt-1">
-            {/* Step 1: Ask */}
+          {/* Question & Evidence Investigation Area (Staggered fourth step) */}
+          <motion.div
+            initial={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.24, ease: 'easeOut' }}
+            className="space-y-5 pt-0.5"
+          >
+            {/* Step 1: Ask — stronger focus state with bottom animated signal line and character counter */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <h2 className="font-sans text-xs font-semibold text-rind tracking-normal">
@@ -222,215 +256,294 @@ export const Home: React.FC = () => {
                 </span>
               </div>
 
-              <div className="relative border-b border-seed/20 focus-within:border-rind transition-colors pb-1">
+              <div
+                className={cn(
+                  "relative border-b transition-all duration-200 pb-1 rounded-xs",
+                  isQuestionFocused
+                    ? "border-rind shadow-[0_4px_16px_rgba(31,107,58,0.08)] dark:shadow-[0_4px_16px_rgba(79,191,122,0.12)]"
+                    : "border-seed/20"
+                )}
+              >
                 <textarea
                   value={question}
                   onChange={(e) => setQuestion(e.target.value.slice(0, 500))}
+                  onFocus={() => setIsQuestionFocused(true)}
+                  onBlur={() => setIsQuestionFocused(false)}
                   placeholder="What are you trying to verify?"
                   rows={2}
-                  className="w-full resize-none bg-transparent font-heading text-lg sm:text-xl font-bold text-seed placeholder:text-seed-muted/40 outline-none leading-snug"
+                  className="w-full resize-none bg-transparent font-heading text-base sm:text-lg font-bold text-seed placeholder:text-seed-muted/40 outline-none leading-snug"
+                />
+
+                {/* Animated thin green signal line along the bottom */}
+                <motion.div
+                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-rind origin-left pointer-events-none"
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: isQuestionFocused ? 1 : 0 }}
+                  transition={{ duration: 0.22, ease: 'easeOut' }}
                 />
               </div>
 
-              {/* Suggestions pills */}
+              {/* Example suggestion chips with small lift on hover */}
               <div className="flex flex-wrap gap-1.5 pt-0.5">
                 {suggestions.map((s, idx) => (
-                  <button
+                  <motion.button
                     key={idx}
                     type="button"
+                    whileHover={shouldReduceMotion ? {} : { y: -1 }}
+                    transition={{ duration: 0.15 }}
                     onClick={() => setQuestion(s)}
-                    className="text-[11px] text-seed-muted hover:text-seed transition-colors border border-seed/10 rounded-sm px-2 py-0.5 hover:border-seed/30 cursor-pointer"
+                    className="text-[11px] text-seed-muted hover:text-seed transition-colors border border-seed/12 rounded-xs px-2 py-0.5 hover:border-rind/40 hover:bg-rind/[0.03] cursor-pointer"
                   >
                     + {s.slice(0, 42)}...
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             </div>
 
-            {/* Step 2: Bring Evidence */}
+            {/* Step 2: Bring Evidence — Evidence Tray with animated rows, status icon + text, and removal */}
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <h2 className="font-sans text-xs font-semibold text-rind tracking-normal">
                   Step 2: Bring evidence
                 </h2>
                 <span className="text-xs font-mono text-seed-muted">
-                  {sources.length} {sources.length === 1 ? 'source' : 'sources'} attached
+                  {sources.length} {sources.length === 1 ? 'source' : 'sources'} in tray
                 </span>
               </div>
 
-              {/* Action Chips */}
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setActiveModal('url')}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-seed/15 text-xs font-medium text-seed hover:bg-seed/5 hover:border-seed/30 transition-colors cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5 text-rind" />
-                  <span>+ URL</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveModal('text')}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-seed/15 text-xs font-medium text-seed hover:bg-seed/5 hover:border-seed/30 transition-colors cursor-pointer"
-                >
-                  <FileText className="w-3.5 h-3.5 text-rind" />
-                  <span>Paste Text</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleLoadSample}
-                  disabled={isLoadingSample}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-seed/15 text-xs font-medium text-seed hover:bg-seed/5 hover:border-seed/30 transition-colors cursor-pointer"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-crack" />
-                  <span>{isLoadingSample ? 'Loading sample...' : 'Use sample'}</span>
-                </button>
-              </div>
-
-              {/* Inline Intake Modal / Drawer */}
-              <AnimatePresence>
-                {activeModal === 'url' && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="p-3.5 border border-seed/15 rounded-sm bg-pith-card space-y-2.5"
+              {/* Evidence Tray Container */}
+              <div className="p-3 rounded-sm border border-seed/15 bg-pith-card/50 space-y-3">
+                {/* Action Buttons Row */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveModal('url')}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xs border border-seed/15 text-xs font-medium text-seed hover:bg-seed/5 hover:border-seed/30 transition-colors cursor-pointer"
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold font-heading text-seed">Add Source URL</span>
-                      <button onClick={() => setActiveModal(null)} className="text-seed-muted hover:text-seed cursor-pointer">
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <input
-                      type="url"
-                      placeholder="https://scholarships.gov.in/notice-2026.html"
-                      value={urlInput}
-                      onChange={(e) => setUrlInput(e.target.value)}
-                      className="w-full text-xs p-2 rounded-sm border border-seed/15 bg-pith text-seed outline-none focus:border-rind"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Optional title (e.g. Official Guidelines 2026)"
-                      value={urlTitle}
-                      onChange={(e) => setUrlTitle(e.target.value)}
-                      className="w-full text-xs p-2 rounded-sm border border-seed/15 bg-pith text-seed outline-none focus:border-rind"
-                    />
-                    <div className="flex justify-end gap-2 pt-1">
-                      <Button size="sm" variant="outline" onClick={() => setActiveModal(null)}>Cancel</Button>
-                      <Button size="sm" variant="rind" onClick={handleAddUrl}>Add URL</Button>
-                    </div>
-                  </motion.div>
-                )}
+                    <Plus className="w-3.5 h-3.5 text-rind" />
+                    <span>+ URL</span>
+                  </button>
 
-                {activeModal === 'text' && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="p-3.5 border border-seed/15 rounded-sm bg-pith-card space-y-2.5"
+                  <button
+                    type="button"
+                    onClick={() => setActiveModal('text')}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xs border border-seed/15 text-xs font-medium text-seed hover:bg-seed/5 hover:border-seed/30 transition-colors cursor-pointer"
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold font-heading text-seed">Paste Source Text</span>
-                      <button onClick={() => setActiveModal(null)} className="text-seed-muted hover:text-seed cursor-pointer">
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Optional title (e.g. Community Discussion Post)"
-                      value={textTitle}
-                      onChange={(e) => setTextTitle(e.target.value)}
-                      className="w-full text-xs p-2 rounded-sm border border-seed/15 bg-pith text-seed outline-none focus:border-rind"
-                    />
-                    <textarea
-                      rows={3}
-                      placeholder="Paste excerpt, press release, or document text here..."
-                      value={textInput}
-                      onChange={(e) => setTextInput(e.target.value)}
-                      className="w-full text-xs p-2 rounded-sm border border-seed/15 bg-pith text-seed outline-none focus:border-rind resize-none"
-                    />
-                    <div className="flex justify-end gap-2 pt-1">
-                      <Button size="sm" variant="outline" onClick={() => setActiveModal(null)}>Cancel</Button>
-                      <Button size="sm" variant="rind" onClick={handleAddText}>Add Text</Button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    <FileText className="w-3.5 h-3.5 text-rind" />
+                    <span>Paste Text</span>
+                  </button>
 
-              {/* Attached Sources: Removable chips with domain and status dot */}
-              {sources.length > 0 ? (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {sources.map((s, idx) => (
-                    <div
-                      key={s.id || idx}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm border border-seed/15 bg-pith-card text-xs text-seed"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-rind" />
-                      <span className="max-w-[200px] truncate font-medium">
-                        {getSourceLabel(s)}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSource(idx)}
-                        className="text-seed-muted hover:text-flesh transition-colors ml-0.5 cursor-pointer"
-                        aria-label="Remove source"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
+                  <button
+                    type="button"
+                    onClick={handleLoadSample}
+                    disabled={isLoadingSample}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xs border border-seed/15 text-xs font-medium text-seed hover:bg-seed/5 hover:border-seed/30 transition-colors cursor-pointer"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-crack" />
+                    <span>{isLoadingSample ? 'Loading sample...' : 'Use sample'}</span>
+                  </button>
                 </div>
-              ) : (
-                <p className="text-xs text-seed-muted italic">
-                  No sources attached yet — or let us find sources for you.
-                </p>
-              )}
+
+                {/* Inline Intake Modal / Drawer */}
+                <AnimatePresence>
+                  {activeModal === 'url' && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="p-3 border border-seed/15 rounded-xs bg-pith space-y-2.5 overflow-hidden"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold font-heading text-seed">Add Source URL</span>
+                        <button onClick={() => setActiveModal(null)} className="text-seed-muted hover:text-seed cursor-pointer">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <input
+                        type="url"
+                        placeholder="https://scholarships.gov.in/notice-2026.html"
+                        value={urlInput}
+                        onChange={(e) => setUrlInput(e.target.value)}
+                        className="w-full text-xs p-2 rounded-xs border border-seed/15 bg-pith text-seed outline-none focus:border-rind"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Optional title (e.g. Official Guidelines 2026)"
+                        value={urlTitle}
+                        onChange={(e) => setUrlTitle(e.target.value)}
+                        className="w-full text-xs p-2 rounded-xs border border-seed/15 bg-pith text-seed outline-none focus:border-rind"
+                      />
+                      <div className="flex justify-end gap-2 pt-1">
+                        <Button size="sm" variant="outline" onClick={() => setActiveModal(null)}>Cancel</Button>
+                        <Button size="sm" variant="rind" onClick={handleAddUrl}>Add URL</Button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {activeModal === 'text' && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="p-3 border border-seed/15 rounded-xs bg-pith space-y-2.5 overflow-hidden"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold font-heading text-seed">Paste Source Text</span>
+                        <button onClick={() => setActiveModal(null)} className="text-seed-muted hover:text-seed cursor-pointer">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Optional title (e.g. Community Discussion Post)"
+                        value={textTitle}
+                        onChange={(e) => setTextTitle(e.target.value)}
+                        className="w-full text-xs p-2 rounded-xs border border-seed/15 bg-pith text-seed outline-none focus:border-rind"
+                      />
+                      <textarea
+                        rows={3}
+                        placeholder="Paste excerpt, circular text, or scheme rules here..."
+                        value={textInput}
+                        onChange={(e) => setTextInput(e.target.value)}
+                        className="w-full text-xs p-2 rounded-xs border border-seed/15 bg-pith text-seed outline-none focus:border-rind resize-none"
+                      />
+                      <div className="flex justify-end gap-2 pt-1">
+                        <Button size="sm" variant="outline" onClick={() => setActiveModal(null)}>Cancel</Button>
+                        <Button size="sm" variant="rind" onClick={handleAddText}>Add Text</Button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Evidence Tray Items List */}
+                <div className="space-y-2 pt-1">
+                  <AnimatePresence mode="popLayout">
+                    {sources.length > 0 ? (
+                      sources.map((s, idx) => {
+                        const status = getSourceStatus(s);
+                        return (
+                          <motion.div
+                            key={s.id || idx}
+                            layout
+                            initial={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
+                            transition={{ duration: 0.22, ease: 'easeOut' }}
+                            className="flex items-center justify-between gap-3 p-2 rounded-xs border border-seed/10 bg-pith hover:border-seed/25 transition-colors"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              {s.type === 'url' ? (
+                                <Globe className="w-3.5 h-3.5 text-rind shrink-0" />
+                              ) : (
+                                <FileCode2 className="w-3.5 h-3.5 text-rind shrink-0" />
+                              )}
+                              <div className="min-w-0">
+                                <p className="text-xs font-semibold text-seed truncate">
+                                  {getSourceTitle(s)}
+                                </p>
+                                <p className="text-[10px] font-mono text-seed-muted truncate">
+                                  {getSourceDomain(s)} • {s.type === 'url' ? 'URL' : 'Document'}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 shrink-0">
+                              {/* Status with Icon AND Text */}
+                              <div className="flex items-center gap-1.5 text-[11px] font-medium">
+                                {status.tone === 'ready' && (
+                                  <>
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-rind" />
+                                    <span className="text-rind">{status.label}</span>
+                                  </>
+                                )}
+                                {status.tone === 'attention' && (
+                                  <>
+                                    <AlertCircle className="w-3.5 h-3.5 text-crack" />
+                                    <span className="text-crack">{status.label}</span>
+                                  </>
+                                )}
+                                {status.tone === 'failed' && (
+                                  <>
+                                    <X className="w-3.5 h-3.5 text-flesh" />
+                                    <span className="text-flesh">{status.label}</span>
+                                  </>
+                                )}
+                              </div>
+
+                              {/* Remove Button */}
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveSource(idx)}
+                                className="text-seed-muted hover:text-flesh transition-colors p-1 cursor-pointer"
+                                aria-label={`Remove source ${getSourceTitle(s)}`}
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </motion.div>
+                        );
+                      })
+                    ) : (
+                      <p className="text-xs text-seed-muted italic py-1">
+                        No sources attached yet — add URLs or documents, or click &ldquo;Discover Sources & Slice Open&rdquo; to find sources automatically.
+                      </p>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
             </div>
 
             {/* Error message */}
             {error && (
-              <div className="p-3 rounded-sm border border-flesh/30 bg-flesh/10 text-xs text-seed flex items-start gap-2" role="alert">
+              <div className="p-3 rounded-xs border border-flesh/30 bg-flesh/10 text-xs text-seed flex items-start gap-2" role="alert">
                 <AlertCircle className="w-4 h-4 text-flesh shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
             )}
 
-            {/* Step 3: Slice It Open */}
+            {/* Step 3: Main Action Button ("Discover Sources & Slice Open" / "Slice It Open") */}
             <div className="pt-1">
-              <Button
-                size="lg"
-                variant="rind"
+              <motion.button
+                type="button"
+                whileHover={shouldReduceMotion ? {} : { y: -1 }}
+                whileTap={shouldReduceMotion ? {} : { scale: 0.98 }}
                 onClick={handleSliceOpen}
                 disabled={isSubmitting}
-                className="w-full sm:w-auto px-8 py-3 rounded-sm font-heading font-bold text-sm tracking-wide cursor-pointer"
+                className="group relative overflow-hidden inline-flex items-center justify-center gap-2 px-7 py-2.5 rounded-xs bg-rind text-white font-heading font-bold text-sm tracking-wide shadow-xs hover:bg-rind/90 transition-all cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
               >
+                {/* Short subtle scan line animation while loading */}
+                {isSubmitting && !shouldReduceMotion && (
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                    animate={{ x: ['-100%', '100%'] }}
+                    transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut' }}
+                  />
+                )}
+
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     Slicing open...
                   </span>
                 ) : sources.length === 0 ? (
                   <span className="flex items-center gap-2">
                     Discover Sources & Slice Open
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
                     Slice It Open
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
                   </span>
                 )}
-              </Button>
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Right Column: Hero Melon (Desktop, ~520px wide, bleeding slightly off the right edge) */}
         <div className="hidden lg:block lg:col-span-5 relative">
-          <div className="w-[480px] xl:w-[530px] -mr-8 xl:-mr-12 pt-2">
+          <div className="w-[490px] xl:w-[520px] -mr-8 xl:-mr-12 pt-1">
             <HeroMelon />
           </div>
         </div>
@@ -440,14 +553,14 @@ export const Home: React.FC = () => {
       <hr className="border-t border-seed/10" />
 
       {/* Lower Section: How it works as four numbered hairline-separated columns */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <h2 className="font-sans text-xs font-semibold text-seed-muted tracking-normal">
           Forensic investigation process
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 pt-0.5">
           {/* Column 01 */}
-          <div className="border-t border-seed/10 pt-4 space-y-1.5">
+          <div className="border-t border-seed/10 pt-3.5 space-y-1">
             <span className="text-xs font-mono font-bold text-rind">01</span>
             <h3 className="font-heading font-bold text-sm text-seed">Read</h3>
             <p className="text-xs text-seed-muted leading-relaxed">
@@ -456,7 +569,7 @@ export const Home: React.FC = () => {
           </div>
 
           {/* Column 02 */}
-          <div className="border-t border-seed/10 pt-4 space-y-1.5">
+          <div className="border-t border-seed/10 pt-3.5 space-y-1">
             <span className="text-xs font-mono font-bold text-rind">02</span>
             <h3 className="font-heading font-bold text-sm text-seed">Compare</h3>
             <p className="text-xs text-seed-muted leading-relaxed">
@@ -465,7 +578,7 @@ export const Home: React.FC = () => {
           </div>
 
           {/* Column 03 */}
-          <div className="border-t border-seed/10 pt-4 space-y-1.5">
+          <div className="border-t border-seed/10 pt-3.5 space-y-1">
             <span className="text-xs font-mono font-bold text-crack">03</span>
             <h3 className="font-heading font-bold text-sm text-seed">Expose</h3>
             <p className="text-xs text-seed-muted leading-relaxed">
@@ -474,7 +587,7 @@ export const Home: React.FC = () => {
           </div>
 
           {/* Column 04 */}
-          <div className="border-t border-seed/10 pt-4 space-y-1.5">
+          <div className="border-t border-seed/10 pt-3.5 space-y-1">
             <span className="text-xs font-mono font-bold text-rind">04</span>
             <h3 className="font-heading font-bold text-sm text-seed">Verify</h3>
             <p className="text-xs text-seed-muted leading-relaxed">

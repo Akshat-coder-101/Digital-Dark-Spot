@@ -114,6 +114,9 @@ export const RedactedDocumentBackground: React.FC = () => {
       } as React.CSSProperties}
       aria-hidden="true"
     >
+      {/* Soft atmospheric radial depth gradient behind hero */}
+      <div className="absolute top-1/6 right-1/4 w-[540px] h-[360px] rounded-full bg-rind/[0.035] dark:bg-rind/[0.05] blur-3xl pointer-events-none" />
+
       {/* Base Redacted Document layer: very low opacity text bars */}
       <div className="absolute inset-0 opacity-80">
         {renderLines(false)}

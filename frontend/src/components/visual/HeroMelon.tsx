@@ -10,7 +10,7 @@ export const HeroMelon: React.FC<HeroMelonProps> = ({ className }) => {
   const shouldReduceMotion = useReducedMotion();
   const [isHovered, setIsHovered] = useState(false);
 
-  // Geometry
+  // Geometry: 520px wide forensic half-melon
   const width = 520;
   const height = 290;
   const cx = 260;
@@ -65,7 +65,7 @@ export const HeroMelon: React.FC<HeroMelonProps> = ({ className }) => {
         viewBox={`0 0 ${width} ${height}`}
         className="w-full h-auto overflow-visible select-none drop-shadow-xs"
         role="img"
-        aria-label="Interactive forensic data visualization of attribute coverage"
+        aria-label="Information Dark Spot forensic data visualization of attribute coverage"
       >
         <defs>
           {/* Pale hatched pattern for stale wedge */}
@@ -79,9 +79,16 @@ export const HeroMelon: React.FC<HeroMelonProps> = ({ className }) => {
             <rect width="8" height="8" fill="var(--color-wilt)" fillOpacity="0.18" />
             <line x1="0" y1="0" x2="0" y2="8" stroke="var(--color-wilt)" strokeWidth="1.5" strokeOpacity="0.75" />
           </pattern>
+
+          {/* Clip path for half-melon interior to bound the slow scanning radar line */}
+          <clipPath id="hero-melon-interior">
+            <path
+              d={`M ${cx - outerRindRadius} ${cy} A ${outerRindRadius} ${outerRindRadius} 0 0 1 ${cx + outerRindRadius} ${cy} Z`}
+            />
+          </clipPath>
         </defs>
 
-        {/* Outer Green Rind Arc */}
+        {/* Outer Green Rind Arc: 0.6s draw sequence on first load */}
         <motion.path
           d={`M ${cx - outerRindRadius} ${cy} A ${outerRindRadius} ${outerRindRadius} 0 0 1 ${cx + outerRindRadius} ${cy}`}
           fill="none"
@@ -164,7 +171,7 @@ export const HeroMelon: React.FC<HeroMelonProps> = ({ className }) => {
           transition={{ duration: 0.5, ease: 'easeOut' }}
         />
 
-        {/* Amber Crack Fracture Line across Wedge 5 */}
+        {/* Amber Crack Fracture Line across Wedge 5: 0.5s draw sequence */}
         <motion.path
           d="M 260,275 L 282,228 L 270,188 L 298,142 L 286,104 L 314,70"
           fill="none"
@@ -181,17 +188,14 @@ export const HeroMelon: React.FC<HeroMelonProps> = ({ className }) => {
           }}
         />
 
-        {/* Visible Dark Seeds in Each Wedge */}
+        {/* Visible Dark Seeds in Each Wedge: pop-in on load (scale 0.5 to 1), lift 3px on hover */}
         {wedges.map((w, idx) => {
           const midAngle = idx * anglePerWedge + anglePerWedge / 2;
           const seedPos = polarToCartesian(cx, cy, 140, midAngle);
           const rotation = midAngle - 90; // Align radially
 
-          // Stale wedge gets pale/wilt seed; gap gets dark outline; others get bold dark seed
           const seedFill = w.type === 'stale' 
             ? 'var(--color-wilt)' 
-            : w.type === 'gap' 
-            ? 'var(--color-seed)' 
             : 'var(--color-seed)';
 
           return (
@@ -222,8 +226,33 @@ export const HeroMelon: React.FC<HeroMelonProps> = ({ className }) => {
             </motion.g>
           );
         })}
+
+        {/* One slow radar scan line sweeping across every ~10s at low opacity (strictly paused under reduced motion) */}
+        {!shouldReduceMotion && (
+          <g clipPath="url(#hero-melon-interior)">
+            <motion.line
+              x1={cx - outerRindRadius}
+              y1={cy - outerRindRadius}
+              x2={cx - outerRindRadius}
+              y2={cy + 10}
+              stroke="var(--color-rind)"
+              strokeWidth="2"
+              strokeOpacity="0.22"
+              initial={{ x: 0 }}
+              animate={{ x: [0, outerRindRadius * 2, outerRindRadius * 2, 0] }}
+              transition={{
+                duration: 10,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                times: [0, 0.45, 0.9, 1]
+              }}
+            />
+          </g>
+        )}
       </svg>
     </motion.div>
   );
 };
 
+// Component name alias
+export const InformationDarkSpot = HeroMelon;
