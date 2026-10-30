@@ -11,7 +11,8 @@
     "test:ingestion": "tsx test/test-ingestion.ts",
     "test:extraction": "tsx test/test-extraction.ts",
     "test:analysis": "tsx test/test-analysis.ts",
-    "test:sample": "tsx test/test-sample.ts"
+    "test:sample": "tsx test/test-sample.ts",
+    "test:checkpoint": "tsx test/test-e2e-checkpoint.ts"
   },
   "dependencies": {
     "cheerio": "^1.0.0",
