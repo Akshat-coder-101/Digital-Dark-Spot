@@ -2,6 +2,7 @@ import React from 'react';
 import { CoverageMatrixRow } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { SeedIcon, CrackIcon, WiltIcon, VerifiedCheckIcon } from '../common/Icons';
+import { motion, useReducedMotion } from 'motion/react';
 
 interface HalfMelonSliceViewProps {
   matrix: CoverageMatrixRow[];
@@ -16,10 +17,11 @@ export const HalfMelonSliceView: React.FC<HalfMelonSliceViewProps> = ({
   onSelectAttribute,
   className
 }) => {
+  const shouldReduceMotion = useReducedMotion();
   const total = matrix.length;
   if (total === 0) return null;
 
-  // SVG parameters for half-melon
+  // SVG dimensions
   const width = 500;
   const height = 280;
   const cx = 250;
@@ -29,7 +31,6 @@ export const HalfMelonSliceView: React.FC<HalfMelonSliceViewProps> = ({
   const pithRadius = 200;
   const fleshRadius = 190;
 
-  // Slice angles: from 180 deg (left) to 0 deg (right)
   const anglePerWedge = 180 / total;
 
   const polarToCartesian = (centerX: number, centerY: number, radius: number, angleInDegrees: number) => {
@@ -48,7 +49,7 @@ export const HalfMelonSliceView: React.FC<HalfMelonSliceViewProps> = ({
   };
 
   return (
-    <div className={cn("flex flex-col items-center justify-center p-4 rounded-2xl bg-pith-card border border-border", className)}>
+    <div className={cn("flex flex-col items-center justify-center p-4 rounded-2xl bg-pith-card border border-border shadow-2xs", className)}>
       <div className="flex items-center justify-between w-full mb-2 px-2">
         <div>
           <span className="font-heading font-bold text-sm text-seed flex items-center gap-1.5">
@@ -93,7 +94,7 @@ export const HalfMelonSliceView: React.FC<HalfMelonSliceViewProps> = ({
             className="fill-rind transition-colors"
           />
 
-          {/* Inner Pith Rim (Pale White/Green) */}
+          {/* Inner Pith Rim */}
           <path
             d={`M ${cx - innerRindRadius} ${cy} A ${innerRindRadius} ${innerRindRadius} 0 0 1 ${cx + innerRindRadius} ${cy} Z`}
             className="fill-pith-muted transition-colors"
@@ -105,14 +106,13 @@ export const HalfMelonSliceView: React.FC<HalfMelonSliceViewProps> = ({
             className="fill-flesh/20 transition-colors"
           />
 
-          {/* Attribute Wedges */}
+          {/* Staggered Wedges & Spring Seeds */}
           {matrix.map((row, idx) => {
             const startAngle = idx * anglePerWedge;
             const endAngle = (idx + 1) * anglePerWedge;
             const midAngle = startAngle + anglePerWedge / 2;
             const isSelected = selectedAttribute === row.attribute;
 
-            // Determine wedge fill color
             let wedgeFill = "fill-flesh/80 hover:fill-flesh";
             if (row.overallStatus === 'gap') {
               wedgeFill = "fill-flesh/30 hover:fill-flesh/50";
@@ -122,7 +122,6 @@ export const HalfMelonSliceView: React.FC<HalfMelonSliceViewProps> = ({
               wedgeFill = "fill-wilt/40 hover:fill-wilt/60";
             }
 
-            // Position for seed / icon indicator
             const iconPos = polarToCartesian(cx, cy, fleshRadius * 0.62, midAngle);
             const labelPos = polarToCartesian(cx, cy, fleshRadius * 0.85, midAngle);
 
@@ -136,38 +135,51 @@ export const HalfMelonSliceView: React.FC<HalfMelonSliceViewProps> = ({
                   if (e.key === 'Enter' || e.key === ' ') onSelectAttribute(row.attribute);
                 }}
               >
-                {/* Wedge Path */}
-                <path
+                {/* Wedge Path with Fade-In Animation */}
+                <motion.path
                   d={describeWedge(startAngle, endAngle, fleshRadius)}
+                  initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3, delay: idx * 0.04 }}
                   className={cn(
-                    "transition-all duration-200 stroke-pith-card stroke-[1.5]",
+                    "transition-colors duration-200 stroke-pith-card stroke-[1.5]",
                     wedgeFill,
                     isSelected && "stroke-rind stroke-[3] brightness-110"
                   )}
                 />
 
-                {/* Wedge Metaphor Icon in Center */}
-                {row.overallStatus === 'gap' ? (
-                  // Black Seed icon for gap
-                  <g transform={`translate(${iconPos.x - 6}, ${iconPos.y - 7})`}>
-                    <SeedIcon className="w-3.5 h-3.5 fill-seed transition-transform group-hover:scale-125" />
-                  </g>
-                ) : row.overallStatus === 'conflict' ? (
-                  // Crack icon
-                  <g transform={`translate(${iconPos.x - 7}, ${iconPos.y - 7})`}>
-                    <CrackIcon className="w-3.5 h-3.5 text-crack transition-transform group-hover:scale-125" />
-                  </g>
-                ) : row.overallStatus === 'thin' ? (
-                  // Wilt icon
-                  <g transform={`translate(${iconPos.x - 7}, ${iconPos.y - 7})`}>
-                    <WiltIcon className="w-3.5 h-3.5 text-wilt transition-transform group-hover:scale-125" />
-                  </g>
-                ) : (
-                  // Sourced verified check
-                  <g transform={`translate(${iconPos.x - 6}, ${iconPos.y - 6})`}>
-                    <VerifiedCheckIcon className="w-3 h-3 text-white transition-transform group-hover:scale-125" />
-                  </g>
-                )}
+                {/* Seed / Icon with Small Spring Pop-In & 1.15 Scale on Hover */}
+                <motion.g
+                  transform={`translate(${iconPos.x}, ${iconPos.y})`}
+                  initial={shouldReduceMotion ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  whileHover={shouldReduceMotion ? {} : { scale: 1.15 }}
+                  whileFocus={shouldReduceMotion ? {} : { scale: 1.15 }}
+                  transition={{
+                    type: 'spring',
+                    damping: 14,
+                    stiffness: 220,
+                    delay: 0.15 + idx * 0.04
+                  }}
+                >
+                  {row.overallStatus === 'gap' ? (
+                    <g transform="translate(-6, -7)">
+                      <SeedIcon className="w-3.5 h-3.5 fill-seed" />
+                    </g>
+                  ) : row.overallStatus === 'conflict' ? (
+                    <g transform="translate(-7, -7)">
+                      <CrackIcon className="w-3.5 h-3.5 text-crack" animateCrack={true} />
+                    </g>
+                  ) : row.overallStatus === 'thin' ? (
+                    <g transform="translate(-7, -7)">
+                      <WiltIcon className="w-3.5 h-3.5 text-wilt" />
+                    </g>
+                  ) : (
+                    <g transform="translate(-6, -6)">
+                      <VerifiedCheckIcon className="w-3 h-3 text-white" />
+                    </g>
+                  )}
+                </motion.g>
 
                 {/* Number index badge near rim */}
                 <text
@@ -194,7 +206,7 @@ export const HalfMelonSliceView: React.FC<HalfMelonSliceViewProps> = ({
         </svg>
       </div>
 
-      {/* Selected Attribute Readout Pill */}
+      {/* Selected Attribute Readout */}
       {selectedAttribute && (
         <div className="mt-3 text-xs text-seed font-medium flex items-center gap-2">
           <span className="text-seed-muted">Selected Wedge:</span>

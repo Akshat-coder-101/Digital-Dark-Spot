@@ -1,8 +1,10 @@
 import React from 'react';
+import { motion, useReducedMotion } from 'motion/react';
 
 interface IconProps extends React.SVGProps<SVGSVGElement> {
   className?: string;
   size?: number;
+  animateCrack?: boolean;
 }
 
 // Gap = black seed metaphor
@@ -20,24 +22,53 @@ export const SeedIcon: React.FC<IconProps> = ({ className = "w-4 h-4", size, ...
   </svg>
 );
 
-// Conflict = crack / fracture metaphor
-export const CrackIcon: React.FC<IconProps> = ({ className = "w-4 h-4", size, ...props }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    width={size}
-    height={size}
-    className={className}
-    aria-hidden="true"
-    {...props}
-  >
-    <path d="M13 2L10 9L15 13L9 22L11 14L7 11L13 2Z" />
-  </svg>
-);
+// Conflict = crack / fracture metaphor with pathLength animation
+export const CrackIcon: React.FC<IconProps> = ({ className = "w-4 h-4", size, animateCrack = false, ...props }) => {
+  const shouldReduceMotion = useReducedMotion();
+
+  if (!animateCrack || shouldReduceMotion) {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        width={size}
+        height={size}
+        className={className}
+        aria-hidden="true"
+        {...props}
+      >
+        <path d="M13 2L10 9L15 13L9 22L11 14L7 11L13 2Z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      width={size}
+      height={size}
+      className={className}
+      aria-hidden="true"
+      {...props}
+    >
+      <motion.path
+        d="M13 2L10 9L15 13L9 22L11 14L7 11L13 2Z"
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: 1, opacity: 1 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      />
+    </svg>
+  );
+};
 
 // Stale = wilted pale leaf/patch metaphor
 export const WiltIcon: React.FC<IconProps> = ({ className = "w-4 h-4", size, ...props }) => (

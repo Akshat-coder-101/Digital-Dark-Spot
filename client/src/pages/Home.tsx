@@ -6,9 +6,11 @@ import { SeedIcon } from '@/components/common/Icons';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { SourcePayload, startAnalysis, fetchSampleData } from '@/lib/api';
 import { Plus, Trash2, Link2, FileText, Sparkles, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
+  const shouldReduceMotion = useReducedMotion();
 
   // State
   const [question, setQuestion] = useState('');
@@ -25,6 +27,7 @@ export const Home: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingSample, setIsLoadingSample] = useState(false);
+  const [isSlicingMelon, setIsSlicingMelon] = useState(false);
 
   // Quick prompt suggestions
   const suggestions = [
@@ -119,7 +122,7 @@ export const Home: React.FC = () => {
     }
   };
 
-  // Submit / "Slice it open"
+  // Submit / "Slice it open" with 600ms knife slice motion
   const handleSliceOpen = async () => {
     setError(null);
 
@@ -135,31 +138,62 @@ export const Home: React.FC = () => {
     }
 
     setIsSubmitting(true);
-    try {
-      // If this is the sample dataset, directly initialize or run
-      if (sources.length === 3 && sources[0].id?.includes('sample')) {
-        navigate('/analyzing/sample-scholarship-report');
-        return;
-      }
+    setIsSlicingMelon(true);
 
-      const res = await startAnalysis(trimmedQuestion, sources);
-      navigate(`/analyzing/${res.jobId}`);
-    } catch (err: any) {
-      setError(err.message || 'Failed to initiate analysis pipeline');
-      setIsSubmitting(false);
-    }
+    // Wait 600ms for knife slice animation unless reduced motion
+    const delay = shouldReduceMotion ? 0 : 600;
+
+    setTimeout(async () => {
+      try {
+        if (sources.length === 3 && sources[0].id?.includes('sample')) {
+          navigate('/analyzing/sample-scholarship-report');
+          return;
+        }
+
+        const res = await startAnalysis(trimmedQuestion, sources);
+        navigate(`/analyzing/${res.jobId}`);
+      } catch (err: any) {
+        setError(err.message || 'Failed to initiate analysis pipeline');
+        setIsSubmitting(false);
+        setIsSlicingMelon(false);
+      }
+    }, delay);
   };
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-16">
-      {/* Hero Visual Section */}
+      {/* Hero Visual Section with Parting Melon Slices on Click */}
       <div className="text-center space-y-4 pt-4">
         <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-rind/15 text-rind text-xs font-semibold border border-rind/30">
           <SeedIcon className="w-3.5 h-3.5 fill-current" />
           <span>Information Gap & Contradiction Detection</span>
         </div>
 
-        <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold text-seed tracking-tight">
+        <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold text-seed tracking-tight relative">
+          {/* Animated Melon Icon with Knife Slice Effect */}
+          <div className="relative inline-block mr-3 align-middle">
+            <motion.div
+              className="inline-flex items-center justify-center text-3xl"
+              animate={
+                isSlicingMelon && !shouldReduceMotion
+                  ? { scale: [1, 1.1, 1] }
+                  : {}
+              }
+              transition={{ duration: 0.6 }}
+            >
+              🍉
+            </motion.div>
+            {isSlicingMelon && !shouldReduceMotion && (
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 25, opacity: [0, 1, 0] }}
+                transition={{ duration: 0.5, ease: 'easeInOut' }}
+                className="absolute inset-0 flex items-center justify-center pointer-events-none"
+              >
+                <div className="w-8 h-0.5 bg-white shadow-lg rotate-45 transform" />
+              </motion.div>
+            )}
+          </div>
           Slice Open What's Missing.
         </h1>
 
@@ -176,7 +210,7 @@ export const Home: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={handleLoadSample}
-            disabled={isLoadingSample}
+            disabled={isLoadingSample || isSubmitting}
             className="border-flesh/30 hover:border-flesh hover:bg-flesh/10 text-flesh font-semibold"
           >
             <Sparkles className="w-3.5 h-3.5 mr-1.5" />
@@ -185,13 +219,22 @@ export const Home: React.FC = () => {
         </div>
       </div>
 
-      {/* Error Banner */}
-      {error && (
-        <div className="p-4 rounded-2xl bg-flesh/10 border border-flesh/30 text-flesh flex items-start gap-3" role="alert">
-          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <div className="text-sm font-medium leading-relaxed">{error}</div>
-        </div>
-      )}
+      {/* Error Banner with Small Shake Motion */}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -6 }}
+            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, x: [ -6, 6, -4, 4, 0 ] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="p-4 rounded-2xl bg-flesh/10 border border-flesh/30 text-flesh flex items-start gap-3"
+            role="alert"
+          >
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+            <div className="text-sm font-medium leading-relaxed">{error}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Primary Intake Form Card */}
       <Card className="shadow-lg border-border/80">
@@ -348,7 +391,7 @@ export const Home: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleRemoveSource(idx)}
-                      className="p-1.5 rounded-lg text-seed-muted hover:text-flesh hover:bg-flesh/10 transition-colors shrink-0"
+                      className="p-1.5 rounded-lg text-seed-muted hover:text-flesh hover:bg-flesh/10 transition-colors shrink-0 cursor-pointer"
                       aria-label="Remove source"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -371,7 +414,7 @@ export const Home: React.FC = () => {
             size="lg"
             onClick={handleSliceOpen}
             disabled={isSubmitting}
-            className="w-full sm:w-auto px-8 font-bold text-base shadow-md shadow-rind/25"
+            className="w-full sm:w-auto px-8 font-bold text-base shadow-md shadow-rind/25 relative overflow-hidden"
           >
             {isSubmitting ? 'Slicing open...' : 'Slice it open'}
             <ArrowRight className="w-4 h-4 ml-1.5" />
