@@ -66,11 +66,27 @@ const RouteLoading: React.FC = () => (
   </div>
 );
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  React.useEffect(() => {
+    // Only reset scroll when navigating between distinct pages, not on sub-tab navigation
+    const isReportSubtab = /^\/report\/[^/]+\/(summary|gaps|conflicts|freshness|checklist|sources|evidence)/.test(pathname);
+    if (!isReportSubtab) {
+      window.scrollTo(0, 0);
+    }
+  }, [pathname]);
+
+  return null;
+}
+
 export const App: React.FC = () => {
   const location = useLocation();
 
   return (
-    <Suspense fallback={<RouteLoading />}>
+    <>
+      <ScrollToTop />
+      <Suspense fallback={<RouteLoading />}>
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname.split('/')[1] || 'root'}>
           <Route element={<AppLayout />}>
@@ -114,5 +130,6 @@ export const App: React.FC = () => {
         </Routes>
       </AnimatePresence>
     </Suspense>
+    </>
   );
 };

@@ -22,6 +22,7 @@ export interface ExtractedClaim {
   source_title: string;
   source_domain: string;
   attribute: string;
+  original_attribute?: string;
   value: string;
   quote: string;
   verified: boolean;

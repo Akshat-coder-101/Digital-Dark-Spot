@@ -42,6 +42,18 @@ export const ConflictsTab: React.FC = () => {
 
       <div className="space-y-6">
         {report.conflicts.map((conflict) => {
+          const claimA = report.claims.find(c =>
+            (c.attribute === conflict.attribute || c.original_attribute === conflict.attribute) &&
+            c.source_id === conflict.sourceA.source_id
+          );
+          const claimB = report.claims.find(c =>
+            (c.attribute === conflict.attribute || c.original_attribute === conflict.attribute) &&
+            c.source_id === conflict.sourceB.source_id
+          );
+
+          const targetA = claimA?.id || `${conflict.attribute}:${conflict.sourceA.source_id}`;
+          const targetB = claimB?.id || `${conflict.attribute}:${conflict.sourceB.source_id}`;
+
           const isSourceAOfficial =
             conflict.sourceA.source_domain.includes('.gov') ||
             conflict.sourceA.source_domain.includes('.nic') ||
@@ -128,7 +140,7 @@ export const ConflictsTab: React.FC = () => {
                   <div className="pt-2 border-t border-seed/10 flex justify-end">
                     <button
                       type="button"
-                      onClick={() => navigate(`/report/${report.id}/evidence/${conflict.sourceA.source_id}`)}
+                      onClick={() => navigate(`/report/${report.id}/evidence/${encodeURIComponent(targetA)}`)}
                       className="text-xs font-semibold text-rind hover:underline inline-flex items-center gap-1 cursor-pointer"
                     >
                       Inspect Source Evidence
@@ -187,7 +199,7 @@ export const ConflictsTab: React.FC = () => {
                   <div className="pt-2 border-t border-seed/10 flex justify-end">
                     <button
                       type="button"
-                      onClick={() => navigate(`/report/${report.id}/evidence/${conflict.sourceB.source_id}`)}
+                      onClick={() => navigate(`/report/${report.id}/evidence/${encodeURIComponent(targetB)}`)}
                       className="text-xs font-semibold text-rind hover:underline inline-flex items-center gap-1 cursor-pointer"
                     >
                       Inspect Source Evidence

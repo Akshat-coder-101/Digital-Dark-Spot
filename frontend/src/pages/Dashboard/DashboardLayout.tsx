@@ -85,15 +85,26 @@ export const DashboardLayout: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    // Reset scroll to top on initial report load so it never starts in the middle
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [loadData]);
 
-  // Tab change: Switch tab IN PLACE without scrolling to the top of the website
+  // Tab change: If switching to summary, scroll to top of the report; for other tabs, keep tab header in view
   const handleTabChange = (val: string) => {
-    const currentY = window.scrollY;
+    if (val === 'summary') {
+      navigate(`/report/${id}/summary`);
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      return;
+    }
+
     navigate(`/report/${id}/${val}`, { preventScrollReset: true });
-    requestAnimationFrame(() => {
-      window.scrollTo({ top: currentY });
-    });
+    // If the user has scrolled past the tab navigation bar, bring the top of the tab content into view
+    if (tabsNavRef.current) {
+      const rect = tabsNavRef.current.getBoundingClientRect();
+      if (rect.top < 0) {
+        tabsNavRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
   };
 
   // Signal strip counter click: smoothly scroll down to the tabs section
