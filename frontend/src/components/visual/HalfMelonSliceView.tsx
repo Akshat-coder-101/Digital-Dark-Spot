@@ -27,9 +27,9 @@ export const HalfMelonSliceView: React.FC<HalfMelonSliceViewProps> = ({
   const cx = 250;
   const cy = 250;
   const outerRindRadius = 230;
-  const innerRindRadius = 210;
-  const pithRadius = 200;
-  const fleshRadius = 190;
+  const innerRindRadius = 212;
+  const pithRadius = 202;
+  const fleshRadius = 192;
 
   const anglePerWedge = 180 / total;
 
@@ -49,33 +49,33 @@ export const HalfMelonSliceView: React.FC<HalfMelonSliceViewProps> = ({
   };
 
   return (
-    <div className={cn("flex flex-col items-center justify-center p-4 rounded-2xl bg-pith-card border border-border shadow-2xs", className)}>
-      <div className="flex items-center justify-between w-full mb-2 px-2">
+    <div className={cn("flex flex-col items-center justify-center p-5 rounded-sm bg-pith border border-seed/10", className)}>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full mb-3 gap-2">
         <div>
           <span className="font-heading font-bold text-sm text-seed flex items-center gap-1.5">
-            Half-Melon Slice View
+            Half-Melon Slice Matrix
           </span>
-          <p className="text-xs text-seed-muted">
-            Each wedge represents one expected attribute. Click any wedge to inspect.
+          <p className="text-[11px] text-seed-muted">
+            Each wedge represents one expected parameter. Click to cross-examine.
           </p>
         </div>
 
-        {/* Legend */}
-        <div className="flex flex-wrap items-center gap-3 text-[11px] font-medium text-seed-muted">
+        {/* Legend with Text + Icon Shapes */}
+        <div className="flex flex-wrap items-center gap-2.5 text-[10px] font-mono uppercase text-seed-muted">
           <span className="inline-flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-flesh" />
+            <span className="w-2 h-2 rounded-full bg-flesh" />
             Covered
           </span>
           <span className="inline-flex items-center gap-1">
-            <SeedIcon className="w-3 h-3 fill-seed" />
-            Gap (Seed)
+            <SeedIcon className="w-2.5 h-2.5 fill-current text-seed" />
+            Gap
           </span>
           <span className="inline-flex items-center gap-1">
-            <CrackIcon className="w-3 h-3 text-crack" />
+            <CrackIcon className="w-2.5 h-2.5 text-crack" />
             Conflict
           </span>
           <span className="inline-flex items-center gap-1">
-            <WiltIcon className="w-3 h-3 text-wilt" />
+            <WiltIcon className="w-2.5 h-2.5 text-wilt" />
             Stale
           </span>
         </div>
@@ -91,19 +91,19 @@ export const HalfMelonSliceView: React.FC<HalfMelonSliceViewProps> = ({
           {/* Outer Green Rind */}
           <path
             d={`M ${cx - outerRindRadius} ${cy} A ${outerRindRadius} ${outerRindRadius} 0 0 1 ${cx + outerRindRadius} ${cy} Z`}
-            className="fill-rind transition-colors"
+            className="fill-rind"
           />
 
           {/* Inner Pith Rim */}
           <path
             d={`M ${cx - innerRindRadius} ${cy} A ${innerRindRadius} ${innerRindRadius} 0 0 1 ${cx + innerRindRadius} ${cy} Z`}
-            className="fill-pith-muted transition-colors"
+            className="fill-pith-muted"
           />
 
           {/* Flesh Base */}
           <path
             d={`M ${cx - pithRadius} ${cy} A ${pithRadius} ${pithRadius} 0 0 1 ${cx + pithRadius} ${cy} Z`}
-            className="fill-flesh/20 transition-colors"
+            className="fill-flesh/15"
           />
 
           {/* Staggered Wedges & Spring Seeds */}
@@ -113,13 +113,13 @@ export const HalfMelonSliceView: React.FC<HalfMelonSliceViewProps> = ({
             const midAngle = startAngle + anglePerWedge / 2;
             const isSelected = selectedAttribute === row.attribute;
 
-            let wedgeFill = "fill-flesh/80 hover:fill-flesh";
+            let wedgeFill = "fill-flesh/70 hover:fill-flesh";
             if (row.overallStatus === 'gap') {
-              wedgeFill = "fill-flesh/30 hover:fill-flesh/50";
+              wedgeFill = "fill-seed/20 hover:fill-seed/30";
             } else if (row.overallStatus === 'conflict') {
-              wedgeFill = "fill-crack/50 hover:fill-crack/80";
+              wedgeFill = "fill-crack/40 hover:fill-crack/60";
             } else if (row.overallStatus === 'thin') {
-              wedgeFill = "fill-wilt/40 hover:fill-wilt/60";
+              wedgeFill = "fill-wilt/30 hover:fill-wilt/50";
             }
 
             const iconPos = polarToCartesian(cx, cy, fleshRadius * 0.62, midAngle);
@@ -135,20 +135,20 @@ export const HalfMelonSliceView: React.FC<HalfMelonSliceViewProps> = ({
                   if (e.key === 'Enter' || e.key === ' ') onSelectAttribute(row.attribute);
                 }}
               >
-                {/* Wedge Path with Fade-In Animation */}
+                {/* Wedge Path with Staggered Fade-In */}
                 <motion.path
                   d={describeWedge(startAngle, endAngle, fleshRadius)}
                   initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3, delay: idx * 0.04 }}
+                  transition={{ duration: 0.25, delay: idx * 0.03 }}
                   className={cn(
-                    "transition-colors duration-200 stroke-pith-card stroke-[1.5]",
+                    "transition-colors duration-150 stroke-pith stroke-[1.5]",
                     wedgeFill,
-                    isSelected && "stroke-rind stroke-[3] brightness-110"
+                    isSelected && "stroke-rind stroke-[2.5]"
                   )}
                 />
 
-                {/* Seed / Icon with Small Spring Pop-In & 1.15 Scale on Hover */}
+                {/* Seed / Icon with Small Spring Pop-In */}
                 <motion.g
                   transform={`translate(${iconPos.x}, ${iconPos.y})`}
                   initial={shouldReduceMotion ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
@@ -157,14 +157,14 @@ export const HalfMelonSliceView: React.FC<HalfMelonSliceViewProps> = ({
                   whileFocus={shouldReduceMotion ? {} : { scale: 1.15 }}
                   transition={{
                     type: 'spring',
-                    damping: 14,
-                    stiffness: 220,
-                    delay: 0.15 + idx * 0.04
+                    damping: 16,
+                    stiffness: 240,
+                    delay: 0.1 + idx * 0.03
                   }}
                 >
                   {row.overallStatus === 'gap' ? (
                     <g transform="translate(-6, -7)">
-                      <SeedIcon className="w-3.5 h-3.5 fill-seed" />
+                      <SeedIcon className="w-3.5 h-3.5 fill-current text-seed" />
                     </g>
                   ) : row.overallStatus === 'conflict' ? (
                     <g transform="translate(-7, -7)">
@@ -187,7 +187,7 @@ export const HalfMelonSliceView: React.FC<HalfMelonSliceViewProps> = ({
                   y={labelPos.y}
                   textAnchor="middle"
                   dominantBaseline="central"
-                  className="text-[9px] font-mono font-bold fill-seed/70 select-none pointer-events-none"
+                  className="text-[9px] font-mono font-bold fill-seed/60 select-none pointer-events-none"
                 >
                   {idx + 1}
                 </text>
@@ -201,20 +201,20 @@ export const HalfMelonSliceView: React.FC<HalfMelonSliceViewProps> = ({
             y1={cy}
             x2={cx + outerRindRadius}
             y2={cy}
-            className="stroke-rind stroke-[4]"
+            className="stroke-rind stroke-[3]"
           />
         </svg>
       </div>
 
       {/* Selected Attribute Readout */}
       {selectedAttribute && (
-        <div className="mt-3 text-xs text-seed font-medium flex items-center gap-2">
-          <span className="text-seed-muted">Selected Wedge:</span>
-          <span className="font-heading font-bold text-rind px-2 py-0.5 rounded-md bg-rind/10 border border-rind/20">
+        <div className="mt-3 text-xs text-seed font-medium flex items-center gap-2 border-t border-seed/10 pt-2 w-full justify-center">
+          <span className="text-seed-muted text-[11px] font-mono uppercase">Selected:</span>
+          <span className="font-heading font-bold text-rind px-2 py-0.5 rounded-xs bg-rind/10 border border-rind/20">
             {matrix.find(m => m.attribute === selectedAttribute)?.attributeLabel || selectedAttribute}
           </span>
-          <span className="text-[11px] font-mono uppercase text-seed-muted">
-            Status: {matrix.find(m => m.attribute === selectedAttribute)?.overallStatus}
+          <span className="text-[10px] font-mono uppercase text-seed-muted">
+            ({matrix.find(m => m.attribute === selectedAttribute)?.overallStatus})
           </span>
         </div>
       )}

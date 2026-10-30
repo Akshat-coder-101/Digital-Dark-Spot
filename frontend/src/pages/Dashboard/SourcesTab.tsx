@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useReport } from './ReportContext';
-import { Card } from '@/components/ui/card';
 import { ExternalLink, ChevronDown, ChevronUp, FileText, Globe, Calendar } from 'lucide-react';
 
 export const SourcesTab: React.FC = () => {
@@ -13,9 +12,9 @@ export const SourcesTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between border-b border-seed/10 pb-4">
         <div>
-          <h3 className="font-heading font-bold text-xl text-seed">
+          <h3 className="font-heading font-bold text-lg text-seed">
             Reviewed Source Material ({report.sources.length})
           </h3>
           <p className="text-xs text-seed-muted">
@@ -24,42 +23,44 @@ export const SourcesTab: React.FC = () => {
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="divide-y divide-seed/10 border border-seed/10 rounded-sm">
         {report.sources.map((source, idx) => {
           const isExpanded = expandedSourceId === source.id;
 
           return (
-            <Card key={source.id} className="p-5 overflow-hidden transition-all">
+            <div key={source.id} className="p-5 bg-pith transition-colors">
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div className="flex items-start gap-3">
-                  <div className="p-2.5 rounded-xl bg-pith-muted text-seed shrink-0 mt-0.5">
-                    {source.type === 'url' ? <Globe className="w-5 h-5 text-rind" /> : <FileText className="w-5 h-5 text-seed" />}
+                  <div className="p-2 rounded-xs bg-seed/5 text-seed shrink-0 mt-0.5">
+                    {source.type === 'url' ? <Globe className="w-4 h-4 text-rind" /> : <FileText className="w-4 h-4 text-seed" />}
                   </div>
 
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-heading font-bold text-base text-seed">
+                      <span className="font-heading font-bold text-sm sm:text-base text-seed">
                         {source.title}
                       </span>
-                      <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-pith-muted text-seed-muted">
-                        Source {idx + 1}
+                      <span className="text-[10px] font-mono uppercase px-1.5 py-0.2 rounded-xs bg-seed/5 text-seed-muted">
+                        Source 0{idx + 1}
                       </span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${source.status === 'ready' ? 'bg-rind/15 text-rind' : 'bg-flesh/15 text-flesh'}`}>
+                      <span className={`text-[10px] font-mono uppercase font-bold px-1.5 py-0.2 rounded-xs ${
+                        source.status === 'ready' ? 'bg-rind/10 text-rind border border-rind/20' : 'bg-flesh/10 text-flesh border border-flesh/20'
+                      }`}>
                         {source.status === 'ready' ? 'Ingested' : 'Error'}
                       </span>
                     </div>
 
                     <p className="text-xs font-mono text-seed-muted">
-                      Domain: <strong>{source.domain}</strong> • Word Count: {source.wordCount} words
+                      Domain: <strong className="text-seed">{source.domain}</strong> • Word Count: {source.wordCount} words
                     </p>
 
                     <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-seed-muted">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-seed-muted" />
+                      <span className="flex items-center gap-1 font-mono text-[11px]">
+                        <Calendar className="w-3.5 h-3.5 opacity-60" />
                         {source.detectedDate || source.detectedCycle || 'Undated document'}
                       </span>
                       {source.isStale && (
-                        <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-wilt-subtle text-wilt border border-wilt/30">
+                        <span className="text-[10px] font-mono uppercase font-bold px-1.5 py-0.2 rounded-xs bg-wilt/15 text-wilt border border-wilt/30">
                           Prior Cycle / Stale
                         </span>
                       )}
@@ -74,7 +75,7 @@ export const SourcesTab: React.FC = () => {
                       href={source.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-xl border border-border text-xs font-semibold text-seed hover:bg-pith-muted inline-flex items-center gap-1.5 transition-colors"
+                      className="px-2.5 py-1 rounded-xs border border-seed/15 text-xs font-medium text-seed hover:bg-seed/5 inline-flex items-center gap-1.5 transition-colors"
                     >
                       <span>Visit Site</span>
                       <ExternalLink className="w-3 h-3" />
@@ -84,7 +85,7 @@ export const SourcesTab: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => toggleExpand(source.id)}
-                    className="p-1.5 rounded-xl border border-border text-seed-muted hover:text-seed hover:bg-pith-muted transition-colors"
+                    className="p-1 rounded-xs border border-seed/15 text-seed-muted hover:text-seed hover:bg-seed/5 transition-colors cursor-pointer"
                     aria-label={isExpanded ? 'Collapse text' : 'Expand text preview'}
                   >
                     {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -94,18 +95,18 @@ export const SourcesTab: React.FC = () => {
 
               {/* Cleaned Text Preview */}
               {isExpanded && (
-                <div className="mt-4 pt-4 border-t border-border space-y-2">
+                <div className="mt-4 pt-4 border-t border-seed/10 space-y-2">
                   <div className="flex items-center justify-between text-xs text-seed-muted">
-                    <span className="font-bold uppercase tracking-wider text-[10px]">
+                    <span className="font-mono text-[10px] uppercase tracking-wider">
                       Extracted Clean Text Content ({source.cleanedText.length} characters):
                     </span>
                   </div>
-                  <pre className="p-4 rounded-xl bg-pith border border-border text-xs font-mono text-seed whitespace-pre-wrap leading-relaxed max-h-72 overflow-y-auto">
+                  <pre className="p-4 rounded-xs bg-seed/[0.02] border border-seed/10 text-xs font-mono text-seed whitespace-pre-wrap leading-relaxed max-h-72 overflow-y-auto">
                     {source.cleanedText || 'No text extracted.'}
                   </pre>
                 </div>
               )}
-            </Card>
+            </div>
           );
         })}
       </div>

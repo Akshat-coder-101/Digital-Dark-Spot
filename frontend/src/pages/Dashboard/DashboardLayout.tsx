@@ -1,7 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Counter } from '@/components/ui/counter';
 import { Button } from '@/components/ui/button';
 import { SeedIcon, CrackIcon, WiltIcon, VerifiedCheckIcon, BowlIcon } from '@/components/common/Icons';
 import { FullAnalysisReport } from '@/lib/types';
@@ -9,7 +7,8 @@ import { getReport, fetchSampleData, startAnalysis } from '@/lib/api';
 import { HalfMelonSliceView } from '@/components/visual/HalfMelonSliceView';
 import { CoverageMatrixTable } from '@/components/visual/CoverageMatrixTable';
 import { ReportContext } from './ReportContext';
-import { RefreshCw, Sparkles, AlertCircle, ArrowLeft, Loader2 } from 'lucide-react';
+import { RefreshCw, Sparkles, AlertCircle, ArrowLeft, Loader2, FileText, Info } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export const DashboardLayout: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -80,8 +79,10 @@ export const DashboardLayout: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
-        <Loader2 className="w-10 h-10 animate-spin text-rind" />
-        <span className="text-sm font-semibold text-seed-muted">Loading Information Audit...</span>
+        <Loader2 className="w-8 h-8 animate-spin text-rind" />
+        <span className="text-xs font-mono uppercase tracking-wider text-seed-muted">
+          Loading Investigation Report...
+        </span>
       </div>
     );
   }
@@ -89,18 +90,34 @@ export const DashboardLayout: React.FC = () => {
   if (error || !report) {
     return (
       <div className="max-w-xl mx-auto py-16 text-center space-y-4">
-        <div className="p-4 rounded-2xl bg-flesh/10 text-flesh border border-flesh/30">
-          <AlertCircle className="w-8 h-8 mx-auto mb-2" />
-          <h3 className="font-heading font-bold text-lg">Unable to Load Report</h3>
-          <p className="text-xs mt-1">{error || 'Report not found.'}</p>
+        <div className="p-4 rounded-sm bg-flesh/10 text-flesh border border-flesh/30">
+          <AlertCircle className="w-6 h-6 mx-auto mb-2" />
+          <h3 className="font-heading font-bold text-base">Unable to Load Report</h3>
+          <p className="text-xs mt-1">{error || 'Report could not be retrieved.'}</p>
         </div>
         <Button variant="rind" onClick={() => navigate('/')}>
           <ArrowLeft className="w-4 h-4 mr-1.5" />
-          Return to Detection Home
+          Return to Investigation Home
         </Button>
       </div>
     );
   }
+
+  const shortSessionId = id ? (id.length > 16 ? `${id.slice(0, 8)}…${id.slice(-4)}` : id) : '';
+  const reportDate = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+
+  const tabs = [
+    { id: 'summary', label: 'Summary', icon: FileText, count: null },
+    { id: 'gaps', label: 'Potential Gaps', icon: SeedIcon, count: report.metrics.gapsCount },
+    { id: 'conflicts', label: 'Possible Conflicts', icon: CrackIcon, count: report.metrics.conflictsCount },
+    { id: 'freshness', label: 'Freshness Warnings', icon: WiltIcon, count: report.metrics.staleCount },
+    { id: 'checklist', label: 'Verification Checklist', icon: BowlIcon, count: report.checklist.length },
+    { id: 'sources', label: 'Reviewed Sources', icon: VerifiedCheckIcon, count: report.sources.length },
+  ];
 
   return (
     <ReportContext.Provider
@@ -111,80 +128,136 @@ export const DashboardLayout: React.FC = () => {
         refetchReport: loadData
       }}
     >
-      <div className="space-y-8 pb-16">
+      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-6 space-y-8 pb-16">
         {/* Header Strip */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
-          <div className="space-y-1">
+        <div className="space-y-3 border-b border-seed/10 pb-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-xs font-semibold px-2.5 py-0.5 rounded-full bg-rind/15 text-rind">
-                Audited Report
+              <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded-xs bg-rind/10 text-rind border border-rind/20 uppercase tracking-wider">
+                Research Report
               </span>
+              <span className="text-xs text-seed-muted font-mono">
+                Session: <strong className="text-seed">{shortSessionId}</strong>
+              </span>
+              <span className="text-seed-muted/40">•</span>
+              <span className="text-xs text-seed-muted font-mono">
+                {reportDate}
+              </span>
+              <span className="text-seed-muted/40">•</span>
               <span className="text-xs text-seed-muted flex items-center gap-1 font-mono">
                 <Sparkles className="w-3 h-3 text-rind" />
-                Analyzed with: <strong className="text-seed">{report.analyzedWith.provider}</strong>
+                {report.analyzedWith.provider ? (
+                  <>Analyzed with: <strong className="text-seed">{report.analyzedWith.provider}</strong></>
+                ) : (
+                  <strong className="text-seed">Sample Data</strong>
+                )}
                 {report.analyzedWith.cached && (
-                  <span className="px-1.5 py-0.2 rounded bg-pith-muted text-[10px] text-seed-muted">
-                    (cached)
-                  </span>
+                  <span className="text-[10px] text-seed-muted/70">(cached)</span>
                 )}
               </span>
             </div>
 
-            <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-seed tracking-tight">
-              "{report.question}"
-            </h1>
-          </div>
-
-          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={handleRerun}
               disabled={isRerunning}
+              className="text-xs"
             >
               <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isRerunning ? 'animate-spin' : ''}`} />
               Re-run Fresh
             </Button>
           </div>
+
+          <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-seed tracking-tight">
+            "{report.question}"
+          </h1>
         </div>
 
-        {/* Counter Strip */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Counter
-            value={report.metrics.sourcesCount}
-            label="Sources Reviewed"
-            icon={<VerifiedCheckIcon className="w-4 h-4" />}
-            variant="rind"
-            subtext="Inspected"
+        {/* Signal Strip: 4 compact hairline-separated counters */}
+        <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-seed/10 border border-seed/10 rounded-sm bg-pith">
+          {/* Sources Reviewed */}
+          <button
+            type="button"
             onClick={() => handleTabChange('sources')}
-          />
-          <Counter
-            value={report.metrics.gapsCount}
-            label="Potential Gaps"
-            icon={<SeedIcon className="w-4 h-4 fill-current" />}
-            variant="seed"
-            subtext="Black seeds"
+            className="p-4 text-left hover:bg-seed/[0.02] transition-colors cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-seed-muted">
+                Sources Reviewed
+              </span>
+              <VerifiedCheckIcon className="w-3.5 h-3.5 text-rind" />
+            </div>
+            <div className="font-mono text-2xl font-bold text-seed mt-1">
+              {report.metrics.sourcesCount}
+            </div>
+            <span className="text-[11px] text-seed-muted group-hover:text-rind transition-colors">
+              Inspected & verified →
+            </span>
+          </button>
+
+          {/* Potential Gaps */}
+          <button
+            type="button"
             onClick={() => handleTabChange('gaps')}
-          />
-          <Counter
-            value={report.metrics.conflictsCount}
-            label="Possible Conflicts"
-            icon={<CrackIcon className="w-4 h-4" />}
-            variant="crack"
-            subtext="Contradictions"
+            className="p-4 text-left hover:bg-seed/[0.02] transition-colors cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-seed-muted">
+                Potential Gaps
+              </span>
+              <SeedIcon className="w-3.5 h-3.5 fill-current text-seed" />
+            </div>
+            <div className="font-mono text-2xl font-bold text-seed mt-1">
+              {report.metrics.gapsCount}
+            </div>
+            <span className="text-[11px] text-seed-muted group-hover:text-seed transition-colors">
+              Missing parameters →
+            </span>
+          </button>
+
+          {/* Possible Conflicts */}
+          <button
+            type="button"
             onClick={() => handleTabChange('conflicts')}
-          />
-          <Counter
-            value={report.metrics.staleCount}
-            label="Potentially Stale"
-            icon={<WiltIcon className="w-4 h-4" />}
-            variant="wilt"
-            subtext="Dated/prior cycle"
+            className="p-4 text-left hover:bg-seed/[0.02] transition-colors cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-seed-muted">
+                Possible Conflicts
+              </span>
+              <CrackIcon className="w-3.5 h-3.5 text-crack" />
+            </div>
+            <div className="font-mono text-2xl font-bold text-crack mt-1">
+              {report.metrics.conflictsCount}
+            </div>
+            <span className="text-[11px] text-seed-muted group-hover:text-crack transition-colors">
+              Value contradictions →
+            </span>
+          </button>
+
+          {/* Stale / Prior Cycle */}
+          <button
+            type="button"
             onClick={() => handleTabChange('freshness')}
-          />
+            className="p-4 text-left hover:bg-seed/[0.02] transition-colors cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-seed-muted">
+                Stale / Undated
+              </span>
+              <WiltIcon className="w-3.5 h-3.5 text-wilt" />
+            </div>
+            <div className="font-mono text-2xl font-bold text-wilt mt-1">
+              {report.metrics.staleCount}
+            </div>
+            <span className="text-[11px] text-seed-muted group-hover:text-wilt transition-colors">
+              Temporal warnings →
+            </span>
+          </button>
         </div>
 
-        {/* Half-Melon Slice View & Accessible Matrix (Side by Side / Stacked) */}
+        {/* Two-Column Body: Half-Melon Slice View & Accessible Matrix */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <div className="lg:col-span-5">
             <HalfMelonSliceView
@@ -204,34 +277,52 @@ export const DashboardLayout: React.FC = () => {
           </div>
         </div>
 
-        {/* Tabs Bar */}
-        <div className="border-b border-border pb-2 pt-2">
-          <Tabs value={currentTab} onValueChange={handleTabChange}>
-            <TabsList>
-              <TabsTrigger value="summary">Summary</TabsTrigger>
-              <TabsTrigger value="gaps" className="flex items-center gap-1.5">
-                <SeedIcon className="w-3.5 h-3.5 fill-current" />
-                <span>Gaps ({report.metrics.gapsCount})</span>
-              </TabsTrigger>
-              <TabsTrigger value="conflicts" className="flex items-center gap-1.5">
-                <CrackIcon className="w-3.5 h-3.5" />
-                <span>Conflicts ({report.metrics.conflictsCount})</span>
-              </TabsTrigger>
-              <TabsTrigger value="freshness" className="flex items-center gap-1.5">
-                <WiltIcon className="w-3.5 h-3.5" />
-                <span>Freshness ({report.metrics.staleCount})</span>
-              </TabsTrigger>
-              <TabsTrigger value="checklist" className="flex items-center gap-1.5">
-                <BowlIcon className="w-3.5 h-3.5" />
-                <span>Checklist ({report.checklist.length})</span>
-              </TabsTrigger>
-              <TabsTrigger value="sources">Sources ({report.sources.length})</TabsTrigger>
-            </TabsList>
-          </Tabs>
+        {/* Plain Underlined Tab Bar */}
+        <div className="border-b border-seed/10">
+          <nav className="flex items-center gap-1 sm:gap-6 overflow-x-auto" aria-label="Report sections">
+            {tabs.map((tab) => {
+              const isActive = currentTab === tab.id || (tab.id === 'summary' && currentTab === 'evidence');
+              const IconComp = tab.icon;
+
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => handleTabChange(tab.id)}
+                  className={cn(
+                    "py-3 px-1 text-xs font-medium border-b-2 transition-colors cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap",
+                    isActive
+                      ? "border-rind text-seed font-semibold"
+                      : "border-transparent text-seed-muted hover:text-seed hover:border-seed/20"
+                  )}
+                >
+                  <IconComp className="w-3.5 h-3.5 shrink-0 opacity-80" />
+                  <span>{tab.label}</span>
+                  {tab.count !== null && (
+                    <span className={cn(
+                      "font-mono text-[10px] px-1.5 py-0.2 rounded-xs",
+                      isActive ? "bg-seed/10 text-seed font-semibold" : "bg-seed/5 text-seed-muted"
+                    )}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
         </div>
 
         {/* Outlet for active nested tab */}
-        <Outlet />
+        <div className="pt-2">
+          <Outlet />
+        </div>
+
+        {/* Footer Disclaimer Banner */}
+        <div className="p-3.5 rounded-sm bg-seed/[0.02] border border-seed/10 flex items-center gap-2.5 text-xs text-seed-muted">
+          <Info className="w-4 h-4 text-rind shrink-0" />
+          <span>
+            <strong className="text-seed font-semibold">Disclosure:</strong> Potential signals, not verified facts. Cross-examine primary sources before making decisions.
+          </span>
+        </div>
       </div>
     </ReportContext.Provider>
   );

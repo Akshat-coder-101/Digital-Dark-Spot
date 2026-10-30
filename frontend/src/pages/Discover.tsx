@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AnimatedCheckbox } from '@/components/ui/animated-checkbox';
 import { getDiscoveryJob, startAnalysis, SourcePayload, DiscoveredSource } from '@/lib/api';
@@ -13,7 +12,9 @@ import {
   ArrowRight,
   Loader2,
   ExternalLink,
-  Info
+  Info,
+  ShieldCheck,
+  FileText
 } from 'lucide-react';
 
 export const Discover: React.FC = () => {
@@ -107,7 +108,7 @@ export const Discover: React.FC = () => {
         url: trimmed,
         snippet: 'Manually added custom source URL.',
         domain,
-        isOfficial: domain.endsWith('.gov') || domain.endsWith('.edu') || domain.endsWith('.ac.in')
+        isOfficial: domain.endsWith('.gov') || domain.endsWith('.edu') || domain.endsWith('.ac.in') || domain.endsWith('.nic.in')
       };
 
       setSources(prev => [newSrc, ...prev]);
@@ -181,14 +182,14 @@ export const Discover: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 py-6 pb-16">
+    <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-8 space-y-8 pb-16">
       {/* Top Header */}
-      <div className="space-y-2">
-        <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-rind/15 text-rind text-xs font-semibold">
-          <Search className="w-3.5 h-3.5" />
-          <span>Automatic Source Discovery (Step 3B)</span>
+      <div className="space-y-2 border-b border-seed/10 pb-6">
+        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-rind/10 text-rind text-[11px] font-mono uppercase tracking-wider font-semibold">
+          <Search className="w-3 h-3" />
+          <span>Automatic Source Discovery</span>
         </div>
-        <h1 className="font-heading text-3xl sm:text-4xl font-extrabold text-seed">
+        <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-seed tracking-tight">
           Discovered Sources
         </h1>
         <p className="text-seed-muted text-sm sm:text-base">
@@ -197,16 +198,16 @@ export const Discover: React.FC = () => {
       </div>
 
       {/* Mandatory Disclaimer Note */}
-      <div className="p-3.5 rounded-xl bg-pith-muted border border-border flex items-center gap-2 text-xs text-seed-muted">
+      <div className="p-3.5 rounded-sm bg-seed/[0.02] border border-seed/10 flex items-center gap-2.5 text-xs text-seed-muted">
         <Info className="w-4 h-4 text-rind shrink-0" />
         <span>
-          <strong>Note:</strong> Search results are not a complete view of the web. Review and select the sources you wish to cross-examine.
+          <strong className="text-seed font-semibold">Disclosure:</strong> Search results are not a complete view of the web. Review and select the sources you wish to cross-examine.
         </span>
       </div>
 
       {/* Error Banner */}
       {error && (
-        <div className="p-4 rounded-xl bg-flesh/10 border border-flesh/30 text-flesh flex items-start gap-2.5 text-xs font-medium">
+        <div className="p-4 rounded-sm bg-flesh/10 border border-flesh/30 text-flesh flex items-start gap-2.5 text-xs font-medium" role="alert">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <p>{error}</p>
         </div>
@@ -214,34 +215,34 @@ export const Discover: React.FC = () => {
 
       {/* Loading Search State */}
       {loading ? (
-        <Card className="p-8 text-center space-y-4">
-          <Loader2 className="w-8 h-8 animate-spin text-rind mx-auto" />
+        <div className="p-8 sm:p-12 text-center space-y-4 border border-seed/10 rounded-sm bg-seed/[0.01]">
+          <Loader2 className="w-7 h-7 animate-spin text-rind mx-auto" />
           <div className="space-y-1">
             <h3 className="font-heading font-bold text-lg text-seed">{message}</h3>
-            <p className="text-xs text-seed-muted">
+            <p className="text-xs text-seed-muted max-w-md mx-auto">
               Running multi-angle search query generation across government, institutional, and reference portals...
             </p>
           </div>
 
           {queries.length > 0 && (
             <div className="pt-4 max-w-md mx-auto space-y-1.5 text-left">
-              <span className="text-[11px] font-bold text-seed-muted uppercase tracking-wider block">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-seed-muted block">
                 Investigative Queries Formulated:
               </span>
               {queries.map((q, idx) => (
-                <div key={idx} className="p-2 rounded-lg bg-pith text-xs font-mono text-seed border border-border truncate">
+                <div key={idx} className="p-2 rounded-xs bg-pith text-xs font-mono text-seed border border-seed/10 truncate">
                   • {q}
                 </div>
               ))}
             </div>
           )}
-        </Card>
+        </div>
       ) : (
         <>
           {/* Discovered Sources List */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-seed-muted">
+            <div className="flex items-center justify-between pb-1">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-seed-muted">
                 {selectedUrls.size} of {sources.length} Sources Selected for Audit
               </span>
               <div className="flex gap-2">
@@ -252,7 +253,7 @@ export const Discover: React.FC = () => {
                 >
                   Select All
                 </button>
-                <span className="text-seed-muted">•</span>
+                <span className="text-seed-muted/50">•</span>
                 <button
                   type="button"
                   onClick={() => setSelectedUrls(new Set())}
@@ -263,15 +264,15 @@ export const Discover: React.FC = () => {
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="divide-y divide-seed/10 border border-seed/10 rounded-sm">
               {sources.map((source, idx) => {
                 const isSelected = selectedUrls.has(source.url);
 
                 return (
-                  <Card
+                  <div
                     key={idx}
-                    className={`p-4 border transition-all ${
-                      isSelected ? 'border-rind/50 bg-pith-card shadow-xs' : 'border-border bg-pith-muted/30 opacity-70'
+                    className={`p-4 transition-colors ${
+                      isSelected ? 'bg-pith' : 'bg-seed/[0.02] opacity-75'
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -290,16 +291,18 @@ export const Discover: React.FC = () => {
 
                           <div className="flex items-center gap-1.5 shrink-0">
                             {source.isOfficial ? (
-                              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-rind/15 text-rind border border-rind/30">
-                                Official Authority
+                              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-xs bg-rind/10 text-rind border border-rind/20 inline-flex items-center gap-1">
+                                <ShieldCheck className="w-3 h-3" />
+                                <span>Official Authority</span>
                               </span>
                             ) : (
-                              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-pith-muted text-seed-muted border border-border">
-                                Unofficial / Secondary
+                              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-xs bg-seed/5 text-seed-muted border border-seed/10 inline-flex items-center gap-1">
+                                <FileText className="w-3 h-3" />
+                                <span>Secondary Source</span>
                               </span>
                             )}
                             {source.limited && (
-                              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-crack/15 text-crack">
+                              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-xs bg-crack/10 text-crack border border-crack/20">
                                 Limited Snippet
                               </span>
                             )}
@@ -308,12 +311,12 @@ export const Discover: React.FC = () => {
 
                         <div className="flex flex-wrap items-center gap-3 text-xs text-seed-muted font-mono">
                           <span className="flex items-center gap-1">
-                            <Globe className="w-3.5 h-3.5 text-seed-muted" />
+                            <Globe className="w-3.5 h-3.5 opacity-60" />
                             {source.domain}
                           </span>
                           {source.date && (
                             <span className="flex items-center gap-1">
-                              <Calendar className="w-3.5 h-3.5 text-seed-muted" />
+                              <Calendar className="w-3.5 h-3.5 opacity-60" />
                               {source.date}
                             </span>
                           )}
@@ -338,14 +341,14 @@ export const Discover: React.FC = () => {
                         )}
                       </div>
                     </div>
-                  </Card>
+                  </div>
                 );
               })}
             </div>
           </div>
 
           {/* Supplement with Additional Sources */}
-          <Card className="p-5 border-dashed border-border bg-pith-card/50 space-y-4">
+          <div className="p-5 rounded-sm border border-dashed border-seed/20 bg-seed/[0.01] space-y-4">
             <h4 className="font-heading font-bold text-sm text-seed flex items-center gap-1.5">
               <Plus className="w-4 h-4 text-rind" />
               Add Additional Sources (Optional)
@@ -361,10 +364,10 @@ export const Discover: React.FC = () => {
                     value={extraUrl}
                     onChange={(e) => setExtraUrl(e.target.value)}
                     placeholder="https://example.gov/specific-page"
-                    className="flex-1 px-3 py-1.5 rounded-xl border border-border bg-pith text-xs focus:ring-2 focus:ring-rind text-seed placeholder:text-seed-muted/60"
+                    className="flex-1 px-3 py-1.5 rounded-sm border border-seed/15 bg-pith text-xs focus:ring-1 focus:ring-rind text-seed placeholder:text-seed-muted/60"
                   />
                   <Button variant="outline" size="sm" onClick={handleAddExtraUrl}>
-                    Add
+                    Add URL
                   </Button>
                 </div>
               </div>
@@ -378,7 +381,7 @@ export const Discover: React.FC = () => {
                     value={extraTextTitle}
                     onChange={(e) => setExtraTextTitle(e.target.value)}
                     placeholder="Note Label"
-                    className="w-full px-3 py-1 rounded-lg border border-border bg-pith text-xs text-seed"
+                    className="w-full px-3 py-1 rounded-sm border border-seed/15 bg-pith text-xs text-seed"
                   />
                   <div className="flex gap-2">
                     <textarea
@@ -386,19 +389,19 @@ export const Discover: React.FC = () => {
                       onChange={(e) => setExtraText(e.target.value)}
                       placeholder="Paste text notes..."
                       rows={1}
-                      className="flex-1 p-2 rounded-xl border border-border bg-pith text-xs resize-none text-seed"
+                      className="flex-1 p-2 rounded-sm border border-seed/15 bg-pith text-xs resize-none text-seed"
                     />
                     <Button variant="outline" size="sm" onClick={handleAddExtraText}>
-                      Add
+                      Add Text
                     </Button>
                   </div>
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
 
           {/* Action Bottom Bar */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-seed/10">
             <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
               Change Question
             </Button>
@@ -408,7 +411,7 @@ export const Discover: React.FC = () => {
               size="lg"
               onClick={handleAnalyzeSelected}
               disabled={isSubmitting || selectedUrls.size === 0}
-              className="px-8 font-bold shadow-md shadow-rind/25"
+              className="px-8 font-bold"
             >
               {isSubmitting ? 'Starting Analysis...' : `Analyze Selected Sources (${selectedUrls.size})`}
               <ArrowRight className="w-4 h-4 ml-1.5" />

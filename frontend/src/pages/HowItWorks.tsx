@@ -1,59 +1,64 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { CrackIcon, WiltIcon, VerifiedCheckIcon } from '@/components/common/Icons';
 
 export const HowItWorks: React.FC = () => {
   return (
-    <div className="max-w-4xl mx-auto space-y-8 py-4">
-      <div className="space-y-2">
-        <h1 className="font-heading text-3xl sm:text-4xl font-extrabold text-seed">
+    <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-10 space-y-12">
+      {/* Editorial Header */}
+      <div className="space-y-3 border-b border-seed/10 pb-8">
+        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-rind/10 text-rind text-[11px] font-mono uppercase tracking-wider font-semibold">
+          <span>Methodology & Architecture</span>
+        </div>
+        <h1 className="font-heading text-3xl sm:text-4xl font-extrabold text-seed tracking-tight">
           How Digital Dark Spot Works
         </h1>
-        <p className="text-seed-muted text-base">
-          Understanding the difference between AI summarization and deterministic information gap detection.
+        <p className="text-seed-muted text-sm sm:text-base max-w-2xl">
+          The difference between generative AI summarization and deterministic information gap detection.
         </p>
       </div>
 
+      {/* 3 Core Forensic Pillars */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="p-6 space-y-3">
-          <div className="p-2.5 rounded-xl bg-rind/15 text-rind w-fit">
-            <VerifiedCheckIcon className="w-5 h-5" />
+        <div className="p-6 rounded-sm border border-seed/10 border-l-2 border-l-rind bg-pith space-y-3">
+          <div className="p-2 rounded-xs bg-rind/10 text-rind w-fit">
+            <VerifiedCheckIcon className="w-4 h-4" />
           </div>
-          <h3 className="font-heading font-bold text-lg text-seed">1. Strict Grounding</h3>
+          <h3 className="font-heading font-bold text-base text-seed">01. Strict Grounding</h3>
           <p className="text-xs text-seed-muted leading-relaxed">
-            Every claim extracted by the LLM layer is strictly verified against raw source text. If a quote is not found verbatim, it is discarded immediately.
+            Every candidate claim extracted by the LLM layer must have a 100% exact substring match in the ingested source document. Any claim whose quote cannot be verified verbatim is discarded immediately.
           </p>
-        </Card>
+        </div>
 
-        <Card className="p-6 space-y-3">
-          <div className="p-2.5 rounded-xl bg-crack/15 text-crack w-fit">
-            <CrackIcon className="w-5 h-5" />
+        <div className="p-6 rounded-sm border border-seed/10 border-l-2 border-l-crack bg-pith space-y-3">
+          <div className="p-2 rounded-xs bg-crack/10 text-crack w-fit">
+            <CrackIcon className="w-4 h-4" />
           </div>
-          <h3 className="font-heading font-bold text-lg text-seed">2. Deterministic Analysis</h3>
+          <h3 className="font-heading font-bold text-base text-seed">02. Deterministic Comparison</h3>
           <p className="text-xs text-seed-muted leading-relaxed">
-            Gap and contradiction calculations do not rely on generative guessing. We compare normalized attribute values across sources deterministically.
+            Gaps and contradictions are never calculated by hallucinating or probabilistic guessing. Normalized attribute values are matrix-compared deterministically across sources to identify true data fractures.
           </p>
-        </Card>
+        </div>
 
-        <Card className="p-6 space-y-3">
-          <div className="p-2.5 rounded-xl bg-wilt/15 text-wilt w-fit">
-            <WiltIcon className="w-5 h-5" />
+        <div className="p-6 rounded-sm border border-seed/10 border-l-2 border-l-wilt bg-pith space-y-3">
+          <div className="p-2 rounded-xs bg-wilt/15 text-wilt w-fit">
+            <WiltIcon className="w-4 h-4" />
           </div>
-          <h3 className="font-heading font-bold text-lg text-seed">3. Temporal Freshness</h3>
+          <h3 className="font-heading font-bold text-base text-seed">03. Temporal Freshness</h3>
           <p className="text-xs text-seed-muted leading-relaxed">
-            Sources are automatically checked for publish dates, cycle references (e.g. 2024-25), and flags for data older than 18 months.
+            Sources are automatically inspected for publication timestamps, academic/fiscal cycle markers (e.g. 2024-25 vs 2026), and temporal decay. Outdated cycles are explicitly surfaced to prevent obsolete reliance.
           </p>
-        </Card>
+        </div>
       </div>
 
-      <Card className="p-6 border-l-4 border-l-rind">
-        <CardContent className="p-0 space-y-2">
-          <h4 className="font-heading font-bold text-base text-seed">Core Philosophy</h4>
-          <p className="text-sm text-seed-muted leading-relaxed">
-            We never present findings as definitive facts. We provide <em>potential signals</em>, identify <em>unanswered questions</em>, and deliver an actionable <em>verification checklist</em> for authoritative human confirmation.
-          </p>
-        </CardContent>
-      </Card>
+      {/* Philosophy Statement */}
+      <div className="p-6 rounded-sm border border-seed/10 border-l-2 border-l-seed bg-seed/[0.01] space-y-2">
+        <h4 className="font-heading font-bold text-sm uppercase tracking-wider text-seed font-mono">
+          Core Research Philosophy
+        </h4>
+        <p className="text-xs sm:text-sm text-seed leading-relaxed">
+          We never present findings as definitive truth. We provide <strong className="text-seed">potential signals</strong>, expose <strong className="text-seed">unanswered questions</strong>, and deliver an actionable <strong className="text-seed">verification checklist</strong> so humans can audit primary government and institutional notices before taking critical steps.
+        </p>
+      </div>
     </div>
   );
 };

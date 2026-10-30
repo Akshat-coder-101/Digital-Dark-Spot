@@ -1,23 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { SeedIcon } from '@/components/common/Icons';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { SourcePayload, startAnalysis, fetchSampleData, startDiscovery } from '@/lib/api';
-import { Plus, Trash2, Link2, FileText, Sparkles, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Plus, X, FileText, Sparkles, AlertCircle, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotion();
 
-  // State
+  // Core Form State
   const [question, setQuestion] = useState('');
   const [sources, setSources] = useState<SourcePayload[]>([]);
-  const [sourceType, setSourceType] = useState<'url' | 'text'>('url');
+  const [activeModal, setActiveModal] = useState<'url' | 'text' | null>(null);
 
-  // Input fields for adding a source
+  // Input states for intake modals
   const [urlInput, setUrlInput] = useState('');
   const [urlTitle, setUrlTitle] = useState('');
   const [textInput, setTextInput] = useState('');
@@ -27,13 +24,12 @@ export const Home: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingSample, setIsLoadingSample] = useState(false);
-  const [isSlicingMelon, setIsSlicingMelon] = useState(false);
 
-  // Quick prompt suggestions
+  // Quick suggestions
   const suggestions = [
     "What should I verify before applying for this scholarship?",
     "What are the conflicting eligibility rules across these aid programs?",
-    "What critical terms or renewal criteria are missing in these contracts?"
+    "What critical renewal criteria are missing in these contracts?"
   ];
 
   // Add URL source
@@ -64,6 +60,7 @@ export const Home: React.FC = () => {
 
     setUrlInput('');
     setUrlTitle('');
+    setActiveModal(null);
     setError(null);
   };
 
@@ -92,6 +89,7 @@ export const Home: React.FC = () => {
 
     setTextInput('');
     setTextTitle('');
+    setActiveModal(null);
     setError(null);
   };
 
@@ -122,20 +120,31 @@ export const Home: React.FC = () => {
     }
   };
 
-  // Submit / "Slice it open" with 600ms knife slice motion
+  // Helper to extract domain from URL or label
+  const getSourceLabel = (s: SourcePayload) => {
+    if (s.title) return s.title;
+    if (s.type === 'url') {
+      try {
+        return new URL(s.value).hostname.replace('www.', '');
+      } catch {
+        return s.value;
+      }
+    }
+    return 'Pasted Text Document';
+  };
+
+  // Submit / "Slice it open"
   const handleSliceOpen = async () => {
     setError(null);
 
     const trimmedQuestion = question.trim();
     if (!trimmedQuestion) {
-      setError('Please enter a research question or topic.');
+      setError('Please enter what you are trying to verify.');
       return;
     }
 
     setIsSubmitting(true);
-    setIsSlicingMelon(true);
 
-    // Wait 600ms for knife slice animation unless reduced motion
     const delay = shouldReduceMotion ? 0 : 600;
 
     setTimeout(async () => {
@@ -159,276 +168,294 @@ export const Home: React.FC = () => {
       } catch (err: any) {
         setError(err.message || 'Failed to initiate analysis pipeline');
         setIsSubmitting(false);
-        setIsSlicingMelon(false);
       }
     }, delay);
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-16">
-      {/* Hero Visual Section with Parting Melon Slices on Click */}
-      <div className="text-center space-y-4 pt-4">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-rind/15 text-rind text-xs font-semibold border border-rind/30">
-          <SeedIcon className="w-3.5 h-3.5 fill-current" />
-          <span>Information Gap & Contradiction Detection</span>
+    <div className="relative max-w-[1100px] mx-auto py-10 sm:py-16 space-y-16">
+      {/* Subtle line-art half-melon SVG accent in background */}
+      <div className="absolute right-0 top-0 pointer-events-none opacity-5 dark:opacity-10 overflow-hidden">
+        <svg width="400" height="300" viewBox="0 0 400 300" fill="none" stroke="currentColor">
+          <path d="M 50,150 A 150,150 0 0,0 350,150 Z" strokeWidth="2" />
+          <path d="M 70,150 A 130,130 0 0,0 330,150 Z" strokeWidth="1" strokeDasharray="4 4" />
+          <circle cx="150" cy="180" r="4" fill="currentColor" />
+          <circle cx="200" cy="210" r="4" fill="currentColor" />
+          <circle cx="250" cy="180" r="4" fill="currentColor" />
+        </svg>
+      </div>
+
+      {/* Hero Section: Left-aligned, medium-large editorial typography */}
+      <div className="space-y-4 max-w-2xl">
+        <h1 className="font-heading text-4xl sm:text-5xl font-extrabold text-seed tracking-tight leading-[1.1]">
+          Find what the sources don't tell you.
+        </h1>
+        <p className="font-sans text-base sm:text-lg text-seed-muted leading-relaxed">
+          Digital Dark Spot compares sources to uncover potential gaps, possible conflicts and stale information, with evidence you can inspect.
+        </p>
+      </div>
+
+      {/* Three short investigation steps in one cohesive column */}
+      <div className="max-w-2xl space-y-8">
+        {/* Step 1: Ask */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="font-heading text-xs font-bold tracking-wider uppercase text-rind">
+              Step 1 — Ask
+            </span>
+            <span className="text-xs font-mono text-seed-muted">
+              {question.length}/500
+            </span>
+          </div>
+
+          <div className="relative border-b border-seed/20 focus-within:border-rind transition-colors pb-1">
+            <textarea
+              value={question}
+              onChange={(e) => setQuestion(e.target.value.slice(0, 500))}
+              placeholder="What are you trying to verify?"
+              rows={2}
+              className="w-full resize-none bg-transparent font-heading text-xl sm:text-2xl font-bold text-seed placeholder:text-seed-muted/40 outline-none leading-snug"
+            />
+          </div>
+
+          {/* Subtle suggestions pills */}
+          <div className="flex flex-wrap gap-2 pt-1">
+            {suggestions.map((s, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setQuestion(s)}
+                className="text-[11px] text-seed-muted hover:text-seed transition-colors border border-seed/10 rounded-sm px-2 py-0.5 hover:border-seed/30"
+              >
+                + {s.slice(0, 42)}...
+              </button>
+            ))}
+          </div>
         </div>
 
-        <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold text-seed tracking-tight relative">
-          {/* Animated Melon Icon with Knife Slice Effect */}
-          <div className="relative inline-block mr-3 align-middle">
-            <motion.div
-              className="inline-flex items-center justify-center text-3xl"
-              animate={
-                isSlicingMelon && !shouldReduceMotion
-                  ? { scale: [1, 1.1, 1] }
-                  : {}
-              }
-              transition={{ duration: 0.6 }}
+        {/* Step 2: Bring Evidence */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="font-heading text-xs font-bold tracking-wider uppercase text-rind">
+              Step 2 — Bring Evidence
+            </span>
+            <span className="text-xs text-seed-muted">
+              {sources.length} {sources.length === 1 ? 'source' : 'sources'} attached
+            </span>
+          </div>
+
+          {/* Action Chips */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveModal('url')}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-seed/15 text-xs font-medium text-seed hover:bg-seed/5 hover:border-seed/30 transition-colors cursor-pointer"
             >
-              🍉
-            </motion.div>
-            {isSlicingMelon && !shouldReduceMotion && (
+              <Plus className="w-3.5 h-3.5 text-rind" />
+              <span>+ URL</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveModal('text')}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-seed/15 text-xs font-medium text-seed hover:bg-seed/5 hover:border-seed/30 transition-colors cursor-pointer"
+            >
+              <FileText className="w-3.5 h-3.5 text-rind" />
+              <span>Paste Text</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleLoadSample}
+              disabled={isLoadingSample}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-seed/15 text-xs font-medium text-seed hover:bg-seed/5 hover:border-seed/30 transition-colors cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-crack" />
+              <span>{isLoadingSample ? 'Loading sample...' : 'Use sample'}</span>
+            </button>
+          </div>
+
+          {/* Inline Intake Modal / Drawer */}
+          <AnimatePresence>
+            {activeModal === 'url' && (
               <motion.div
-                initial={{ x: -20, opacity: 0 }}
-                animate={{ x: 25, opacity: [0, 1, 0] }}
-                transition={{ duration: 0.5, ease: 'easeInOut' }}
-                className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="p-4 border border-seed/15 rounded-sm bg-pith-card space-y-3"
               >
-                <div className="w-8 h-0.5 bg-white shadow-lg rotate-45 transform" />
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold font-heading text-seed">Add Source URL</span>
+                  <button onClick={() => setActiveModal(null)} className="text-seed-muted hover:text-seed"><X className="w-4 h-4" /></button>
+                </div>
+                <input
+                  type="url"
+                  placeholder="https://scholarships.gov.in/notice-2026.html"
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  className="w-full text-xs p-2 rounded-sm border border-seed/15 bg-pith text-seed outline-none focus:border-rind"
+                />
+                <input
+                  type="text"
+                  placeholder="Optional title (e.g. Official Guidelines 2026)"
+                  value={urlTitle}
+                  onChange={(e) => setUrlTitle(e.target.value)}
+                  className="w-full text-xs p-2 rounded-sm border border-seed/15 bg-pith text-seed outline-none focus:border-rind"
+                />
+                <div className="flex justify-end gap-2">
+                  <Button size="sm" variant="outline" onClick={() => setActiveModal(null)}>Cancel</Button>
+                  <Button size="sm" variant="rind" onClick={handleAddUrl}>Add URL</Button>
+                </div>
               </motion.div>
             )}
+
+            {activeModal === 'text' && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="p-4 border border-seed/15 rounded-sm bg-pith-card space-y-3"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold font-heading text-seed">Paste Source Text</span>
+                  <button onClick={() => setActiveModal(null)} className="text-seed-muted hover:text-seed"><X className="w-4 h-4" /></button>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Optional title (e.g. Community Discussion Post)"
+                  value={textTitle}
+                  onChange={(e) => setTextTitle(e.target.value)}
+                  className="w-full text-xs p-2 rounded-sm border border-seed/15 bg-pith text-seed outline-none focus:border-rind"
+                />
+                <textarea
+                  rows={4}
+                  placeholder="Paste excerpt, press release, or document text here..."
+                  value={textInput}
+                  onChange={(e) => setTextInput(e.target.value)}
+                  className="w-full text-xs p-2 rounded-sm border border-seed/15 bg-pith text-seed outline-none focus:border-rind resize-none"
+                />
+                <div className="flex justify-end gap-2">
+                  <Button size="sm" variant="outline" onClick={() => setActiveModal(null)}>Cancel</Button>
+                  <Button size="sm" variant="rind" onClick={handleAddText}>Add Text</Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Attached Sources: Removable chips with domain and status dot */}
+          {sources.length > 0 ? (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {sources.map((s, idx) => (
+                <div
+                  key={s.id || idx}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm border border-seed/15 bg-pith-card text-xs text-seed"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-rind" />
+                  <span className="max-w-[200px] truncate font-medium">
+                    {getSourceLabel(s)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSource(idx)}
+                    className="text-seed-muted hover:text-flesh transition-colors ml-0.5 cursor-pointer"
+                    aria-label="Remove source"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-seed-muted italic">
+              No sources attached yet — or let us find sources for you.
+            </p>
+          )}
+        </div>
+
+        {/* Error message */}
+        {error && (
+          <div className="p-3 rounded-sm border border-flesh/30 bg-flesh/10 text-xs text-seed flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-flesh shrink-0 mt-0.5" />
+            <span>{error}</span>
           </div>
-          Slice Open What's Missing.
-        </h1>
+        )}
 
-        <p className="text-seed-muted text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
-          Search engines summarize what exists. <strong>Digital Dark Spot</strong> reveals what is{' '}
-          <span className="font-semibold text-seed underline decoration-rind decoration-2 underline-offset-4">missing</span>,{' '}
-          <span className="font-semibold text-seed underline decoration-crack decoration-2 underline-offset-4">conflicting</span>, or{' '}
-          <span className="font-semibold text-seed underline decoration-wilt decoration-2 underline-offset-4">outdated</span> across your sources.
-        </p>
-
-        {/* Quick Sample Data Button */}
-        <div className="pt-2 flex justify-center">
+        {/* Step 3: Slice It Open */}
+        <div className="pt-2">
           <Button
-            variant="outline"
-            size="sm"
-            onClick={handleLoadSample}
-            disabled={isLoadingSample || isSubmitting}
-            className="border-flesh/30 hover:border-flesh hover:bg-flesh/10 text-flesh font-semibold"
+            size="lg"
+            variant="rind"
+            onClick={handleSliceOpen}
+            disabled={isSubmitting}
+            className="w-full sm:w-auto px-8 py-3 rounded-sm font-heading font-bold text-sm tracking-wide"
           >
-            <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-            {isLoadingSample ? 'Loading Sample...' : 'Try Demo: Fictional Scholarship Dataset'}
+            {isSubmitting ? (
+              <span className="flex items-center gap-2">
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Slicing open...
+              </span>
+            ) : sources.length === 0 ? (
+              <span className="flex items-center gap-2">
+                Discover Sources & Slice Open
+                <ArrowRight className="w-4 h-4" />
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                Slice It Open
+                <ArrowRight className="w-4 h-4" />
+              </span>
+            )}
           </Button>
         </div>
       </div>
 
-      {/* Error Banner with Small Shake Motion */}
-      <AnimatePresence>
-        {error && (
-          <motion.div
-            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -6 }}
-            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, x: [ -6, 6, -4, 4, 0 ] }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="p-4 rounded-2xl bg-flesh/10 border border-flesh/30 text-flesh flex items-start gap-3"
-            role="alert"
-          >
-            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-            <div className="text-sm font-medium leading-relaxed">{error}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Hairline Divider */}
+      <hr className="border-t border-seed/10" />
 
-      {/* Primary Intake Form Card */}
-      <Card className="shadow-lg border-border/80">
-        <CardHeader>
-          <CardTitle className="text-xl">1. Research Question or Topic</CardTitle>
-          <CardDescription>
-            What decision, policy, or claim are you researching? Formulate a clear question.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <textarea
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="e.g. What should I verify before applying for this scholarship?"
-              rows={3}
-              className="w-full p-4 rounded-xl border border-border bg-pith text-seed placeholder:text-seed-muted/60 focus:outline-none focus:ring-2 focus:ring-rind text-base leading-relaxed resize-none transition-colors"
-            />
+      {/* Lower Section: How it works as four numbered hairline-separated columns */}
+      <div className="space-y-6">
+        <h2 className="font-heading text-xs font-bold tracking-wider uppercase text-seed-muted">
+          Forensic Investigation Process
+        </h2>
 
-            {/* Suggestions list */}
-            <div className="flex flex-wrap gap-2 pt-1 items-center">
-              <span className="text-xs text-seed-muted font-medium">Examples:</span>
-              {suggestions.map((s, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setQuestion(s)}
-                  className="text-xs px-2.5 py-1 rounded-lg bg-pith-muted hover:bg-pith-card text-seed-muted hover:text-seed transition-colors text-left"
-                >
-                  "{s.slice(0, 45)}..."
-                </button>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Sources Intake Card */}
-      <Card className="shadow-lg border-border/80">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-xl">2. Add Review Sources</CardTitle>
-              <CardDescription>
-                Provide official websites, articles, or pasted notes to cross-examine.
-              </CardDescription>
-            </div>
-            <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-pith-muted text-seed">
-              {sources.length} Staged {sources.length === 1 ? 'Source' : 'Sources'}
-            </span>
-          </div>
-        </CardHeader>
-
-        <CardContent className="space-y-6">
-          <Tabs value={sourceType} onValueChange={(v) => setSourceType(v as 'url' | 'text')}>
-            <TabsList className="w-full sm:w-auto">
-              <TabsTrigger value="url" className="flex-1 sm:flex-initial">
-                <Link2 className="w-3.5 h-3.5 mr-1.5" />
-                Add URL
-              </TabsTrigger>
-              <TabsTrigger value="text" className="flex-1 sm:flex-initial">
-                <FileText className="w-3.5 h-3.5 mr-1.5" />
-                Paste Text
-              </TabsTrigger>
-            </TabsList>
-
-            {/* URL Input Tab */}
-            <TabsContent value="url" className="space-y-3 pt-2">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="sm:col-span-2">
-                  <input
-                    type="url"
-                    value={urlInput}
-                    onChange={(e) => setUrlInput(e.target.value)}
-                    placeholder="https://example.gov/scholarships/notice"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-pith text-sm focus:outline-none focus:ring-2 focus:ring-rind text-seed placeholder:text-seed-muted/60"
-                  />
-                </div>
-                <div>
-                  <input
-                    type="text"
-                    value={urlTitle}
-                    onChange={(e) => setUrlTitle(e.target.value)}
-                    placeholder="Source Label (optional)"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-pith text-sm focus:outline-none focus:ring-2 focus:ring-rind text-seed placeholder:text-seed-muted/60"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-between items-center pt-1">
-                <span className="text-xs text-seed-muted flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-rind" />
-                  SSRF protected (private and loopback IPs strictly rejected).
-                </span>
-                <Button variant="rind" size="sm" onClick={() => handleAddUrl()}>
-                  <Plus className="w-3.5 h-3.5 mr-1" />
-                  Add URL
-                </Button>
-              </div>
-            </TabsContent>
-
-            {/* Paste Text Tab */}
-            <TabsContent value="text" className="space-y-3 pt-2">
-              <input
-                type="text"
-                value={textTitle}
-                onChange={(e) => setTextTitle(e.target.value)}
-                placeholder="Title or Label (e.g. Official Gazette 2026 excerpt)"
-                className="w-full px-3.5 py-2 rounded-xl border border-border bg-pith text-sm focus:outline-none focus:ring-2 focus:ring-rind text-seed placeholder:text-seed-muted/60"
-              />
-              <textarea
-                value={textInput}
-                onChange={(e) => setTextInput(e.target.value)}
-                placeholder="Paste verbatim text content or excerpt from document or notice..."
-                rows={4}
-                className="w-full p-3.5 rounded-xl border border-border bg-pith text-sm focus:outline-none focus:ring-2 focus:ring-rind text-seed placeholder:text-seed-muted/60 resize-none"
-              />
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-seed-muted">
-                  {textInput.length} characters entered
-                </span>
-                <Button variant="rind" size="sm" onClick={() => handleAddText()}>
-                  <Plus className="w-3.5 h-3.5 mr-1" />
-                  Add Text Source
-                </Button>
-              </div>
-            </TabsContent>
-          </Tabs>
-
-          {/* Staged Sources List */}
-          {sources.length > 0 && (
-            <div className="space-y-2 pt-2 border-t border-border">
-              <span className="text-xs font-bold uppercase tracking-wider text-seed-muted block mb-2">
-                Staged Source Documents:
-              </span>
-              <div className="divide-y divide-border border border-border rounded-xl bg-pith overflow-hidden">
-                {sources.map((src, idx) => (
-                  <div key={idx} className="p-3 flex items-center justify-between gap-3 text-sm">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="w-6 h-6 rounded-lg bg-pith-card border border-border flex items-center justify-center shrink-0 text-xs font-mono font-bold text-seed">
-                        {idx + 1}
-                      </span>
-                      <div className="min-w-0">
-                        <div className="font-semibold text-seed truncate flex items-center gap-1.5">
-                          {src.title || (src.type === 'url' ? src.value : 'Pasted Text Document')}
-                          <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-pith-muted text-seed-muted shrink-0">
-                            {src.type}
-                          </span>
-                        </div>
-                        <p className="text-xs text-seed-muted truncate font-mono">
-                          {src.value.slice(0, 80)}...
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSource(idx)}
-                      className="p-1.5 rounded-lg text-seed-muted hover:text-flesh hover:bg-flesh/10 transition-colors shrink-0 cursor-pointer"
-                      aria-label="Remove source"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </CardContent>
-
-        <CardFooter className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/80">
-          <div className="text-xs text-seed-muted text-center sm:text-left">
-            <span>
-              {sources.length === 0
-                ? 'No sources added? We will automatically discover official & reference sources for your question.'
-                : `Ready to detect gaps, conflicts, and freshness across ${sources.length} sources.`}
-            </span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-2">
+          {/* Column 01 */}
+          <div className="border-t border-seed/10 pt-4 space-y-1.5">
+            <span className="text-xs font-mono font-bold text-rind">01</span>
+            <h3 className="font-heading font-bold text-sm text-seed">Read</h3>
+            <p className="text-xs text-seed-muted leading-relaxed">
+              Ingests raw text and URLs with SSRF protection, auditing publication dates and academic cycles.
+            </p>
           </div>
 
-          {/* Primary Action Button */}
-          <Button
-            variant="rind"
-            size="lg"
-            onClick={handleSliceOpen}
-            disabled={isSubmitting}
-            className="w-full sm:w-auto px-8 font-bold text-base shadow-md shadow-rind/25 relative overflow-hidden"
-          >
-            {isSubmitting ? 'Slicing open...' : 'Slice it open'}
-            <ArrowRight className="w-4 h-4 ml-1.5" />
-          </Button>
-        </CardFooter>
-      </Card>
+          {/* Column 02 */}
+          <div className="border-t border-seed/10 pt-4 space-y-1.5">
+            <span className="text-xs font-mono font-bold text-rind">02</span>
+            <h3 className="font-heading font-bold text-sm text-seed">Compare</h3>
+            <p className="text-xs text-seed-muted leading-relaxed">
+              Extracts core claims strictly verified as verbatim substrings against raw ground truth.
+            </p>
+          </div>
+
+          {/* Column 03 */}
+          <div className="border-t border-seed/10 pt-4 space-y-1.5">
+            <span className="text-xs font-mono font-bold text-crack">03</span>
+            <h3 className="font-heading font-bold text-sm text-seed">Expose</h3>
+            <p className="text-xs text-seed-muted leading-relaxed">
+              Exposes unmentioned gaps, cross-source contradictions, and stale temporal mismatches.
+            </p>
+          </div>
+
+          {/* Column 04 */}
+          <div className="border-t border-seed/10 pt-4 space-y-1.5">
+            <span className="text-xs font-mono font-bold text-rind">04</span>
+            <h3 className="font-heading font-bold text-sm text-seed">Verify</h3>
+            <p className="text-xs text-seed-muted leading-relaxed">
+              Generates an actionable checklist with verbatim evidence quotes and exportable Markdown.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,6 +1,5 @@
 import React from 'react';
 import { useReport } from './ReportContext';
-import { Card } from '@/components/ui/card';
 import { StatusTag } from '@/components/common/StatusTag';
 import { WiltIcon, VerifiedCheckIcon } from '@/components/common/Icons';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -12,7 +11,7 @@ export const FreshnessTab: React.FC = () => {
   if (report.freshnessWarnings.length === 0) {
     return (
       <EmptyState
-        icon={<VerifiedCheckIcon className="w-8 h-8 text-rind" />}
+        icon={<VerifiedCheckIcon className="w-7 h-7 text-rind" />}
         title="All Sources are Fresh & Dated"
         description="All reviewed documents have current, verified dates within the last 18 months."
       />
@@ -21,11 +20,11 @@ export const FreshnessTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between border-b border-seed/10 pb-4">
         <div>
-          <h3 className="font-heading font-bold text-xl text-seed flex items-center gap-2">
-            <WiltIcon className="w-5 h-5 text-wilt" />
-            Temporal & Freshness Warnings ({report.freshnessWarnings.length})
+          <h3 className="font-heading font-bold text-lg text-seed flex items-center gap-2">
+            <WiltIcon className="w-4 h-4 text-wilt" />
+            <span>Temporal & Freshness Warnings ({report.freshnessWarnings.length})</span>
           </h3>
           <p className="text-xs text-seed-muted">
             Documents flagged as undated, older than 18 months, or belonging to earlier application cycles.
@@ -35,7 +34,10 @@ export const FreshnessTab: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {report.freshnessWarnings.map((warning) => (
-          <Card key={warning.id} className="p-5 border-l-4 border-l-wilt space-y-3">
+          <div
+            key={warning.id}
+            className="p-5 rounded-sm border border-seed/10 border-l-2 border-l-wilt bg-pith space-y-3"
+          >
             <div className="flex items-center justify-between text-xs">
               <StatusTag status="stale" />
               <span className="font-mono text-[11px] text-seed-muted">
@@ -56,16 +58,16 @@ export const FreshnessTab: React.FC = () => {
               {warning.reason}
             </p>
 
-            <div className="pt-2 border-t border-border flex items-center justify-between text-xs text-seed-muted">
-              <span className="flex items-center gap-1">
+            <div className="pt-2 border-t border-seed/10 flex items-center justify-between text-xs text-seed-muted">
+              <span className="flex items-center gap-1 font-mono text-[11px]">
                 <Calendar className="w-3.5 h-3.5 text-wilt" />
                 Detected: {warning.detectedCycle || warning.detectedDate || 'No date found'}
               </span>
-              <span className="font-semibold text-wilt">
+              <span className="font-mono text-[11px] font-semibold text-wilt">
                 Flagged for verification
               </span>
             </div>
-          </Card>
+          </div>
         ))}
       </div>
     </div>

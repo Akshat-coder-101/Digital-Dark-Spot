@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Stepper, StepItem } from '@/components/ui/stepper';
 import { getJobStatus, fetchSampleData } from '@/lib/api';
-import { Loader2, AlertCircle, CheckCircle2, XCircle, ArrowLeft } from 'lucide-react';
+import { AlertCircle, CheckCircle2, ArrowLeft, ArrowRight, ShieldCheck, XCircle } from 'lucide-react';
+import { SeedIcon } from '@/components/common/Icons';
 
 interface SourceChip {
   id: string;
@@ -13,22 +12,29 @@ interface SourceChip {
   errorMessage?: string;
 }
 
+interface TimelineStage {
+  id: string;
+  name: string;
+  detail: string;
+}
+
 export const Analyzing: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [stageIndex, setStageIndex] = useState(0); // 0-based: 0 to 4
-  const [currentAction, setCurrentAction] = useState('Initializing analysis job...');
+  const [activeStage, setActiveStage] = useState(1); // 0 to 5
+  const [currentAction, setCurrentAction] = useState('Initializing investigation pipeline...');
   const [sourceChips, setSourceChips] = useState<SourceChip[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [reportId, setReportId] = useState<string | null>(null);
 
-  const steps: StepItem[] = [
-    { id: '1', label: 'Fetching', description: 'SSRF & text extraction' },
-    { id: '2', label: 'Reading', description: 'Claims & verbatim quotes' },
-    { id: '3', label: 'Comparing', description: 'Deterministic gaps & conflicts' },
-    { id: '4', label: 'Checking dates', description: 'Freshness & cycle audit' },
-    { id: '5', label: 'Building checklist', description: 'Prioritized verification matrix' }
+  const stages: TimelineStage[] = [
+    { id: 'search', name: 'Discovery & Intake', detail: 'Formulating investigative queries and identifying source URLs.' },
+    { id: 'fetch', name: 'Fetching Documents', detail: 'Safe retrieval with SSRF protection, readability cleaning, and domain validation.' },
+    { id: 'read', name: 'Reading & Grounding', detail: 'Extracting candidate claims with strict verbatim quote substring checks.' },
+    { id: 'compare', name: 'Deterministic Cross-Examination', detail: 'Matrix comparison across sources for dark spots, gaps, and value fractures.' },
+    { id: 'freshness', name: 'Auditing Temporal Freshness', detail: 'Checking cycles, publication dates, and flagging references older than 18 months.' },
+    { id: 'checklist', name: 'Compiling Verification Checklist', detail: 'Synthesizing actionable checklist prioritized by High, Medium, and Low risk.' },
   ];
 
   // If sample scholarship dataset is requested
@@ -39,7 +45,6 @@ export const Analyzing: React.FC = () => {
     }
 
     if (id === 'sample-scholarship-report') {
-      // Simulate step-by-step progress for the sample dataset
       setSourceChips([
         { id: 's1', title: 'National Merit Scholarship 2026 Guidelines', status: 'pending' },
         { id: 's2', title: 'Student Aid Review (2024-25 Cycle)', status: 'pending' },
@@ -47,31 +52,31 @@ export const Analyzing: React.FC = () => {
       ]);
 
       const stageDelays = [
-        { idx: 0, text: 'Fetching and cleaning 3 scholarship documents...', action: () => {
+        { stage: 0, text: '3 scholarship sources loaded into investigative workspace...', action: () => {} },
+        { stage: 1, text: 'Fetching and cleaning 3 documents (HTML sanitized, SSRF verified)...', action: () => {
           setSourceChips(prev => prev.map(s => ({ ...s, status: 'ready' })));
         }},
-        { idx: 1, text: 'Extracting 8 expected attributes & verifying verbatim quotes...', action: () => {} },
-        { idx: 2, text: 'Detecting missing renewal conditions and income conflicts...', action: () => {} },
-        { idx: 3, text: 'Flagging 2024-25 cycle as stale and forum post as undated...', action: () => {} },
-        { idx: 4, text: 'Compiling coverage matrix and generating verification checklist...', action: () => {} },
+        { stage: 2, text: 'Extracting 8 expected attributes & verifying verbatim quotes...', action: () => {} },
+        { stage: 3, text: 'Cross-examining attributes: identifying missing renewal conditions and income conflicts...', action: () => {} },
+        { stage: 4, text: 'Checking temporal markers: 2024-25 cycle marked stale, forum post marked undated...', action: () => {} },
+        { stage: 5, text: 'Compiling coverage matrix and prioritized verification checklist...', action: () => {} },
       ];
 
       let currentStep = 0;
       const interval = setInterval(() => {
         if (currentStep < stageDelays.length) {
           const item = stageDelays[currentStep];
-          setStageIndex(item.idx);
+          setActiveStage(item.stage);
           setCurrentAction(item.text);
           item.action();
           currentStep++;
         } else {
           clearInterval(interval);
-          // Make sure sample report is loaded in backend
           fetchSampleData().finally(() => {
             navigate('/report/sample-scholarship-report/summary');
           });
         }
-      }, 550);
+      }, 500);
 
       return () => clearInterval(interval);
     }
@@ -90,8 +95,10 @@ export const Analyzing: React.FC = () => {
           return;
         }
 
-        setStageIndex(Math.max(0, Math.min(4, progress.stageIndex - 1)));
-        setCurrentAction(progress.currentAction || 'Analyzing...');
+        // Map backend 1-based stageIndex (1: Fetching -> 5: Building checklist) to timeline 1 to 5
+        const mappedStage = Math.max(1, Math.min(5, progress.stageIndex || 1));
+        setActiveStage(mappedStage);
+        setCurrentAction(progress.currentAction || 'Cross-examining documents...');
 
         if (Array.isArray(progress.sourcesStatus)) {
           setSourceChips(progress.sourcesStatus);
@@ -103,7 +110,7 @@ export const Analyzing: React.FC = () => {
           setReportId(targetReportId);
           setTimeout(() => {
             navigate(`/report/${targetReportId}/summary`);
-          }, 400);
+          }, 350);
         }
       } catch (pollErr: any) {
         if (!isCancelled) {
@@ -118,111 +125,188 @@ export const Analyzing: React.FC = () => {
     };
   }, [id, navigate]);
 
+  const shortSessionId = id ? (id.length > 16 ? `${id.slice(0, 8)}…${id.slice(-4)}` : id) : '';
+
   return (
-    <div className="max-w-3xl mx-auto space-y-6 py-8">
-      {/* Top Breadcrumb & Title */}
-      <div className="text-center space-y-2">
-        <h1 className="font-heading text-3xl font-extrabold text-seed">
+    <div className="max-w-[800px] mx-auto px-4 sm:px-6 py-10 space-y-8 pb-16">
+      {/* Calm Header */}
+      <div className="border-b border-seed/10 pb-6 space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-rind/10 text-rind text-[11px] font-mono uppercase tracking-wider font-semibold">
+            <SeedIcon className="w-3 h-3 fill-current" />
+            <span>Forensic Investigation</span>
+          </div>
+          <span className="font-mono text-xs text-seed-muted">
+            Session: <span className="text-seed font-semibold">{shortSessionId}</span>
+          </span>
+        </div>
+
+        <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-seed tracking-tight">
           Auditing Information Integrity
         </h1>
-        <p className="text-xs font-mono text-seed-muted">
-          Job Reference: {id}
+        <p className="text-xs sm:text-sm text-seed-muted">
+          Cross-examining evidence with deterministic attribute verification and strict verbatim quote validation.
         </p>
       </div>
 
-      {/* Stepper Card */}
-      <Card className="shadow-lg border-border/80">
-        <CardHeader>
+      {/* Current Status Callout */}
+      <div className="p-4 rounded-sm bg-seed/[0.02] border border-seed/10 flex items-center justify-between text-xs">
+        <div className="space-y-0.5">
+          <span className="font-mono text-[10px] uppercase tracking-wider text-seed-muted block">
+            Current Operation
+          </span>
+          <p className="font-medium text-seed">
+            {currentAction}
+          </p>
+        </div>
+        <div className="text-right font-mono text-[11px] text-rind font-semibold shrink-0">
+          Stage {activeStage + 1} of 6
+        </div>
+      </div>
+
+      {/* Forensic Vertical Timeline */}
+      <div className="space-y-6">
+        <h3 className="font-mono text-xs uppercase tracking-wider text-seed-muted">
+          Pipeline Audit Stages
+        </h3>
+
+        <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[1px] before:bg-seed/10">
+          {stages.map((st, idx) => {
+            const isDone = idx < activeStage;
+            const isRunning = idx === activeStage;
+
+            return (
+              <div key={st.id} className="relative group">
+                {/* Node icon */}
+                <div
+                  className={`absolute -left-6 top-0.5 w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10px] font-mono transition-colors ${
+                    isDone
+                      ? 'bg-rind text-white'
+                      : isRunning
+                      ? 'border-2 border-rind bg-pith text-rind font-bold'
+                      : 'border border-seed/20 bg-pith text-seed-muted/60'
+                  }`}
+                >
+                  {isDone ? (
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  ) : (
+                    <span>{idx + 1}</span>
+                  )}
+                </div>
+
+                {/* Content */}
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <h4
+                      className={`font-heading text-sm font-bold tracking-tight ${
+                        isDone || isRunning ? 'text-seed' : 'text-seed-muted/60'
+                      }`}
+                    >
+                      {st.name}
+                    </h4>
+                    {isRunning && (
+                      <span className="text-[10px] font-mono uppercase px-1.5 py-0.2 rounded-xs bg-rind/10 text-rind font-semibold">
+                        In Progress
+                      </span>
+                    )}
+                    {isDone && (
+                      <span className="text-[10px] font-mono uppercase text-seed-muted">
+                        Verified
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-seed-muted leading-relaxed">
+                    {st.detail}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Per-Source Chips */}
+      {sourceChips.length > 0 && (
+        <div className="space-y-3 pt-6 border-t border-seed/10">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Pipeline Progress</CardTitle>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-rind/15 text-rind flex items-center gap-1.5">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              Stage {stageIndex + 1} of 5
+            <span className="font-mono text-xs uppercase tracking-wider text-seed-muted">
+              Source Material Status ({sourceChips.length})
             </span>
           </div>
-          <CardDescription className="font-medium text-seed">
-            {currentAction}
-          </CardDescription>
-        </CardHeader>
 
-        <CardContent className="space-y-6">
-          {/* 5-Stage Stepper */}
-          <Stepper steps={steps} activeStepIndex={stageIndex} />
+          <div className="divide-y divide-seed/10 border border-seed/10 rounded-sm">
+            {sourceChips.map((chip, idx) => (
+              <div
+                key={chip.id || idx}
+                className="p-3 bg-pith flex items-center justify-between text-xs"
+              >
+                <div className="flex items-center gap-2 truncate mr-3">
+                  <span className="font-mono text-[10px] text-seed-muted">
+                    0{idx + 1}
+                  </span>
+                  <span className="font-medium text-seed truncate" title={chip.title}>
+                    {chip.title}
+                  </span>
+                </div>
 
-          {/* Per-Source Chips */}
-          {sourceChips.length > 0 && (
-            <div className="space-y-2 pt-4 border-t border-border">
-              <span className="text-xs font-bold uppercase tracking-wider text-seed-muted block">
-                Reviewed Sources Status:
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {sourceChips.map((chip, idx) => (
-                  <div
-                    key={chip.id || idx}
-                    className="p-3 rounded-xl border border-border bg-pith flex items-center justify-between text-xs"
-                  >
-                    <span className="font-medium text-seed truncate mr-2" title={chip.title}>
-                      {chip.title}
+                <div className="shrink-0 font-mono text-[11px]">
+                  {chip.status === 'ready' && (
+                    <span className="text-rind font-semibold inline-flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      Ready
                     </span>
-                    <span className="shrink-0 flex items-center gap-1">
-                      {chip.status === 'ready' && (
-                        <span className="text-rind flex items-center gap-1 font-semibold">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          Ready
-                        </span>
-                      )}
-                      {chip.status === 'pending' && (
-                        <span className="text-seed-muted flex items-center gap-1">
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          Reading
-                        </span>
-                      )}
-                      {chip.status === 'error' && (
-                        <span className="text-flesh flex items-center gap-1 font-semibold">
-                          <XCircle className="w-3.5 h-3.5" />
-                          Blocked
-                        </span>
-                      )}
+                  )}
+                  {chip.status === 'pending' && (
+                    <span className="text-seed-muted inline-flex items-center gap-1">
+                      Processing
                     </span>
-                  </div>
-                ))}
+                  )}
+                  {chip.status === 'error' && (
+                    <span className="text-flesh font-semibold inline-flex items-center gap-1">
+                      <XCircle className="w-3.5 h-3.5" />
+                      Blocked
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            ))}
+          </div>
+        </div>
+      )}
 
-          {/* Actionable Error Card */}
-          {error && (
-            <div className="p-4 rounded-xl bg-flesh/10 border border-flesh/30 text-flesh space-y-2" role="alert">
-              <div className="flex items-center gap-2 font-bold text-sm">
-                <AlertCircle className="w-4 h-4" />
-                <span>Analysis Issue Encountered</span>
-              </div>
-              <p className="text-xs leading-relaxed">{error}</p>
-              <div className="pt-2 text-xs text-seed font-medium">
-                <p><strong>Suggested Next Step:</strong> If a URL was blocked by SSRF or timeout, try copying its text content and pasting it directly instead.</p>
-              </div>
-              <div className="pt-2 flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => navigate('/')}>
-                  <ArrowLeft className="w-3.5 h-3.5 mr-1" />
-                  Return & Paste Text
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-
-        <CardFooter className="flex justify-between items-center border-t border-border/80 pt-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
-            Cancel Analysis
-          </Button>
-
-          {reportId && (
-            <Button variant="rind" size="sm" onClick={() => navigate(`/report/${reportId}/summary`)}>
-              View Report Now
+      {/* Actionable Error Card */}
+      {error && (
+        <div className="p-4 rounded-sm bg-flesh/10 border border-flesh/30 text-flesh space-y-2 text-xs" role="alert">
+          <div className="flex items-center gap-2 font-bold text-sm">
+            <AlertCircle className="w-4 h-4" />
+            <span>Analysis Issue Encountered</span>
+          </div>
+          <p className="leading-relaxed">{error}</p>
+          <div className="pt-2 text-seed font-medium">
+            <p><strong>Suggested Next Step:</strong> If a URL was blocked by SSRF or timeout, try copying its text content and pasting it directly instead.</p>
+          </div>
+          <div className="pt-2">
+            <Button variant="outline" size="sm" onClick={() => navigate('/')}>
+              <ArrowLeft className="w-3.5 h-3.5 mr-1" />
+              Return & Paste Text
             </Button>
-          )}
-        </CardFooter>
-      </Card>
+          </div>
+        </div>
+      )}
+
+      {/* Footer Navigation */}
+      <div className="flex items-center justify-between pt-6 border-t border-seed/10 text-xs">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+          Cancel Investigation
+        </Button>
+
+        {reportId && (
+          <Button variant="rind" size="sm" onClick={() => navigate(`/report/${reportId}/summary`)}>
+            <span>View Full Report</span>
+            <ArrowRight className="w-3.5 h-3.5 ml-1" />
+          </Button>
+        )}
+      </div>
     </div>
   );
 };

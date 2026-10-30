@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useReport } from './ReportContext';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AnimatedCheckbox } from '@/components/ui/animated-checkbox';
+import { SeedCheckMorph } from '@/components/motion/SeedCheckMorph';
+import CopyConfirm from '@/components/copy-confirm';
 import { BowlIcon } from '@/components/common/Icons';
 import { ChecklistItem } from '@/lib/types';
-import { Copy, Download, Check } from 'lucide-react';
+import { Download } from 'lucide-react';
 
 export const ChecklistTab: React.FC = () => {
   const { report } = useReport();
@@ -20,8 +20,6 @@ export const ChecklistTab: React.FC = () => {
     }
   });
 
-  const [copied, setCopied] = useState(false);
-
   useEffect(() => {
     try {
       sessionStorage.setItem(storageKey, JSON.stringify(checkedMap));
@@ -30,10 +28,10 @@ export const ChecklistTab: React.FC = () => {
     }
   }, [checkedMap, storageKey]);
 
-  const toggleCheck = (itemId: string, isChecked: boolean) => {
+  const toggleCheck = (itemId: string) => {
     setCheckedMap(prev => ({
       ...prev,
-      [itemId]: isChecked
+      [itemId]: !prev[itemId]
     }));
   };
 
@@ -72,17 +70,6 @@ export const ChecklistTab: React.FC = () => {
     return md;
   };
 
-  const handleCopyMarkdown = async () => {
-    const md = generateMarkdown();
-    try {
-      await navigator.clipboard.writeText(md);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy to clipboard', err);
-    }
-  };
-
   const handleDownloadMarkdown = () => {
     const md = generateMarkdown();
     const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
@@ -96,36 +83,35 @@ export const ChecklistTab: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  const markdownString = generateMarkdown();
+
   return (
     <div className="space-y-6">
       {/* Top Banner & Action Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-pith-card border border-border shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-sm bg-pith border border-seed/10">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <BowlIcon className="w-5 h-5 text-rind" />
-            <h3 className="font-heading font-bold text-lg text-seed">
-              Next-Step Verification Checklist
+            <BowlIcon className="w-4 h-4 text-rind" />
+            <h3 className="font-heading font-bold text-base text-seed">
+              Verification Checklist
             </h3>
           </div>
           <p className="text-xs text-seed-muted">
-            {completedCount} of {totalItems} items completed ({progressPercent}%). Ticks are automatically saved to your session.
+            {completedCount} of {totalItems} items confirmed ({progressPercent}%). Checkmarks persist in your session.
           </p>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleCopyMarkdown}
-            className="text-xs font-semibold"
-          >
-            {copied ? <Check className="w-3.5 h-3.5 mr-1 text-rind" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
-            {copied ? 'Copied Markdown' : 'Copy as Markdown'}
-          </Button>
+        {/* Action Controls: CopyConfirm + Download */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <CopyConfirm
+            title="Markdown Checklist"
+            valueToCopy={markdownString}
+            copyText="Copy as Markdown"
+            copiedText="Copied Markdown"
+          />
 
           <Button
-            variant="rind"
+            variant="outline"
             size="sm"
             onClick={handleDownloadMarkdown}
             className="text-xs font-semibold"
@@ -136,157 +122,181 @@ export const ChecklistTab: React.FC = () => {
         </div>
       </div>
 
-      {/* Checklist Groups */}
-      <div className="space-y-6">
+      {/* Checklist Priority Groups */}
+      <div className="space-y-8">
         {/* HIGH PRIORITY */}
         {highPriority.length > 0 && (
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-flesh animate-pulse" />
-              <h4 className="font-heading font-bold text-base text-seed uppercase tracking-wider text-xs">
-                High Priority — Direct Contradictions & Critical Gaps ({highPriority.length})
-              </h4>
+            <div className="flex items-center justify-between border-b border-seed/10 pb-2">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-flesh animate-pulse" />
+                <h4 className="font-mono text-xs uppercase tracking-wider font-bold text-seed">
+                  High Priority — Critical Gaps & Contradictions ({highPriority.length})
+                </h4>
+              </div>
+              <span className="text-[11px] font-mono text-flesh font-semibold">Immediate Action</span>
             </div>
 
-            <div className="space-y-2.5">
-              {highPriority.map((item) => (
-                <Card
-                  key={item.id}
-                  className={`p-4 border transition-all ${
-                    checkedMap[item.id] ? 'bg-pith-muted/30 border-border/50' : 'bg-pith-card border-border hover:border-rind/50'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <AnimatedCheckbox
-                      id={item.id}
-                      checked={Boolean(checkedMap[item.id])}
-                      onCheckedChange={(checked) => toggleCheck(item.id, checked)}
-                    />
+            <div className="divide-y divide-seed/10 border border-seed/10 rounded-sm">
+              {highPriority.map((item) => {
+                const isChecked = Boolean(checkedMap[item.id]);
 
-                    <div className="flex-1 space-y-1">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className={`text-sm font-semibold leading-snug ${checkedMap[item.id] ? 'line-through text-seed-muted' : 'text-seed'}`}>
-                          {item.title}
-                        </span>
-                        <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-flesh/15 text-flesh shrink-0">
-                          {item.signalTag}
-                        </span>
+                return (
+                  <div
+                    key={item.id}
+                    className={`p-4 transition-colors ${
+                      isChecked ? 'bg-seed/[0.01] opacity-70' : 'bg-pith hover:bg-seed/[0.02]'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="pt-0.5">
+                        <SeedCheckMorph
+                          checked={isChecked}
+                          onToggle={() => toggleCheck(item.id)}
+                        />
                       </div>
 
-                      <p className="text-xs text-seed-muted leading-relaxed">
-                        {item.description}
-                      </p>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className={`text-sm font-semibold leading-snug ${isChecked ? 'line-through text-seed-muted' : 'text-seed'}`}>
+                            {item.title}
+                          </span>
+                          <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded-xs bg-flesh/10 text-flesh border border-flesh/20 shrink-0">
+                            {item.signalTag}
+                          </span>
+                        </div>
 
-                      <div className="pt-1.5 text-[11px] text-seed-muted flex items-center gap-1.5">
-                        <strong className="text-seed">Suggested Authority:</strong>
-                        <span>{item.suggestedOfficialSource}</span>
+                        <p className="text-xs text-seed-muted leading-relaxed">
+                          {item.description}
+                        </p>
+
+                        <div className="pt-1 text-[11px] text-seed-muted flex items-center gap-1.5 font-mono">
+                          <strong className="text-seed">Suggested Authority:</strong>
+                          <span>{item.suggestedOfficialSource}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </Card>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
 
         {/* MEDIUM PRIORITY */}
         {mediumPriority.length > 0 && (
-          <div className="space-y-3 pt-2">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-crack" />
-              <h4 className="font-heading font-bold text-base text-seed uppercase tracking-wider text-xs">
-                Medium Priority — Uncovered Parameters & Cycle Checks ({mediumPriority.length})
-              </h4>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between border-b border-seed/10 pb-2">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-crack" />
+                <h4 className="font-mono text-xs uppercase tracking-wider font-bold text-seed">
+                  Medium Priority — Unverified Conditions & Cycle Checks ({mediumPriority.length})
+                </h4>
+              </div>
+              <span className="text-[11px] font-mono text-crack font-semibold">Prior Cycle / Thin</span>
             </div>
 
-            <div className="space-y-2.5">
-              {mediumPriority.map((item) => (
-                <Card
-                  key={item.id}
-                  className={`p-4 border transition-all ${
-                    checkedMap[item.id] ? 'bg-pith-muted/30 border-border/50' : 'bg-pith-card border-border hover:border-rind/50'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <AnimatedCheckbox
-                      id={item.id}
-                      checked={Boolean(checkedMap[item.id])}
-                      onCheckedChange={(checked) => toggleCheck(item.id, checked)}
-                    />
+            <div className="divide-y divide-seed/10 border border-seed/10 rounded-sm">
+              {mediumPriority.map((item) => {
+                const isChecked = Boolean(checkedMap[item.id]);
 
-                    <div className="flex-1 space-y-1">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className={`text-sm font-semibold leading-snug ${checkedMap[item.id] ? 'line-through text-seed-muted' : 'text-seed'}`}>
-                          {item.title}
-                        </span>
-                        <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-pith-muted text-seed-muted shrink-0">
-                          {item.signalTag}
-                        </span>
+                return (
+                  <div
+                    key={item.id}
+                    className={`p-4 transition-colors ${
+                      isChecked ? 'bg-seed/[0.01] opacity-70' : 'bg-pith hover:bg-seed/[0.02]'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="pt-0.5">
+                        <SeedCheckMorph
+                          checked={isChecked}
+                          onToggle={() => toggleCheck(item.id)}
+                        />
                       </div>
 
-                      <p className="text-xs text-seed-muted leading-relaxed">
-                        {item.description}
-                      </p>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className={`text-sm font-semibold leading-snug ${isChecked ? 'line-through text-seed-muted' : 'text-seed'}`}>
+                            {item.title}
+                          </span>
+                          <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded-xs bg-crack/10 text-crack border border-crack/20 shrink-0">
+                            {item.signalTag}
+                          </span>
+                        </div>
 
-                      <div className="pt-1.5 text-[11px] text-seed-muted flex items-center gap-1.5">
-                        <strong className="text-seed">Suggested Authority:</strong>
-                        <span>{item.suggestedOfficialSource}</span>
+                        <p className="text-xs text-seed-muted leading-relaxed">
+                          {item.description}
+                        </p>
+
+                        <div className="pt-1 text-[11px] text-seed-muted flex items-center gap-1.5 font-mono">
+                          <strong className="text-seed">Suggested Authority:</strong>
+                          <span>{item.suggestedOfficialSource}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </Card>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
 
         {/* LOW PRIORITY */}
         {lowPriority.length > 0 && (
-          <div className="space-y-3 pt-2">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-wilt" />
-              <h4 className="font-heading font-bold text-base text-seed uppercase tracking-wider text-xs">
-                Low Priority — Undated Audits ({lowPriority.length})
-              </h4>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between border-b border-seed/10 pb-2">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-wilt" />
+                <h4 className="font-mono text-xs uppercase tracking-wider font-bold text-seed">
+                  Low Priority — Undated Audits & Advisory ({lowPriority.length})
+                </h4>
+              </div>
+              <span className="text-[11px] font-mono text-wilt font-semibold">Advisory Check</span>
             </div>
 
-            <div className="space-y-2.5">
-              {lowPriority.map((item) => (
-                <Card
-                  key={item.id}
-                  className={`p-4 border transition-all ${
-                    checkedMap[item.id] ? 'bg-pith-muted/30 border-border/50' : 'bg-pith-card border-border hover:border-rind/50'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <AnimatedCheckbox
-                      id={item.id}
-                      checked={Boolean(checkedMap[item.id])}
-                      onCheckedChange={(checked) => toggleCheck(item.id, checked)}
-                    />
+            <div className="divide-y divide-seed/10 border border-seed/10 rounded-sm">
+              {lowPriority.map((item) => {
+                const isChecked = Boolean(checkedMap[item.id]);
 
-                    <div className="flex-1 space-y-1">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className={`text-sm font-semibold leading-snug ${checkedMap[item.id] ? 'line-through text-seed-muted' : 'text-seed'}`}>
-                          {item.title}
-                        </span>
-                        <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-pith-muted text-seed-muted shrink-0">
-                          {item.signalTag}
-                        </span>
+                return (
+                  <div
+                    key={item.id}
+                    className={`p-4 transition-colors ${
+                      isChecked ? 'bg-seed/[0.01] opacity-70' : 'bg-pith hover:bg-seed/[0.02]'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="pt-0.5">
+                        <SeedCheckMorph
+                          checked={isChecked}
+                          onToggle={() => toggleCheck(item.id)}
+                        />
                       </div>
 
-                      <p className="text-xs text-seed-muted leading-relaxed">
-                        {item.description}
-                      </p>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className={`text-sm font-semibold leading-snug ${isChecked ? 'line-through text-seed-muted' : 'text-seed'}`}>
+                            {item.title}
+                          </span>
+                          <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded-xs bg-seed/5 text-seed-muted border border-seed/10 shrink-0">
+                            {item.signalTag}
+                          </span>
+                        </div>
 
-                      <div className="pt-1.5 text-[11px] text-seed-muted flex items-center gap-1.5">
-                        <strong className="text-seed">Suggested Authority:</strong>
-                        <span>{item.suggestedOfficialSource}</span>
+                        <p className="text-xs text-seed-muted leading-relaxed">
+                          {item.description}
+                        </p>
+
+                        <div className="pt-1 text-[11px] text-seed-muted flex items-center gap-1.5 font-mono">
+                          <strong className="text-seed">Suggested Authority:</strong>
+                          <span>{item.suggestedOfficialSource}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </Card>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
