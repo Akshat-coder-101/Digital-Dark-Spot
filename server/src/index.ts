@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { llmManager } from './llm/index.js';
 import { sourcesRouter } from './routes/sources.js';
+import { analyzeRouter } from './routes/analyze.js';
+import { analysisPipeline } from './analysis/pipeline.js';
 
 // Load environment variables
 dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
@@ -18,6 +20,18 @@ app.use(express.json({ limit: '5mb' }));
 
 // Mount routers
 app.use('/api/sources', sourcesRouter);
+app.use('/api/analyze', analyzeRouter);
+
+// Direct report endpoint: GET /api/report/:id
+app.get('/api/report/:id', (req, res) => {
+  const reportId = String(req.params.id);
+  const report = analysisPipeline.getReport(reportId);
+  if (!report) {
+    res.status(404).json({ error: `Report ${reportId} not found.` });
+    return;
+  }
+  res.json({ report });
+});
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {
