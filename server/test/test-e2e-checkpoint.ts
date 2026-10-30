@@ -75,3 +75,4 @@ runCheckpointVerification().catch(err => {
   console.error('Checkpoint failure:', err);
   process.exit(1);
 });
+

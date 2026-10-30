@@ -5,6 +5,16 @@ export interface SourcePayload {
   title?: string;
 }
 
+export interface DiscoveredSource {
+  title: string;
+  url: string;
+  snippet: string;
+  date?: string;
+  domain: string;
+  isOfficial: boolean;
+  limited?: boolean;
+}
+
 export async function fetchSampleData() {
   const res = await fetch('/api/sample');
   if (!res.ok) {
@@ -42,6 +52,30 @@ export async function getReport(reportId: string) {
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || `Failed to fetch report: HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function startDiscovery(question: string) {
+  const res = await fetch('/api/discover', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `Discovery request failed with HTTP ${res.status}`);
+  }
+
+  return res.json() as Promise<{ discoveryId: string; status: string; message: string }>;
+}
+
+export async function getDiscoveryJob(discoveryId: string) {
+  const res = await fetch(`/api/discover/${encodeURIComponent(discoveryId)}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `Failed to fetch discovery job: HTTP ${res.status}`);
   }
   return res.json();
 }

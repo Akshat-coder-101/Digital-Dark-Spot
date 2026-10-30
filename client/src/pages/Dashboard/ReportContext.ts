@@ -17,3 +17,4 @@ export function useReport(): ReportContextType {
   }
   return context;
 }
+

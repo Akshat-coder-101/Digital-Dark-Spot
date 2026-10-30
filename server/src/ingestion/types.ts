@@ -22,3 +22,4 @@ export interface IngestedSource {
   errorMessage?: string;
   fetchedAt: string;
 }
+

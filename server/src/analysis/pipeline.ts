@@ -6,6 +6,7 @@ import { detectConflicts } from './conflicts.js';
 import { auditFreshness } from './freshness.js';
 import { buildCoverageMatrix } from './matrix.js';
 import { buildPrioritizedChecklist } from './checklist.js';
+import { runSecondPassTargetedGapSearch } from '../search/secondPass.js';
 import { FullAnalysisReport, JobProgress, AnalysisStage } from './types.js';
 import { LLMCache, llmCache } from '../llm/cache.js';
 import crypto from 'crypto';
@@ -194,7 +195,7 @@ export class AnalysisPipeline {
 
       // Final report assembly
       const reportId = `rep-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
-      const report: FullAnalysisReport = {
+      let report: FullAnalysisReport = {
         id: reportId,
         question: question.trim(),
         summary: extractionData.summary || 'Summary synthesized from reviewed sources.',
@@ -222,6 +223,13 @@ export class AnalysisPipeline {
         openQuestions: extractionData.open_questions || [],
         createdAt: new Date().toISOString()
       };
+
+      // STEP 3B: Second Pass Targeted Search on High-Priority Gaps
+      try {
+        report = await runSecondPassTargetedGapSearch(report);
+      } catch (secPassErr) {
+        console.warn('[Pipeline] Second pass targeted gap search skipped:', secPassErr);
+      }
 
       this.reports.set(reportId, report);
 
@@ -256,3 +264,4 @@ export class AnalysisPipeline {
 }
 
 export const analysisPipeline = new AnalysisPipeline();
+

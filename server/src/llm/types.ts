@@ -44,3 +44,4 @@ export interface ProviderAdapter {
     options: LLMCompletionOptions
   ) => Promise<string>;
 }
+

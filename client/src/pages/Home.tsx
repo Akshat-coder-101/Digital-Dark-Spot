@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { SeedIcon } from '@/components/common/Icons';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { SourcePayload, startAnalysis, fetchSampleData } from '@/lib/api';
+import { SourcePayload, startAnalysis, fetchSampleData, startDiscovery } from '@/lib/api';
 import { Plus, Trash2, Link2, FileText, Sparkles, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 
@@ -132,11 +132,6 @@ export const Home: React.FC = () => {
       return;
     }
 
-    if (sources.length === 0) {
-      setError('Please add at least one source (URL or pasted text), or click "Use sample data".');
-      return;
-    }
-
     setIsSubmitting(true);
     setIsSlicingMelon(true);
 
@@ -145,11 +140,20 @@ export const Home: React.FC = () => {
 
     setTimeout(async () => {
       try {
+        // CASE A: User entered ONLY a question -> Automatic Source Discovery (Step 3B)
+        if (sources.length === 0) {
+          const discRes = await startDiscovery(trimmedQuestion);
+          navigate(`/discover/${discRes.discoveryId}`);
+          return;
+        }
+
+        // CASE B: User provided sample data
         if (sources.length === 3 && sources[0].id?.includes('sample')) {
           navigate('/analyzing/sample-scholarship-report');
           return;
         }
 
+        // CASE C: User provided custom sources
         const res = await startAnalysis(trimmedQuestion, sources);
         navigate(`/analyzing/${res.jobId}`);
       } catch (err: any) {
@@ -405,7 +409,11 @@ export const Home: React.FC = () => {
 
         <CardFooter className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/80">
           <div className="text-xs text-seed-muted text-center sm:text-left">
-            <span>Ready to detect gaps, conflicts, and freshness across {sources.length} sources.</span>
+            <span>
+              {sources.length === 0
+                ? 'No sources added? We will automatically discover official & reference sources for your question.'
+                : `Ready to detect gaps, conflicts, and freshness across ${sources.length} sources.`}
+            </span>
           </div>
 
           {/* Primary Action Button */}

@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react';
 
 // Lazy-loaded routes
 const Home = lazy(() => import('@/pages/Home').then(m => ({ default: m.Home })));
+const Discover = lazy(() => import('@/pages/Discover').then(m => ({ default: m.Discover })));
 const Analyzing = lazy(() => import('@/pages/Analyzing').then(m => ({ default: m.Analyzing })));
 const DashboardLayout = lazy(() => import('@/pages/Dashboard/DashboardLayout').then(m => ({ default: m.DashboardLayout })));
 const SummaryTab = lazy(() => import('@/pages/Dashboard/SummaryTab').then(m => ({ default: m.SummaryTab })));
@@ -32,6 +33,7 @@ export const App: React.FC = () => {
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" element={<Home />} />
+          <Route path="/discover/:id" element={<Discover />} />
           <Route path="/analyzing/:id" element={<Analyzing />} />
           
           {/* Dashboard nested tab routes */}
@@ -57,3 +59,4 @@ export const App: React.FC = () => {
     </Suspense>
   );
 };
+

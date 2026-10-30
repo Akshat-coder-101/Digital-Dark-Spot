@@ -167,3 +167,4 @@ export const CoverageMatrixTable: React.FC<CoverageMatrixTableProps> = ({
     </div>
   );
 };
+

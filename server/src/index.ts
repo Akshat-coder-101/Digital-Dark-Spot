@@ -6,6 +6,7 @@ import { llmManager } from './llm/index.js';
 import { sourcesRouter } from './routes/sources.js';
 import { analyzeRouter } from './routes/analyze.js';
 import { sampleRouter } from './routes/sample.js';
+import { discoverRouter } from './routes/discover.js';
 import { analysisPipeline } from './analysis/pipeline.js';
 
 // Load environment variables
@@ -23,6 +24,7 @@ app.use(express.json({ limit: '5mb' }));
 app.use('/api/sources', sourcesRouter);
 app.use('/api/analyze', analyzeRouter);
 app.use('/api/sample', sampleRouter);
+app.use('/api/discover', discoverRouter);
 
 // Direct report endpoint: GET /api/report/:id
 app.get('/api/report/:id', (req, res) => {

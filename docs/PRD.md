@@ -15,3 +15,4 @@ Challenge: Design and build a web-based platform that analyzes information from 
 2. AI Claim Extraction (Strict JSON, delimited untrusted context, verbatim quote verification)
 3. Deterministic Analysis (Uncovered gaps, thin coverage, cross-source conflicts, freshness warnings, coverage matrix, prioritized verification checklist)
 4. Interactive Dashboard (Half-Melon Slice View, side-by-side conflict cards, Evidence Drawer, session-persisted checklist export)
+

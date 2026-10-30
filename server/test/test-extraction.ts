@@ -103,3 +103,4 @@ runExtractionTests().catch(err => {
   console.error('Extraction test error:', err);
   process.exit(1);
 });
+

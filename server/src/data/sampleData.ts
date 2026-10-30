@@ -198,3 +198,4 @@ export function generateSampleReport(): FullAnalysisReport {
     createdAt: new Date().toISOString()
   };
 }
+

@@ -132,3 +132,4 @@ export interface FullAnalysisReport {
   openQuestions: string[];
   createdAt: string;
 }
+

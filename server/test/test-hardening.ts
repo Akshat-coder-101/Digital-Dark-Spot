@@ -128,3 +128,4 @@ runHardeningTests().catch(err => {
   console.error('Hardening test error:', err);
   process.exit(1);
 });
+

@@ -188,3 +188,4 @@ npm run test:hardening --workspace=server
 - **[Motion](https://motion.dev):** GPU-accelerated motion animations, spring mechanics, and layout transitions.
 - **[Radix UI](https://www.radix-ui.com):** Accessible WAI-ARIA primitive foundations.
 - **[Bricolage Grotesque](https://fonts.google.com/specimen/Bricolage+Grotesque) & [DM Sans](https://fonts.google.com/specimen/DM+Sans):** Typography system.
+

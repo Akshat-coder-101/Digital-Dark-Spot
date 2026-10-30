@@ -90,3 +90,4 @@ export const AnimatedCheckbox: React.FC<AnimatedCheckboxProps> = ({
     </label>
   );
 };
+

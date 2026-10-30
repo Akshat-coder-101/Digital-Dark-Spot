@@ -138,3 +138,4 @@ runIngestionTests().catch(err => {
   console.error('Fatal test error in ingestion suite:', err);
   process.exit(1);
 });
+

@@ -81,3 +81,4 @@ Ordinary search engines and AI chat summarizers condense what is *present in the
 1. **Headless Browser Crawler:** Integrate Browserbase or Puppeteer for rendering JavaScript-heavy single-page government portals.
 2. **Automated Authority Monitoring:** Scheduled cron job to periodically re-audit active checklists and notify users via webhook when a gap is resolved by an official update.
 3. **Collaborative Multi-Auditor Teams:** Shared workspace allowing research teams or advisors to collaboratively verify checklist items and annotate source evidence.
+

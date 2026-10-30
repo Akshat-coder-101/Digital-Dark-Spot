@@ -45,3 +45,4 @@ export const NotFoundBlock: React.FC<NotFoundBlockProps> = ({ className }) => {
     </div>
   );
 };
+

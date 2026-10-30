@@ -25,3 +25,4 @@ sampleRouter.get('/', (_req: Request, res: Response): void => {
     res.status(500).json({ error: err.message || 'Failed to generate sample report' });
   }
 });
+
