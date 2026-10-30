@@ -9,6 +9,7 @@ import {
 import { geminiAdapter } from './adapters/gemini.js';
 import { openaiAdapter } from './adapters/openai.js';
 import { anthropicAdapter } from './adapters/anthropic.js';
+import { groqAdapter } from './adapters/groq.js';
 
 export function maskKey(key: string): string {
   if (!key) return '';
@@ -31,10 +32,11 @@ export class LLMManager {
   private keyStates: Map<ProviderName, KeyState[]> = new Map();
   private keyIndex: Map<ProviderName, number> = new Map();
   private models: Map<ProviderName, string> = new Map();
-  private providerOrder: ProviderName[] = ['gemini', 'openai', 'anthropic'];
+  private providerOrder: ProviderName[] = ['gemini', 'groq', 'openai', 'anthropic'];
 
   constructor() {
     this.adapters.set('gemini', geminiAdapter);
+    this.adapters.set('groq', groqAdapter);
     this.adapters.set('openai', openaiAdapter);
     this.adapters.set('anthropic', anthropicAdapter);
 
@@ -43,23 +45,25 @@ export class LLMManager {
 
   public reloadEnvironment(): void {
     // Models
-    this.models.set('gemini', process.env.GEMINI_MODEL || 'gemini-1.5-flash');
+    this.models.set('gemini', process.env.GEMINI_MODEL || 'gemini-3-flash-preview');
+    this.models.set('groq', process.env.GROQ_MODEL || 'qwen/qwen3.8-27b');
     this.models.set('openai', process.env.OPENAI_MODEL || 'gpt-4o-mini');
     this.models.set('anthropic', process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022');
 
     // Provider order
-    const orderEnv = process.env.LLM_PROVIDER_ORDER || 'gemini,openai,anthropic';
+    const orderEnv = process.env.LLM_PROVIDER_ORDER || 'gemini,groq,openai,anthropic';
     this.providerOrder = orderEnv
       .split(',')
       .map(p => p.trim().toLowerCase())
-      .filter((p): p is ProviderName => ['gemini', 'openai', 'anthropic'].includes(p));
+      .filter((p): p is ProviderName => ['gemini', 'groq', 'openai', 'anthropic'].includes(p));
 
     if (this.providerOrder.length === 0) {
-      this.providerOrder = ['gemini', 'openai', 'anthropic'];
+      this.providerOrder = ['gemini', 'groq', 'openai', 'anthropic'];
     }
 
     // Initialize keys for each provider
     this.initKeys('gemini', process.env.GEMINI_API_KEYS);
+    this.initKeys('groq', process.env.GROQ_API_KEYS);
     this.initKeys('openai', process.env.OPENAI_API_KEYS);
     this.initKeys('anthropic', process.env.ANTHROPIC_API_KEYS);
   }
@@ -137,6 +141,7 @@ export class LLMManager {
 
       const nameMap: Record<ProviderName, string> = {
         gemini: 'Google Gemini',
+        groq: 'Groq',
         openai: 'OpenAI',
         anthropic: 'Anthropic'
       };

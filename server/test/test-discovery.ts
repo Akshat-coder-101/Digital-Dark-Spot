@@ -112,3 +112,4 @@ runDiscoveryTests().catch(err => {
   console.error('Discovery test error:', err);
   process.exit(1);
 });
+

@@ -43,3 +43,4 @@ discoverRouter.get('/:id', (req: Request, res: Response): void => {
 
   res.json({ job });
 });
+

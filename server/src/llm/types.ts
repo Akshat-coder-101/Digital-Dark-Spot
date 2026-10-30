@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export type ProviderName = 'gemini' | 'openai' | 'anthropic';
+export type ProviderName = 'gemini' | 'groq' | 'openai' | 'anthropic';
 
 export interface LLMCompletionOptions {
   system: string;

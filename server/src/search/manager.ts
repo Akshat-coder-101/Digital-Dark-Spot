@@ -166,3 +166,4 @@ export class SearchManager {
 }
 
 export const searchManager = new SearchManager();
+

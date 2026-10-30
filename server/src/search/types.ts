@@ -46,3 +46,4 @@ export interface DiscoveryJob {
   error?: string;
   createdAt: string;
 }
+

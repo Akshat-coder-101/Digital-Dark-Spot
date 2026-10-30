@@ -29,13 +29,16 @@ async function runLLMTests() {
     console.log('   Testing mock/failover unit logic instead...\n');
   }
 
-  // 1. Test live completions for any enabled provider
+  // 1. Test live completions for each enabled provider directly
   for (const prov of enabledProviders) {
-    process.stdout.write(`Testing provider: ${prov.name}... `);
+    process.stdout.write(`Testing provider: ${prov.name} (${prov.model})... `);
     try {
-      const res = await manager.complete({
-        system: 'You are a testing assistant. Return ONLY JSON matching { "status": "ok", "provider": string }',
-        user: 'Return test status now.'
+      const singleManager = new LLMManager();
+      (singleManager as any).providerOrder = [prov.provider];
+
+      const res = await singleManager.complete({
+        system: 'You are a testing assistant. Return ONLY valid JSON matching { "status": "ok" } with no markdown code blocks.',
+        user: 'Return test status: { "status": "ok" }'
       });
 
       if (res.data?.status === 'ok') {
