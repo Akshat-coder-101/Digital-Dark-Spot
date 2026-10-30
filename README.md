@@ -132,19 +132,22 @@ Run the built-in CLI verification suites:
 npm run test:llm
 
 # Test Ingestion SSRF guards and date detection
-npm run test:ingestion --workspace=server
+npm run test:ingestion --workspace=backend
 
 # Test Verbatim quote verification and anti-hallucination filter
-npm run test:extraction --workspace=server
+npm run test:extraction --workspace=backend
 
 # Test Deterministic gap, conflict, matrix, and checklist logic
-npm run test:analysis --workspace=server
+npm run test:analysis --workspace=backend
 
 # Test End-to-end hackathon scholarship flow checkpoint
-npm run test:checkpoint --workspace=server
+npm run test:checkpoint --workspace=backend
 
 # Test Security hardening, prompt injection defense, and bundle audit
-npm run test:hardening --workspace=server
+npm run test:hardening --workspace=backend
+
+# Test Automatic source discovery (Step 3B)
+npm run test:discovery --workspace=backend
 ```
 
 ---

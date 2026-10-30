@@ -1,5 +1,5 @@
 {
-  "name": "digital-dark-spot-server",
+  "name": "digital-dark-spot-backend",
   "version": "1.0.0",
   "private": true,
   "type": "module",
