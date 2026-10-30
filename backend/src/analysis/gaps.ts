@@ -1,4 +1,5 @@
 import { ExtractedClaim, PotentialGap } from './types.js';
+import { areAttributesMatching } from './canonicalization.js';
 
 export function formatAttributeLabel(attr: string): string {
   return attr
@@ -15,7 +16,7 @@ export function detectGaps(
   const gaps: PotentialGap[] = [];
 
   for (const attr of expectedAttributes) {
-    const matchingClaims = verifiedClaims.filter(c => c.attribute === attr);
+    const matchingClaims = verifiedClaims.filter(c => areAttributesMatching(c.attribute, attr));
     const label = formatAttributeLabel(attr);
 
     if (matchingClaims.length === 0) {

@@ -226,3 +226,4 @@ export const HeroMelon: React.FC<HeroMelonProps> = ({ className }) => {
     </motion.div>
   );
 };
+

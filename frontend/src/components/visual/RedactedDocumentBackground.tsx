@@ -134,3 +134,4 @@ export const RedactedDocumentBackground: React.FC = () => {
     </div>
   );
 };
+

@@ -1,0 +1,88 @@
+{
+  "id": "scenario-3",
+  "name": "Global Fellowship with Full Consensus and Complete Coverage",
+  "question": "What is the award stipend, application deadline, and required documents for the 2026 Global AI Fellowship?",
+  "sources": [
+    {
+      "id": "src-fellowship-host",
+      "url": "https://institute.edu/fellowship-2026",
+      "domain": "institute.edu",
+      "title": "Global AI Fellowship 2026 Official Guidelines",
+      "cleanedText": "Announcing the 2026 Global AI Research Fellowship for Academic Year 2026-27. Published on 10 February 2026. The fellowship provides an annual award stipend of $50,000 to selected postdoctoral researchers. The application deadline is 15 April 2026. Required documents are research proposal, CV, and two recommendation letters. Apply via portal at https://fellowship.institute.edu."
+    },
+    {
+      "id": "src-fellowship-partner",
+      "url": "https://consortium.org/ai-fellowships",
+      "domain": "consortium.org",
+      "title": "Consortium Overview: Global AI Fellowship Grants",
+      "cleanedText": "Updated 12 February 2026 for AY 2026-27. The selected fellow receives a funding amount of $ 50000. Last date to submit documents is 15 April 2026. Mandatory certificates: CV, research proposal, two recommendation letters. Portal: https://fellowship.institute.edu."
+    }
+  ],
+  "expectedExtraction": {
+    "expected_attributes": [
+      "award_amount",
+      "application_deadline",
+      "required_documents",
+      "official_application_portal"
+    ],
+    "claims": [
+      {
+        "source_id": "src-fellowship-host",
+        "attribute": "award_amount",
+        "value": "$50,000",
+        "quote": "provides an annual award stipend of $50,000 to selected postdoctoral researchers."
+      },
+      {
+        "source_id": "src-fellowship-host",
+        "attribute": "application_deadline",
+        "value": "15 April 2026",
+        "quote": "The application deadline is 15 April 2026."
+      },
+      {
+        "source_id": "src-fellowship-host",
+        "attribute": "required_documents",
+        "value": "research proposal, CV, and two recommendation letters",
+        "quote": "Required documents are research proposal, CV, and two recommendation letters."
+      },
+      {
+        "source_id": "src-fellowship-host",
+        "attribute": "official_application_portal",
+        "value": "https://fellowship.institute.edu",
+        "quote": "Apply via portal at https://fellowship.institute.edu."
+      },
+      {
+        "source_id": "src-fellowship-partner",
+        "attribute": "award_amount",
+        "value": "$ 50000",
+        "quote": "receives a funding amount of $ 50000."
+      },
+      {
+        "source_id": "src-fellowship-partner",
+        "attribute": "application_deadline",
+        "value": "15 April 2026",
+        "quote": "Last date to submit documents is 15 April 2026."
+      },
+      {
+        "source_id": "src-fellowship-partner",
+        "attribute": "required_documents",
+        "value": "CV, research proposal, two recommendation letters",
+        "quote": "Mandatory certificates: CV, research proposal, two recommendation letters."
+      },
+      {
+        "source_id": "src-fellowship-partner",
+        "attribute": "official_application_portal",
+        "value": "https://fellowship.institute.edu",
+        "quote": "Portal: https://fellowship.institute.edu."
+      }
+    ],
+    "open_questions": [
+      "Are candidates required to relocate to the host university during the fellowship tenure?"
+    ],
+    "summary": "Both independent institutional sources agree completely on $50k award, 15 April 2026 deadline, required documents, and portal."
+  },
+  "assertions": {
+    "expectedTotalGaps": [],
+    "expectedConflicts": 0,
+    "expectedStaleSources": 0
+  }
+}

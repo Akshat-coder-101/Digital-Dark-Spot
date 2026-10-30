@@ -3,6 +3,7 @@ import { IngestedSource } from '../ingestion/types.js';
 import { llmManager } from '../llm/manager.js';
 import { verifyClaimsVerbatim } from './verifier.js';
 import { RawLLMExtraction, ExtractionResult } from './types.js';
+import { normalizeAttributeName } from './canonicalization.js';
 
 const extractionZodSchema = z.object({
   expected_attributes: z.array(z.string()).min(4).max(14),
@@ -34,7 +35,8 @@ Follow these strict rules:
 
 export async function extractClaimsAndAttributes(
   question: string,
-  sources: IngestedSource[]
+  sources: IngestedSource[],
+  customExpectedAttributes?: string[]
 ): Promise<ExtractionResult> {
   const readySources = sources.filter(s => s.status === 'ready' && s.cleanedText.length > 0);
 
@@ -51,13 +53,17 @@ ${textSnippet}
 </source>`;
   }).join('\n\n');
 
+  const attrInstruction = customExpectedAttributes && customExpectedAttributes.length > 0
+    ? `User-defined Expected Attributes to verify: ${customExpectedAttributes.join(', ')}.\nExtract claims specifically aligned with these attributes.`
+    : `Extract the 6-10 expected attributes (snake_case), claims with exact verbatim quotes and source_id, and open questions now as raw JSON.`;
+
   const userPrompt = `Research Question / Topic:
 "${question}"
 
 Available Source Documents:
 ${sourcesDelimited}
 
-Extract the 6-10 expected attributes (snake_case), claims with exact verbatim quotes and source_id, and open questions now as raw JSON.`;
+${attrInstruction}`;
 
   const jsonSchema = {
     type: 'object',
@@ -101,10 +107,10 @@ Extract the 6-10 expected attributes (snake_case), claims with exact verbatim qu
 
   const rawData = llmRes.data;
 
-  // Normalize expected attributes to snake_case
-  const expectedAttributes = (rawData.expected_attributes || []).map(attr =>
-    attr.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_')
-  );
+  // Normalize expected attributes to snake_case, honoring customExpectedAttributes if provided
+  const expectedAttributes = customExpectedAttributes && customExpectedAttributes.length > 0
+    ? customExpectedAttributes.map(normalizeAttributeName)
+    : (rawData.expected_attributes || []).map(attr => normalizeAttributeName(attr));
 
   // Verbatim quote verification against real source texts
   const verification = verifyClaimsVerbatim(rawData.claims || [], readySources);

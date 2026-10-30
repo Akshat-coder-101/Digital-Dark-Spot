@@ -6,6 +6,7 @@ import {
 } from './types.js';
 import { IngestedSource } from '../ingestion/types.js';
 import { formatAttributeLabel } from './gaps.js';
+import { areAttributesMatching } from './canonicalization.js';
 
 export function buildCoverageMatrix(
   expectedAttributes: string[],
@@ -16,11 +17,9 @@ export function buildCoverageMatrix(
   const readySources = sources.filter(s => s.status === 'ready');
   const matrix: CoverageMatrixRow[] = [];
 
-  const conflictingAttrs = new Set(conflicts.map(c => c.attribute));
-
   for (const attr of expectedAttributes) {
-    const attrClaims = claims.filter(c => c.attribute === attr);
-    const hasConflict = conflictingAttrs.has(attr);
+    const attrClaims = claims.filter(c => areAttributesMatching(c.attribute, attr));
+    const hasConflict = conflicts.some(c => areAttributesMatching(c.attribute, attr));
 
     let overallStatus: 'covered' | 'gap' | 'conflict' | 'thin' = 'covered';
     if (attrClaims.length === 0) {

@@ -35,6 +35,29 @@ export const Discover: React.FC = () => {
   const [extraTextTitle, setExtraTextTitle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Editable Expected Attributes state
+  const [attributes, setAttributes] = useState<string[]>([
+    'application_deadline',
+    'eligibility_income_limit',
+    'required_documents',
+    'official_application_portal',
+    'selection_process',
+    'award_amount'
+  ]);
+  const [newAttrInput, setNewAttrInput] = useState('');
+
+  const handleAddAttribute = () => {
+    const trimmed = newAttrInput.trim().toLowerCase().replace(/[^a-z0-9_]+/g, '_').replace(/^_+|_+$/g, '');
+    if (!trimmed) return;
+    if (attributes.includes(trimmed)) return;
+    setAttributes(prev => [...prev, trimmed]);
+    setNewAttrInput('');
+  };
+
+  const handleRemoveAttribute = (attr: string) => {
+    setAttributes(prev => prev.filter(a => a !== attr));
+  };
+
   useEffect(() => {
     if (!id) {
       navigate('/', { replace: true });
@@ -173,7 +196,7 @@ export const Discover: React.FC = () => {
         return;
       }
 
-      const res = await startAnalysis(question, chosenSources);
+      const res = await startAnalysis(question, chosenSources, false, attributes);
       navigate(`/analyzing/${res.jobId}`);
     } catch (err: any) {
       setError(err.message || 'Failed to start analysis');
@@ -397,6 +420,65 @@ export const Discover: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Expected Attributes Configuration */}
+          <div className="p-5 rounded-sm border border-seed/15 bg-pith space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-seed/10 pb-3">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <h4 className="font-heading font-bold text-sm text-seed">
+                    Expected Audit Parameters
+                  </h4>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs bg-rind/10 text-rind text-[11px] font-medium">
+                    AI-suggested, editable
+                  </span>
+                </div>
+                <p className="text-xs text-seed-muted">
+                  Define which critical decision parameters the engine should extract, cross-examine, and audit for gaps.
+                </p>
+              </div>
+            </div>
+
+            {/* Chip List */}
+            <div className="flex flex-wrap gap-2 pt-1">
+              {attributes.map((attr, idx) => (
+                <div
+                  key={idx}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm bg-seed/5 border border-seed/10 text-xs text-seed font-mono"
+                >
+                  <span>{attr}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveAttribute(attr)}
+                    className="text-seed-muted hover:text-crack text-sm leading-none ml-0.5"
+                    title="Remove parameter"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Add new attribute */}
+            <div className="flex gap-2 pt-2 max-w-md">
+              <input
+                type="text"
+                value={newAttrInput}
+                onChange={(e) => setNewAttrInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddAttribute();
+                  }
+                }}
+                placeholder="e.g. stipend_amount, renewal_gpa"
+                className="flex-1 px-3 py-1.5 rounded-sm border border-seed/15 bg-pith text-xs focus:ring-1 focus:ring-rind text-seed placeholder:text-seed-muted/60"
+              />
+              <Button variant="outline" size="sm" onClick={handleAddAttribute}>
+                Add Parameter
+              </Button>
             </div>
           </div>
 

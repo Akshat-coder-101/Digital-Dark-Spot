@@ -9,6 +9,7 @@ import { buildPrioritizedChecklist } from './checklist.js';
 import { runSecondPassTargetedGapSearch } from '../search/secondPass.js';
 import { FullAnalysisReport, JobProgress, AnalysisStage } from './types.js';
 import { LLMCache, llmCache } from '../llm/cache.js';
+import { normalizeAttributeName } from './canonicalization.js';
 import crypto from 'crypto';
 
 export type ProgressCallback = (progress: JobProgress) => void;
@@ -60,7 +61,8 @@ export class AnalysisPipeline {
     question: string,
     sourceInputs: SourceInput[],
     forceRerun: boolean = false,
-    onProgress?: ProgressCallback
+    onProgress?: ProgressCallback,
+    customExpectedAttributes?: string[]
   ): Promise<FullAnalysisReport> {
     const initialChips = sourceInputs.map((s, idx) => ({
       id: s.id || `src-${idx + 1}`,
@@ -127,10 +129,12 @@ export class AnalysisPipeline {
       );
 
       if (!extractionData) {
-        extractionData = await extractClaimsAndAttributes(question, readySources);
+        extractionData = await extractClaimsAndAttributes(question, readySources, customExpectedAttributes);
         usedProvider = extractionData.provider;
         usedModel = extractionData.model;
         llmCache.set(cacheKey, extractionData, usedProvider, usedModel);
+      } else if (customExpectedAttributes && customExpectedAttributes.length > 0) {
+        extractionData.expected_attributes = customExpectedAttributes.map(normalizeAttributeName);
       }
 
       // STAGE 3: Comparing (Deterministic Gaps & Conflicts)

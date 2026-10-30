@@ -10,7 +10,7 @@ export function buildPrioritizedChecklist(
   gaps: PotentialGap[],
   conflicts: PossibleConflict[],
   freshness: FreshnessWarning[],
-  openQuestions: string[]
+  openQuestions: string[] = []
 ): ChecklistItem[] {
   const items: ChecklistItem[] = [];
   let itemCounter = 1;
@@ -89,7 +89,7 @@ export function buildPrioritizedChecklist(
   }
 
   // 4. Incorporate Open Questions if space permits
-  for (const oq of openQuestions.slice(0, 2)) {
+  for (const oq of (openQuestions || []).slice(0, 2)) {
     items.push({
       id: `check-${itemCounter++}`,
       priority: 'Medium',

@@ -1,0 +1,70 @@
+{
+  "id": "scenario-2",
+  "name": "Clean Energy Scheme with Missing Critical Disbursement Attribute",
+  "question": "What are the subsidy amount, applicant eligibility, and disbursement timeline for the Clean Energy Startup scheme?",
+  "sources": [
+    {
+      "id": "src-ministry",
+      "url": "https://mnre.gov.in/schemes/startup-subsidy-2026",
+      "domain": "mnre.gov.in",
+      "title": "Ministry Guidelines on Clean Energy Startup Capital Support 2026",
+      "cleanedText": "Ministry of New and Renewable Energy notification issued 2026-01-10. Approved capital grant provides financial assistance up to Rs 25,00,000 for early stage clean technology ventures. Eligibility criteria requires DPIIT recognition and registered office in India. Applications must be submitted through the National Single Window Portal."
+    },
+    {
+      "id": "src-industry",
+      "url": "https://ficci.org/reports/clean-energy-grants-2026",
+      "domain": "ficci.org",
+      "title": "Industry Review: Renewable Energy Capital Subsidies",
+      "cleanedText": "Published on 15 February 2026. The national clean tech initiative offers funding of Rs 25 lakh to verified early stage green tech startups. The official portal is the National Single Window Portal."
+    }
+  ],
+  "expectedExtraction": {
+    "expected_attributes": [
+      "award_amount",
+      "eligibility_criteria",
+      "disbursement_timeline",
+      "official_application_portal"
+    ],
+    "claims": [
+      {
+        "source_id": "src-ministry",
+        "attribute": "award_amount",
+        "value": "Rs 25,00,000",
+        "quote": "provides financial assistance up to Rs 25,00,000 for early stage clean technology ventures."
+      },
+      {
+        "source_id": "src-ministry",
+        "attribute": "eligibility_criteria",
+        "value": "DPIIT recognition and registered office in India",
+        "quote": "Eligibility criteria requires DPIIT recognition and registered office in India."
+      },
+      {
+        "source_id": "src-ministry",
+        "attribute": "official_application_portal",
+        "value": "National Single Window Portal",
+        "quote": "Applications must be submitted through the National Single Window Portal."
+      },
+      {
+        "source_id": "src-industry",
+        "attribute": "award_amount",
+        "value": "Rs 25 lakh",
+        "quote": "offers funding of Rs 25 lakh to verified early stage green tech startups."
+      },
+      {
+        "source_id": "src-industry",
+        "attribute": "official_application_portal",
+        "value": "National Single Window Portal",
+        "quote": "The official portal is the National Single Window Portal."
+      }
+    ],
+    "open_questions": [
+      "Within how many weeks of sanction are subsidy funds disbursed to bank accounts?",
+      "Is an escrow account required for disbursement tranches?"
+    ],
+    "summary": "Both sources agree on Rs 25 lakh grant and application portal, but disbursement timeline is completely unaddressed."
+  },
+  "assertions": {
+    "expectedTotalGaps": ["disbursement_timeline"],
+    "expectedConflicts": 0
+  }
+}

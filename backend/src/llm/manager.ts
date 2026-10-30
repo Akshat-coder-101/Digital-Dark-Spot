@@ -33,6 +33,7 @@ export class LLMManager {
   private keyIndex: Map<ProviderName, number> = new Map();
   private models: Map<ProviderName, string> = new Map();
   private providerOrder: ProviderName[] = ['gemini', 'groq', 'openai', 'anthropic'];
+  private consecutiveJsonFailures: Map<ProviderName, number> = new Map();
 
   constructor() {
     this.adapters.set('gemini', geminiAdapter);
@@ -190,13 +191,30 @@ export class LLMManager {
           let rawText = await adapter.complete(keyState.key, model, options);
           let cleaned = stripCodeFences(rawText);
 
-          // Try parsing JSON
+          // Try parsing JSON and validating schema
           let parsed: any;
           try {
             parsed = JSON.parse(cleaned);
-          } catch (jsonErr) {
+            if (options.zodSchema) {
+              parsed = options.zodSchema.parse(parsed);
+            }
+          } catch (jsonErr: any) {
+            const fails = (this.consecutiveJsonFailures.get(provider) || 0) + 1;
+            this.consecutiveJsonFailures.set(provider, fails);
+            console.warn(`[LLM] JSON parse failure #${fails} from ${provider}: ${jsonErr.message}`);
+
+            if (fails >= 2) {
+              const cooldownUntil = Date.now() + 5 * 60 * 1000;
+              const states = this.keyStates.get(provider) || [];
+              for (const s of states) {
+                s.cooldownUntil = cooldownUntil;
+              }
+              console.warn(`[LLM] Provider ${provider} placed in 5-minute cooldown due to 2 consecutive JSON failures. Failing over to next provider.`);
+              break;
+            }
+
             // Retry once with a "valid JSON only" reminder
-            console.warn(`[LLM] JSON parse failure from ${provider}. Retrying with strict JSON prompt reminder...`);
+            console.warn(`[LLM] Retrying ${provider} once with strict JSON prompt reminder...`);
             const retryOptions: LLMCompletionOptions = {
               ...options,
               user: `${options.user}\n\nCRITICAL ERROR: Your previous response was not valid JSON. You MUST return ONLY a raw valid JSON object with no markdown fences, no explanation, and no formatting errors.`
@@ -205,12 +223,13 @@ export class LLMManager {
             rawText = await adapter.complete(keyState.key, model, retryOptions);
             cleaned = stripCodeFences(rawText);
             parsed = JSON.parse(cleaned);
+            if (options.zodSchema) {
+              parsed = options.zodSchema.parse(parsed);
+            }
           }
 
-          // Optional zod validation
-          if (options.zodSchema) {
-            parsed = options.zodSchema.parse(parsed);
-          }
+          // Reset consecutive failure count on success
+          this.consecutiveJsonFailures.set(provider, 0);
 
           // Success!
           return {

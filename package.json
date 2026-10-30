@@ -11,6 +11,8 @@
     "dev": "concurrently -k -p \"[{name}]\" -n \"BACKEND,FRONTEND\" -c \"green.bold,magenta.bold\" \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
     "build": "npm run build --workspace=backend && npm run build --workspace=frontend",
     "test:llm": "npm run test:llm --workspace=backend",
+    "eval": "npm run eval --workspace=backend",
+    "check:secrets": "npm run check:secrets --workspace=backend",
     "backend": "npm run dev --workspace=backend",
     "frontend": "npm run dev --workspace=frontend"
   },

@@ -1,5 +1,6 @@
 import { IngestedSource } from '../ingestion/types.js';
 import { ExtractedClaim } from './types.js';
+import { canonicalizeAttribute } from './canonicalization.js';
 import crypto from 'crypto';
 
 export function normalizeWhitespace(str: string): string {
@@ -57,16 +58,19 @@ export function verifyClaimsVerbatim(
     }
 
     // Check verbatim substring in rawText or cleanedText
-    let matchIndex = source.rawText.indexOf(quote);
+    const rawContent = source.rawText || (source as any).text || '';
+    const cleanContent = source.cleanedText || (source as any).text || '';
+
+    let matchIndex = rawContent.indexOf(quote);
     if (matchIndex === -1) {
-      matchIndex = source.cleanedText.indexOf(quote);
+      matchIndex = cleanContent.indexOf(quote);
     }
 
     // If exact substring fails, test normalized whitespace substring
     if (matchIndex === -1) {
       const normQuote = normalizeWhitespace(quote);
-      const normRaw = normalizeWhitespace(source.rawText);
-      const normClean = normalizeWhitespace(source.cleanedText);
+      const normRaw = normalizeWhitespace(rawContent);
+      const normClean = normalizeWhitespace(cleanContent);
 
       if (normRaw.includes(normQuote) || normClean.includes(normQuote)) {
         matchIndex = 0; // verified via normalized space
@@ -75,12 +79,15 @@ export function verifyClaimsVerbatim(
 
     if (matchIndex !== -1) {
       const claimId = `claim-${i + 1}-${crypto.randomBytes(3).toString('hex')}`;
+      const rawAttr = claim.attribute.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
+      const canonicalAttr = canonicalizeAttribute(rawAttr);
       verifiedClaims.push({
         id: claimId,
         source_id: source.id,
         source_title: source.title,
         source_domain: source.domain,
-        attribute: claim.attribute.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_'),
+        attribute: canonicalAttr,
+        original_attribute: claim.attribute,
         value: claim.value.trim(),
         quote: quote,
         verified: true,

@@ -97,8 +97,15 @@ export const App: React.FC = () => {
             {/* 5. Educational Methodology */}
             <Route path="/how-it-works" element={<HowItWorks />} />
 
-            {/* 6. AI Multi-Provider Diagnostics */}
-            <Route path="/settings/ai" element={<SettingsAi />} />
+            {/* 6. AI Multi-Provider Diagnostics (gated in production) */}
+            <Route
+              path="/settings/ai"
+              element={
+                ((import.meta as any).env?.VITE_SHOW_AI_STATUS === 'true' || (import.meta as any).env?.DEV)
+                  ? <SettingsAi />
+                  : <NotFound />
+              }
+            />
 
             {/* 7. Catch-All 404 Route */}
             <Route path="*" element={<NotFound />} />

@@ -23,11 +23,16 @@ export async function fetchSampleData() {
   return res.json();
 }
 
-export async function startAnalysis(question: string, sources: SourcePayload[], forceRerun: boolean = false) {
+export async function startAnalysis(
+  question: string,
+  sources: SourcePayload[],
+  forceRerun: boolean = false,
+  expectedAttributes?: string[]
+) {
   const res = await fetch('/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ question, sources, forceRerun })
+    body: JSON.stringify({ question, sources, forceRerun, expectedAttributes })
   });
 
   if (!res.ok) {

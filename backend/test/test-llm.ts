@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
+import assert from 'assert';
 import { LLMManager, ProviderName } from '../src/llm/index.js';
 
 // Load .env
@@ -158,6 +159,47 @@ async function runLLMTests() {
     console.error('❌ Failover did not succeed with key 2');
     process.exit(1);
   }
+
+  // 3. Test consecutive JSON failures triggering 5-minute cooldown and immediate provider failover
+  console.log('\n--- Testing 2-Consecutive JSON Failure Cooldown & Failover ---');
+  const jsonFailManager = new LLMManager();
+  let prov1JsonAttempts = 0;
+  let prov2JsonAttempts = 0;
+
+  (jsonFailManager as any).adapters.set('gemini', {
+    provider: 'gemini',
+    async complete() {
+      prov1JsonAttempts++;
+      return 'Invalid non-JSON response from Gemini';
+    }
+  });
+
+  (jsonFailManager as any).adapters.set('groq', {
+    provider: 'groq',
+    async complete() {
+      prov2JsonAttempts++;
+      return JSON.stringify({ status: 'ok', provider: 'groq' });
+    }
+  });
+
+  (jsonFailManager as any).keyStates.set('gemini', [
+    { key: 'gemini-key', maskedKey: 'gemi...key', disabled: false, cooldownUntil: null, failureCount: 0 }
+  ]);
+  (jsonFailManager as any).keyStates.set('groq', [
+    { key: 'groq-key', maskedKey: 'groq...key', disabled: false, cooldownUntil: null, failureCount: 0 }
+  ]);
+  (jsonFailManager as any).providerOrder = ['gemini', 'groq'];
+
+  const jsonFailRes = await jsonFailManager.complete({
+    system: 'Return JSON',
+    user: 'test json failover'
+  });
+
+  assert.strictEqual(jsonFailRes.provider, 'groq', 'Must failover to groq after 2 consecutive JSON failures');
+  assert.strictEqual(jsonFailRes.data?.status, 'ok', 'Groq response must be parsed');
+  const geminiState = (jsonFailManager as any).keyStates.get('gemini')[0];
+  assert.ok(geminiState.cooldownUntil > Date.now(), 'Gemini must be placed in cooldown');
+  console.log(`✅ 2-consecutive JSON failure cooldown verified: Gemini failed 2x (${prov1JsonAttempts} attempts), placed in cooldown, immediately failed over to Groq (${prov2JsonAttempts} attempts).`);
 
   console.log('\n🍉 LLM Layer Test Suite completed successfully!\n');
 }

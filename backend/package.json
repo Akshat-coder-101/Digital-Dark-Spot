@@ -14,7 +14,14 @@
     "test:sample": "tsx test/test-sample.ts",
     "test:checkpoint": "tsx test/test-e2e-checkpoint.ts",
     "test:hardening": "tsx test/test-hardening.ts",
-    "test:discovery": "tsx test/test-discovery.ts"
+    "test:discovery": "tsx test/test-discovery.ts",
+    "test:norm": "tsx test/test-normalization.ts",
+    "test:attr": "tsx test/test-attribute-matching.ts",
+    "test:temporal": "tsx test/test-temporal.ts",
+    "test:malformed": "tsx test/test-malformed.ts",
+    "test:custom-attr": "tsx test/test-custom-attributes.ts",
+    "eval": "tsx scripts/eval.ts",
+    "check:secrets": "tsx scripts/check-secrets.ts"
   },
   "dependencies": {
     "cheerio": "^1.0.0",

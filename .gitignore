@@ -14,10 +14,15 @@ dist/
 build/
 *.tsbuildinfo
 
-# IDE / OS
+# IDE / OS / Agent scratch
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
 *.log
+.agent/
+.agents/
+.gemini/
+.gsd/
+scratch/
 

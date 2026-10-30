@@ -1,0 +1,78 @@
+{
+  "id": "scenario-1",
+  "name": "State Merit Scholarship with Conflicting Income and Stale Cycle",
+  "question": "What are the eligibility requirements, family income limit, and deadline for the State Merit Scholarship?",
+  "sources": [
+    {
+      "id": "src-official",
+      "url": "https://scholarships.state.gov.in/rules-2026",
+      "domain": "scholarships.state.gov.in",
+      "title": "Official State Scholarships Portal - 2026 Notification",
+      "cleanedText": "Government of Karnataka State Merit Scholarship Notification for Academic Year AY 2026-27. Last date of application is 15 March 2026. The annual family income ceiling is fixed at Rs 6,00,000 per annum for all categories. Mandatory documents include Income Certificate and previous academic marks cards. Application portal is at https://scholarships.state.gov.in."
+    },
+    {
+      "id": "src-blog",
+      "url": "https://education-updates-blog.com/state-scholarship-guide",
+      "domain": "education-updates-blog.com",
+      "title": "State Scholarship Eligibility & Last Date - Education Updates",
+      "cleanedText": "Guidance for State Merit Scholarship Scheme for session 2024-25. The deadline to submit the online form is 30 August 2024. Please note that the maximum family income limit is Rs 2,50,000 per year. Candidates must provide caste certificate and income certificate."
+    }
+  ],
+  "expectedExtraction": {
+    "expected_attributes": [
+      "application_deadline",
+      "eligibility_income_limit",
+      "required_documents",
+      "official_application_portal"
+    ],
+    "claims": [
+      {
+        "source_id": "src-official",
+        "attribute": "application_deadline",
+        "value": "15 March 2026",
+        "quote": "Last date of application is 15 March 2026."
+      },
+      {
+        "source_id": "src-official",
+        "attribute": "eligibility_income_limit",
+        "value": "Rs 6,00,000",
+        "quote": "The annual family income ceiling is fixed at Rs 6,00,000 per annum"
+      },
+      {
+        "source_id": "src-official",
+        "attribute": "required_documents",
+        "value": "Income Certificate and previous academic marks cards",
+        "quote": "Mandatory documents include Income Certificate and previous academic marks cards."
+      },
+      {
+        "source_id": "src-official",
+        "attribute": "official_application_portal",
+        "value": "https://scholarships.state.gov.in",
+        "quote": "Application portal is at https://scholarships.state.gov.in."
+      },
+      {
+        "source_id": "src-blog",
+        "attribute": "application_deadline",
+        "value": "30 August 2024",
+        "quote": "The deadline to submit the online form is 30 August 2024."
+      },
+      {
+        "source_id": "src-blog",
+        "attribute": "eligibility_income_limit",
+        "value": "Rs 2,50,000",
+        "quote": "the maximum family income limit is Rs 2,50,000 per year."
+      }
+    ],
+    "open_questions": [
+      "Has the deadline been extended past 15 March 2026?",
+      "Are students from private universities eligible for the 2026-27 cycle?"
+    ],
+    "summary": "State scholarship rules show conflict between 2026 official notification (Rs 6 lakh limit) and outdated 2024 blog (Rs 2.5 lakh limit)."
+  },
+  "assertions": {
+    "minConflicts": 1,
+    "expectedConflictAttributes": ["eligibility_income_limit", "application_deadline"],
+    "minFreshnessWarnings": 1,
+    "expectedStaleSourceId": "src-blog"
+  }
+}

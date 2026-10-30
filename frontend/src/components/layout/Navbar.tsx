@@ -26,11 +26,15 @@ export const Navbar: React.FC = () => {
     } catch {}
   }, [isDark]);
 
-  const navLinks = [
+  const showAiStatus = (import.meta as any).env?.VITE_SHOW_AI_STATUS === 'true' || (import.meta as any).env?.DEV;
+
+  const baseNavLinks = [
     { to: '/', label: 'Investigate', icon: Search },
     { to: '/how-it-works', label: 'How it Works', icon: HelpCircle },
     { to: '/settings/ai', label: 'AI Status', icon: Sparkles },
   ];
+
+  const navLinks = showAiStatus ? baseNavLinks : baseNavLinks.filter(l => l.to !== '/settings/ai');
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-seed/10 bg-pith/90 backdrop-blur-md transition-colors">
