@@ -10,7 +10,8 @@
     "test:llm": "tsx test/test-llm.ts",
     "test:ingestion": "tsx test/test-ingestion.ts",
     "test:extraction": "tsx test/test-extraction.ts",
-    "test:analysis": "tsx test/test-analysis.ts"
+    "test:analysis": "tsx test/test-analysis.ts",
+    "test:sample": "tsx test/test-sample.ts"
   },
   "dependencies": {
     "cheerio": "^1.0.0",
