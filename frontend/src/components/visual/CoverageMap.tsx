@@ -27,20 +27,46 @@ function formatCellPreview(val?: string, status?: string): string {
     if (status === 'missing') return 'Not found';
     return 'Found';
   }
-  // Short values
-  if (val.length <= 24) return val;
-  // Dates e.g. 31-10-2026 or 15/03/2026
-  const dateMatch = val.match(/\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b/);
-  if (dateMatch) return `Found (${dateMatch[0]})`;
-  // Currency e.g. ₹2.5 lakh or Rs 2.5
-  const currMatch = val.match(/(₹|rs\.?|inr|\$)\s*[\d,.]+\s*(lakh|crore|k|m)?/i);
-  if (currMatch) return `Found (${currMatch[0]})`;
-  // Official Portal
-  if (val.toLowerCase().includes('official') || val.includes('.gov') || val.includes('.nic')) {
+  const trimmed = val.trim();
+
+  // Official portal
+  if (trimmed.toLowerCase().includes('official portal') || trimmed.includes('.gov') || trimmed.includes('.nic')) {
     return 'Official portal';
   }
-  // Clean truncation
-  return val.slice(0, 22) + '…';
+
+  // Currency e.g. ₹2,50,000 or ₹1,50,000 or ₹12,000
+  const currMatch = trimmed.match(/(?:₹|rs\.?|inr|\$)\s*[\d,.]+(?:\s*(?:lakh|crore|million|k)\b)?/i);
+  if (currMatch) {
+    const isMax = /maximum|limit|ceiling/i.test(trimmed);
+    const isPerYr = /annually|per year|per annum|disbursed/i.test(trimmed);
+    return `${currMatch[0]}${isMax ? ' max' : isPerYr ? ' / yr' : ''}`;
+  }
+
+  // Dates e.g. 31 October 2026 or 15 April 2026 or 31/10/2026
+  const dateMatch =
+    trimmed.match(/\b\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4}\b/i) ||
+    trimmed.match(/\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b/);
+  if (dateMatch) {
+    return dateMatch[0];
+  }
+
+  // Percentage or GPA
+  const percentMatch = trimmed.match(/\b\d+(?:\.\d+)?%/);
+  if (percentMatch) {
+    return `${percentMatch[0]} aggregate`;
+  }
+  const gpaMatch = trimmed.match(/\b\d+\.\d+\s*GPA\b/i);
+  if (gpaMatch) {
+    return gpaMatch[0];
+  }
+
+  // Short natural phrase
+  if (trimmed.length <= 25) return trimmed;
+
+  // Clean truncate at word boundary
+  const sliced = trimmed.slice(0, 24);
+  const lastSpace = sliced.lastIndexOf(' ');
+  return (lastSpace > 12 ? sliced.slice(0, lastSpace) : sliced) + '…';
 }
 
 export const CoverageMap: React.FC<CoverageMapProps> = ({

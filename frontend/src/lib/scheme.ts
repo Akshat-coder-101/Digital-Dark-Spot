@@ -19,10 +19,10 @@ export function extractSchemeInfo(report: {
   // If sample report
   if (report.id === 'sample-scholarship-report' || report.id?.includes('sample')) {
     return {
-      name: 'National Merit Scholarship 2026',
+      name: 'National Scholarship Scheme 2026 (NSP)',
       cycle: '2026-27',
-      officialDomain: 'scholarships.gov.fictional',
-      officialTitle: 'National Merit Scholarship 2026 Guidelines (Official Notice)',
+      officialDomain: 'scholarships.gov.in',
+      officialTitle: 'National Scholarship Portal (NSP) — Central Guidelines 2026-27',
       hasOfficialSource: true
     };
   }
@@ -80,3 +80,4 @@ export function extractSchemeInfo(report: {
     hasOfficialSource: Boolean(report.sources.some(s => s.isOfficialDomain || (s.domain && (s.domain.endsWith('.gov') || s.domain.endsWith('.gov.in')))))
   };
 }
+

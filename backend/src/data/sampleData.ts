@@ -7,16 +7,16 @@ import { auditFreshness } from '../analysis/freshness.js';
 import { buildCoverageMatrix } from '../analysis/matrix.js';
 import { buildPrioritizedChecklist } from '../analysis/checklist.js';
 
-export const SAMPLE_RESEARCH_QUESTION = "What should I verify before applying for the National Merit Scholarship 2026?";
+export const SAMPLE_RESEARCH_QUESTION = "What should I verify before applying for the National Scholarship Scheme 2026 (NSP)?";
 
 export const SAMPLE_SOURCES: IngestedSource[] = [
   {
     id: 'src-sample-official',
     type: 'text',
-    domain: 'scholarships.gov.fictional',
-    title: 'National Merit Scholarship 2026 Guidelines (Official Notice)',
-    rawText: `Official Gazette Announcement: Applications for the National Merit Scholarship 2026-27 cycle are now officially open. Candidates must submit complete applications before the strict deadline of 15 April 2026. The maximum household annual income ceiling is $50,000 as confirmed by official tax returns. All applicants must submit official certified academic transcripts and proof of state residency. Selected scholars receive an annual award of $8,000 disbursed across two semesters. Direct submissions must be made through the official portal at portal.scholarships.gov.fictional. Incomplete dossiers will be rejected. Published 12 January 2026.`,
-    cleanedText: `Official Gazette Announcement: Applications for the National Merit Scholarship 2026-27 cycle are now officially open. Candidates must submit complete applications before the strict deadline of 15 April 2026. The maximum household annual income ceiling is $50,000 as confirmed by official tax returns. All applicants must submit official certified academic transcripts and proof of state residency. Selected scholars receive an annual award of $8,000 disbursed across two semesters. Direct submissions must be made through the official portal at portal.scholarships.gov.fictional. Incomplete dossiers will be rejected. Published 12 January 2026.`,
+    domain: 'scholarships.gov.in',
+    title: 'National Scholarship Portal (NSP) — Central Guidelines 2026-27',
+    rawText: `Official Gazette Announcement: Applications for the National Means-cum-Merit Scholarship for the 2026-27 academic session are now open on the National Scholarship Portal (scholarships.gov.in). The maximum family annual income ceiling is ₹2,50,000 as confirmed by competent revenue authority income certificates. All applicants must authenticate via Aadhaar One-Time Registration (OTR) and submit certified academic marksheets. Selected scholars receive an annual award of ₹12,000 disbursed directly through DBT. The strict closing deadline for application submission is 31 October 2026. Published 12 January 2026.`,
+    cleanedText: `Official Gazette Announcement: Applications for the National Means-cum-Merit Scholarship for the 2026-27 academic session are now open on the National Scholarship Portal (scholarships.gov.in). The maximum family annual income ceiling is ₹2,50,000 as confirmed by competent revenue authority income certificates. All applicants must authenticate via Aadhaar One-Time Registration (OTR) and submit certified academic marksheets. Selected scholars receive an annual award of ₹12,000 disbursed directly through DBT. The strict closing deadline for application submission is 31 October 2026. Published 12 January 2026.`,
     wordCount: 78,
     detectedDate: '12 January 2026',
     detectedCycle: '2026-27',
@@ -28,14 +28,29 @@ export const SAMPLE_SOURCES: IngestedSource[] = [
   {
     id: 'src-sample-blog',
     type: 'text',
-    domain: 'collegescholars-blog.fictional',
-    title: 'Student Aid Review: Unofficial Guide to 2024-25 Scholarships',
-    rawText: `In our review of the 2024-25 scholarship cycle, the family income limit was established at $40,000 maximum. Crucially, applicants were instructed to upload bank statements for the last 6 months along with an employer affidavit of income, rather than standard tax certificates. Remember that application requirements often shift across years. Published 10 September 2024 for the 2024-25 academic term.`,
-    cleanedText: `In our review of the 2024-25 scholarship cycle, the family income limit was established at $40,000 maximum. Crucially, applicants were instructed to upload bank statements for the last 6 months along with an employer affidavit of income, rather than standard tax certificates. Remember that application requirements often shift across years. Published 10 September 2024 for the 2024-25 academic term.`,
+    domain: 'scholarshiptips-india.org',
+    title: 'Student Aid Review: Unofficial Guide to 2026-27 NSP Scholarships',
+    rawText: `In our student guidance advisory for the 2026-27 scholarship session, the parental annual income limit was established at ₹1,50,000 maximum. Crucially, applicants were instructed to upload bank passbook statements for the last 6 months along with an employer affidavit of income, rather than standard government income certificates. Remember to double-check requirements before applying. Published 25 January 2026 for the 2026-27 academic term.`,
+    cleanedText: `In our student guidance advisory for the 2026-27 scholarship session, the parental annual income limit was established at ₹1,50,000 maximum. Crucially, applicants were instructed to upload bank passbook statements for the last 6 months along with an employer affidavit of income, rather than standard government income certificates. Remember to double-check requirements before applying. Published 25 January 2026 for the 2026-27 academic term.`,
     wordCount: 65,
+    detectedDate: '25 January 2026',
+    detectedCycle: '2026-27',
+    isStale: false,
+    isUndated: false,
+    status: 'ready',
+    fetchedAt: '2026-10-30T10:00:00.000Z'
+  },
+  {
+    id: 'src-sample-archived',
+    type: 'text',
+    domain: 'archives-edupress.org',
+    title: 'State Education Archive: 2024-25 Past Cycle Gazette Reference',
+    rawText: `Historical Reference Archive: In the earlier 2024-25 cycle, state income caps were fixed at ₹1,00,000 and required physical countersignature from district education offices. Notice preserved for historical reference. Published 10 September 2024 for the 2024-25 term.`,
+    cleanedText: `Historical Reference Archive: In the earlier 2024-25 cycle, state income caps were fixed at ₹1,00,000 and required physical countersignature from district education offices. Notice preserved for historical reference. Published 10 September 2024 for the 2024-25 term.`,
+    wordCount: 42,
     detectedDate: '10 September 2024',
     detectedCycle: '2024-25',
-    isStale: true, // older than 18m and earlier cycle
+    isStale: true,
     isUndated: false,
     status: 'ready',
     fetchedAt: '2026-10-30T10:00:00.000Z'
@@ -43,10 +58,10 @@ export const SAMPLE_SOURCES: IngestedSource[] = [
   {
     id: 'src-sample-forum',
     type: 'text',
-    domain: 'talkcampus.fictional',
+    domain: 'talkcampus-india.net',
     title: 'CollegeForum Community Discussion Thread #892',
-    rawText: `Someone on the forum posted that candidates require a minimum 3.2 cumulative GPA to be eligible for consideration. Also note that awards might be reduced if outside grants exceed $2,000. Be careful because the official faculty page doesn't mention renewal conditions anywhere, so ask your advisor! Undated post by user @ScholarSeeker.`,
-    cleanedText: `Someone on the forum posted that candidates require a minimum 3.2 cumulative GPA to be eligible for consideration. Also note that awards might be reduced if outside grants exceed $2,000. Be careful because the official faculty page doesn't mention renewal conditions anywhere, so ask your advisor! Undated post by user @ScholarSeeker.`,
+    rawText: `Someone on the forum posted that candidates require a minimum 55% aggregate in qualifying exams to be considered. Also note that awards might be reduced if outside grants exceed ₹5,000. Be careful because the official faculty page doesn't mention renewal conditions anywhere, so ask your nodal officer! Undated post by user @ScholarSeeker.`,
+    cleanedText: `Someone on the forum posted that candidates require a minimum 55% aggregate in qualifying exams to be considered. Also note that awards might be reduced if outside grants exceed ₹5,000. Be careful because the official faculty page doesn't mention renewal conditions anywhere, so ask your nodal officer! Undated post by user @ScholarSeeker.`,
     wordCount: 55,
     detectedDate: null,
     detectedCycle: null,
@@ -72,64 +87,64 @@ export const PRECOMPUTED_SAMPLE_LLM_OUTPUT: RawLLMExtraction = {
     {
       source_id: 'src-sample-official',
       attribute: 'application_deadline',
-      value: '15 April 2026',
-      quote: 'strict deadline of 15 April 2026'
+      value: '31 October 2026',
+      quote: 'strict closing deadline for application submission is 31 October 2026'
     },
     {
       source_id: 'src-sample-official',
       attribute: 'eligibility_income_limit',
-      value: '$50,000 maximum household income (confirmed by tax returns)',
-      quote: 'maximum household annual income ceiling is $50,000 as confirmed by official tax returns'
+      value: '₹2,50,000 maximum family income (confirmed by revenue certificate)',
+      quote: 'maximum family annual income ceiling is ₹2,50,000 as confirmed by competent revenue authority income certificates'
     },
     {
       source_id: 'src-sample-blog',
       attribute: 'eligibility_income_limit',
-      value: '$40,000 maximum (2024-25 cycle)',
-      quote: 'family income limit was established at $40,000 maximum'
+      value: '₹1,50,000 maximum (2026-27 guide)',
+      quote: 'parental annual income limit was established at ₹1,50,000 maximum'
     },
     {
       source_id: 'src-sample-official',
       attribute: 'required_documents',
-      value: 'Certified academic transcripts and proof of state residency',
-      quote: 'submit official certified academic transcripts and proof of state residency'
+      value: 'Aadhaar OTR authentication and certified academic marksheets',
+      quote: 'authenticate via Aadhaar One-Time Registration (OTR) and submit certified academic marksheets'
     },
     {
       source_id: 'src-sample-blog',
       attribute: 'required_documents',
-      value: 'Bank statements for the last 6 months + employer affidavit',
-      quote: 'upload bank statements for the last 6 months along with an employer affidavit of income'
+      value: 'Bank passbook statements for the last 6 months + employer affidavit',
+      quote: 'upload bank passbook statements for the last 6 months along with an employer affidavit of income'
     },
     {
       source_id: 'src-sample-official',
       attribute: 'award_amount',
-      value: '$8,000 annually across two semesters',
-      quote: 'annual award of $8,000 disbursed across two semesters'
+      value: '₹12,000 annually disbursed through DBT',
+      quote: 'annual award of ₹12,000 disbursed directly through DBT'
     },
     {
       source_id: 'src-sample-official',
       attribute: 'official_application_portal',
-      value: 'portal.scholarships.gov.fictional',
-      quote: 'official portal at portal.scholarships.gov.fictional'
+      value: 'scholarships.gov.in',
+      quote: 'open on the National Scholarship Portal (scholarships.gov.in)'
     },
     {
       source_id: 'src-sample-forum',
       attribute: 'minimum_gpa',
-      value: 'Minimum 3.2 cumulative GPA (forum rumor)',
-      quote: 'require a minimum 3.2 cumulative GPA to be eligible'
+      value: 'Minimum 55% aggregate marks',
+      quote: 'require a minimum 55% aggregate in qualifying exams to be considered'
     },
     {
       source_id: 'src-sample-forum',
       attribute: 'external_award_offset',
-      value: 'Award reduced if outside grants exceed $2,000',
-      quote: 'awards might be reduced if outside grants exceed $2,000'
+      value: 'Award reduced if outside grants exceed ₹5,000',
+      quote: 'awards might be reduced if outside grants exceed ₹5,000'
     }
   ],
   open_questions: [
-    'What are the official renewal conditions for continuing the National Merit Scholarship into subsequent academic years?',
-    'Which income documentation is officially mandated for the 2026 National Merit cycle: tax returns or 6-month bank statements?',
-    'Is there an official minimum GPA requirement stated in National Merit Scholarship regulations, or is selection ranking purely comparative?'
+    'What are the official renewal conditions for continuing the National Scholarship into subsequent academic years?',
+    'Which income documentation is officially mandated for the 2026-27 NSP cycle: revenue authority income certificate or 6-month bank passbook?',
+    'Is there an official minimum aggregate percentage stated in Central Government regulations, or is selection ranking purely comparative?'
   ],
-  summary: 'Reviewed 3 primary documents for the National Merit Scholarship 2026 (AY 2026-27): the official guidelines notice, an unofficial 2024-25 blog guide, and a student forum thread. Discovered conflicting income limits ($50k vs $40k) and document requirements, alongside a total information gap on renewal criteria.'
+  summary: 'Reviewed primary documents for the National Scholarship Scheme 2026 (NSP Guidelines 2026-27): the official portal announcement (scholarships.gov.in), an unofficial 2026 student guide, a community forum thread, and archived 2024-25 records. Discovered conflicting income ceilings (₹2,50,000 vs ₹1,50,000) and documentation requirements across 2026 sources, alongside an unaddressed total gap on renewal conditions.'
 };
 
 /**
@@ -198,4 +213,3 @@ export function generateSampleReport(): FullAnalysisReport {
     createdAt: new Date().toISOString()
   };
 }
-
