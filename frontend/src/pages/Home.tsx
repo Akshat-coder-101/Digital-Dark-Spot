@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { SourcePayload, startAnalysis, fetchSampleData, startDiscovery } from '@/lib/api';
 import { Plus, X, FileText, Sparkles, AlertCircle, ArrowRight, CheckCircle2, Globe, FileCode2 } from 'lucide-react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
-import { DarkSpotSphere } from '@/components/DarkSpotSphere';
+import { EvidenceStack } from '@/components/EvidenceStack';
 import { RedactedDocumentBackground } from '@/components/visual/RedactedDocumentBackground';
 import { cn } from '@/lib/utils';
 
@@ -233,9 +233,9 @@ export const Home: React.FC = () => {
             </motion.p>
           </div>
 
-          {/* Mobile DarkSpotSphere (visible below text on screens < lg, ~300px) */}
-          <div className="block lg:hidden w-[280px] sm:w-[320px] mx-auto pt-1 pb-1">
-            <DarkSpotSphere />
+          {/* Mobile EvidenceStack (visible below text on screens < lg, ~300px) */}
+          <div className="block lg:hidden w-[300px] mx-auto pt-2 pb-2">
+            <EvidenceStack />
           </div>
 
           {/* Question & Evidence Investigation Area (Staggered fourth step) */}
@@ -541,10 +541,10 @@ export const Home: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Right Column: DarkSpotSphere (Desktop, ~560px wide, bleeding slightly off the right edge) */}
+        {/* Right Column: EvidenceStack (Desktop, ~520px wide) */}
         <div className="hidden lg:block lg:col-span-5 relative">
-          <div className="w-[500px] xl:w-[560px] -mr-8 xl:-mr-16 pt-0">
-            <DarkSpotSphere />
+          <div className="w-[480px] xl:w-[520px] -mr-6 xl:-mr-12 pt-2">
+            <EvidenceStack />
           </div>
         </div>
       </div>
@@ -573,7 +573,7 @@ export const Home: React.FC = () => {
             <span className="text-xs font-mono font-bold text-rind">02</span>
             <h3 className="font-heading font-bold text-sm text-seed">Compare</h3>
             <p className="text-xs text-seed-muted leading-relaxed">
-              Extracts core claims strictly verified as verbatim substrings against raw ground truth.
+              Extracts core claims strictly verified as verbatim substrings against primary source text.
             </p>
           </div>
 

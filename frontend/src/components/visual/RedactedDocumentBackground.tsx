@@ -117,29 +117,32 @@ export const RedactedDocumentBackground: React.FC = () => {
       {/* Soft atmospheric radial depth gradient behind hero */}
       <div className="absolute top-1/6 right-1/4 w-[540px] h-[360px] rounded-full bg-rind/[0.035] dark:bg-rind/[0.05] blur-3xl pointer-events-none" />
 
-      {/* Base Redacted Document layer: masked to fade out behind text blocks on the left */}
+      {/* Redacted Document Bars Container — Masked so bars completely fade out behind headline & form */}
       <div
-        className="absolute inset-0 opacity-40 dark:opacity-45"
+        className="absolute inset-0"
         style={{
-          maskImage: 'linear-gradient(to right, transparent 0%, transparent 20%, black 65%, black 100%)',
-          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, transparent 20%, black 65%, black 100%)',
+          maskImage: 'linear-gradient(to right, transparent 0%, transparent 28%, black 65%, black 100%)',
+          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, transparent 28%, black 65%, black 100%)',
         }}
       >
-        {renderLines(false)}
-      </div>
-
-      {/* Dynamic Cursor Spotlight Layer (Only enabled on non-touch, non-reduced-motion) */}
-      {!shouldReduceMotion && !isTouchOrCoarse && (
-        <div
-          className="absolute inset-0 transition-opacity duration-300"
-          style={{
-            maskImage: 'radial-gradient(circle 200px at var(--mouse-x) var(--mouse-y), black 20%, transparent 100%)',
-            WebkitMaskImage: 'radial-gradient(circle 200px at var(--mouse-x) var(--mouse-y), black 20%, transparent 100%)',
-          }}
-        >
-          {renderLines(true)}
+        {/* Base Redacted Document layer */}
+        <div className="absolute inset-0 opacity-40 dark:opacity-45">
+          {renderLines(false)}
         </div>
-      )}
+
+        {/* Dynamic Cursor Spotlight Layer (Only enabled on non-touch, non-reduced-motion) */}
+        {!shouldReduceMotion && !isTouchOrCoarse && (
+          <div
+            className="absolute inset-0 transition-opacity duration-300"
+            style={{
+              maskImage: 'radial-gradient(circle 200px at var(--mouse-x) var(--mouse-y), black 20%, transparent 100%)',
+              WebkitMaskImage: 'radial-gradient(circle 200px at var(--mouse-x) var(--mouse-y), black 20%, transparent 100%)',
+            }}
+          >
+            {renderLines(true)}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

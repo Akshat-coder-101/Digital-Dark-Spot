@@ -91,11 +91,11 @@ async function runEvaluation() {
         const isOfficial = s.domain.endsWith('.gov') || s.domain.endsWith('.gov.in') || s.domain.endsWith('.edu') || s.domain.endsWith('.ac.in');
         return {
           id: s.id,
+          type: 'url' as const,
           url: s.url,
           domain: s.domain,
           title: s.title,
-          text: s.cleanedText,
-          rawHtml: s.cleanedText,
+          rawText: s.cleanedText,
           cleanedText: s.cleanedText,
           wordCount: s.cleanedText.split(/\s+/).length,
           status: 'ready' as const,
@@ -103,7 +103,7 @@ async function runEvaluation() {
           detectedCycle: temporal.detectedCycle,
           isUndated: temporal.isUndated,
           isStale: temporal.isStale,
-          isOfficialDomain: isOfficial
+          fetchedAt: new Date().toISOString()
         };
       });
 
