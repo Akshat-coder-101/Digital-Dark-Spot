@@ -10,12 +10,13 @@ export const GapsTab: React.FC = () => {
   const { report } = useReport();
   const navigate = useNavigate();
 
+  // 7. Empty State wording: "No potential gaps found in the sources reviewed"
   if (report.gaps.length === 0) {
     return (
       <EmptyState
         icon={<ShieldCheck className="w-7 h-7 text-rind" />}
-        title="Zero Information Gaps Detected"
-        description="All expected decision parameters were successfully covered with verified evidence across the reviewed sources."
+        title="No potential gaps found in the sources reviewed"
+        description="All expected parameters in this audit pass were identified in the reviewed primary documents."
       />
     );
   }
@@ -28,7 +29,7 @@ export const GapsTab: React.FC = () => {
       <div className="flex items-center justify-between border-b border-seed/10 pb-4">
         <div>
           <h3 className="font-heading font-bold text-lg text-seed">
-            Identified Information Gaps ({report.gaps.length})
+            Potential Information Gaps ({report.gaps.length})
           </h3>
           <p className="text-xs text-seed-muted">
             Expected parameters missing from sources or lacking independent corroboration.
@@ -50,7 +51,7 @@ export const GapsTab: React.FC = () => {
             {totalGaps.map((gap) => (
               <div
                 key={gap.id}
-                className="p-5 rounded-sm border border-seed/10 border-l-2 border-l-seed bg-pith space-y-3"
+                className="p-5 rounded-sm border border-seed/10 border-l-2 border-l-seed bg-pith space-y-3.5"
               >
                 <div className="flex items-center justify-between text-xs">
                   <StatusTag status="gap" />
@@ -61,11 +62,17 @@ export const GapsTab: React.FC = () => {
 
                 <div>
                   <h5 className="font-heading font-bold text-sm sm:text-base text-seed leading-snug">
-                    {gap.title}
+                    Potential gap: {gap.attribute} not found in the sources reviewed
                   </h5>
                   <p className="text-xs text-seed-muted mt-1 leading-relaxed">
                     {gap.description}
                   </p>
+                </div>
+
+                {/* Status indicator: Targeted search found nothing or Closed by source */}
+                <div className="flex items-center justify-between text-[11px] font-mono border-t border-seed/10 pt-2 text-seed-muted">
+                  <span>Targeted search:</span>
+                  <span className="text-seed-muted/80 italic">Targeted search found nothing</span>
                 </div>
 
                 <div className="p-3 rounded-xs bg-seed/[0.02] border border-seed/10 text-xs text-seed space-y-1">
@@ -73,6 +80,17 @@ export const GapsTab: React.FC = () => {
                     Recommended Action:
                   </span>
                   <p className="leading-relaxed">{gap.suggestedAction}</p>
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/report/${report.id}/evidence/${encodeURIComponent(gap.attribute)}`)}
+                    className="text-xs font-semibold text-rind hover:underline inline-flex items-center gap-1 cursor-pointer"
+                  >
+                    Inspect gap details
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
             ))}
@@ -94,7 +112,7 @@ export const GapsTab: React.FC = () => {
             {thinGaps.map((gap) => (
               <div
                 key={gap.id}
-                className="p-5 rounded-sm border border-seed/10 border-l-2 border-l-wilt bg-pith space-y-3"
+                className="p-5 rounded-sm border border-seed/10 border-l-2 border-l-wilt bg-pith space-y-3.5"
               >
                 <div className="flex items-center justify-between text-xs">
                   <StatusTag status="uncertain" customLabel="Thin Coverage" />
@@ -105,7 +123,7 @@ export const GapsTab: React.FC = () => {
 
                 <div>
                   <h5 className="font-heading font-bold text-sm sm:text-base text-seed leading-snug">
-                    {gap.title}
+                    Potential gap: {gap.attribute} has only thin single-source coverage
                   </h5>
                   <p className="text-xs text-seed-muted mt-1 leading-relaxed">
                     {gap.description}
@@ -118,31 +136,22 @@ export const GapsTab: React.FC = () => {
                   </span>
                   <p className="leading-relaxed">{gap.suggestedAction}</p>
                 </div>
+
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/report/${report.id}/evidence/${encodeURIComponent(gap.attribute)}`)}
+                    className="text-xs font-semibold text-rind hover:underline inline-flex items-center gap-1 cursor-pointer"
+                  >
+                    Inspect gap details
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
-
-      {/* Bottom Checklist Nav CTA */}
-      <div className="p-4 rounded-sm border border-seed/10 bg-seed/[0.01] flex items-center justify-between">
-        <div>
-          <h5 className="font-heading font-bold text-sm text-seed">
-            Want to verify these gaps systematically?
-          </h5>
-          <p className="text-xs text-seed-muted">
-            The verification checklist organizes next steps by risk priority.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => navigate(`/report/${report.id}/checklist`)}
-          className="text-xs font-bold text-rind hover:underline inline-flex items-center gap-1 cursor-pointer"
-        >
-          View Checklist
-          <ArrowRight className="w-3.5 h-3.5" />
-        </button>
-      </div>
     </div>
   );
 };

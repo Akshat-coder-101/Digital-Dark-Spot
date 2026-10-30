@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { SourcePayload, startAnalysis, fetchSampleData, startDiscovery } from '@/lib/api';
 import { Plus, X, FileText, Sparkles, AlertCircle, ArrowRight, CheckCircle2, Globe, FileCode2 } from 'lucide-react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
-import { HeroMelon } from '@/components/visual/HeroMelon';
+import { DarkSpotSphere } from '@/components/DarkSpotSphere';
 import { RedactedDocumentBackground } from '@/components/visual/RedactedDocumentBackground';
 import { cn } from '@/lib/utils';
 
@@ -218,7 +218,7 @@ export const Home: React.FC = () => {
               initial={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.08, ease: 'easeOut' }}
-              className="font-heading text-2xl sm:text-3xl lg:text-[34px] font-extrabold text-seed tracking-tight leading-tight"
+              className="font-heading text-2xl sm:text-3xl lg:text-[34px] font-extrabold text-seed tracking-tight leading-tight [text-wrap:balance] max-w-lg"
             >
               Find what the sources don't tell you.
             </motion.h1>
@@ -229,13 +229,13 @@ export const Home: React.FC = () => {
               transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.16, ease: 'easeOut' }}
               className="font-sans text-xs sm:text-sm text-seed-muted leading-relaxed max-w-xl"
             >
-              Cross-examines ground-truth sources to uncover potential information gaps, possible conflicts, and stale temporal cycles, backed by verified verbatim substrings.
+              Digital Dark Spot compares sources to uncover potential gaps, possible conflicts and stale information, with evidence you can inspect.
             </motion.p>
           </div>
 
-          {/* Mobile Hero Melon (visible below text on screens < lg) */}
-          <div className="block lg:hidden w-full max-w-[320px] sm:max-w-[380px] mx-auto pt-1 pb-1">
-            <HeroMelon />
+          {/* Mobile DarkSpotSphere (visible below text on screens < lg, ~300px) */}
+          <div className="block lg:hidden w-[280px] sm:w-[320px] mx-auto pt-1 pb-1">
+            <DarkSpotSphere />
           </div>
 
           {/* Question & Evidence Investigation Area (Staggered fourth step) */}
@@ -541,10 +541,10 @@ export const Home: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Right Column: Hero Melon (Desktop, ~520px wide, bleeding slightly off the right edge) */}
+        {/* Right Column: DarkSpotSphere (Desktop, ~560px wide, bleeding slightly off the right edge) */}
         <div className="hidden lg:block lg:col-span-5 relative">
-          <div className="w-[490px] xl:w-[520px] -mr-8 xl:-mr-12 pt-1">
-            <HeroMelon />
+          <div className="w-[500px] xl:w-[560px] -mr-8 xl:-mr-16 pt-0">
+            <DarkSpotSphere />
           </div>
         </div>
       </div>

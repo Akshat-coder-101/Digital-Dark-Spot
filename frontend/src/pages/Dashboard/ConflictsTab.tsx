@@ -4,7 +4,7 @@ import { StatusTag } from '@/components/common/StatusTag';
 import { CrackIcon, VerifiedCheckIcon } from '@/components/common/Icons';
 import { CrackLineDraw } from '@/components/motion/CrackLineDraw';
 import { EmptyState } from '@/components/ui/empty-state';
-import { ExternalLink, AlertTriangle } from 'lucide-react';
+import { ExternalLink, AlertTriangle, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const ConflictsTab: React.FC = () => {
@@ -16,7 +16,7 @@ export const ConflictsTab: React.FC = () => {
       <EmptyState
         icon={<VerifiedCheckIcon className="w-7 h-7 text-rind" />}
         title="Zero Contradictions Found"
-        description="All reviewed sources align on the extracted parameters with no conflicting values."
+        description="All reviewed sources align on the extracted parameters with no conflicting values detected."
       />
     );
   }
@@ -39,7 +39,7 @@ export const ConflictsTab: React.FC = () => {
         {report.conflicts.map((conflict) => (
           <div
             key={conflict.id}
-            className="border border-seed/10 rounded-sm bg-pith overflow-hidden"
+            className="border border-seed/10 rounded-sm bg-pith overflow-hidden shadow-xs space-y-0"
           >
             {/* Conflict Top Header */}
             <div className="px-5 py-3 border-b border-seed/10 bg-seed/[0.02] flex flex-wrap items-center justify-between gap-2">
@@ -79,7 +79,7 @@ export const ConflictsTab: React.FC = () => {
                   </div>
 
                   <blockquote className="p-2.5 rounded-xs bg-seed/[0.02] border-l border-crack text-xs italic text-seed line-clamp-3">
-                    "{conflict.sourceA.quote}"
+                    &ldquo;{conflict.sourceA.quote}&rdquo;
                   </blockquote>
                 </div>
 
@@ -95,17 +95,15 @@ export const ConflictsTab: React.FC = () => {
                 </div>
               </div>
 
-              {/* Fracture Divider in Middle */}
+              {/* Fracture Divider in Middle with 0.5s draw animation */}
               <div className="md:col-span-1 flex flex-col items-center justify-center py-2 md:py-0">
                 <div className="hidden md:block w-[1px] h-10 bg-seed/10" />
-                <div className="my-1 text-crack flex items-center justify-center">
-                  <CrackLineDraw width={60} height={28} strokeWidth={2.5} />
-                </div>
+                <CrackLineDraw width={60} height={120} strokeWidth={2.5} duration={0.5} />
                 <div className="hidden md:block w-[1px] h-10 bg-seed/10" />
               </div>
 
               {/* Right Column: Source B */}
-              <div className="md:col-span-5 flex flex-col justify-between space-y-3 p-4 rounded-xs border-l-2 border-l-crack bg-seed/[0.01]">
+              <div className="md:col-span-5 flex flex-col justify-between space-y-3 p-4 rounded-xs border-r-2 border-r-crack bg-seed/[0.01]">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs text-seed-muted font-mono">
                     <span className="font-bold uppercase tracking-wider text-seed">Source B</span>
@@ -126,7 +124,7 @@ export const ConflictsTab: React.FC = () => {
                   </div>
 
                   <blockquote className="p-2.5 rounded-xs bg-seed/[0.02] border-l border-crack text-xs italic text-seed line-clamp-3">
-                    "{conflict.sourceB.quote}"
+                    &ldquo;{conflict.sourceB.quote}&rdquo;
                   </blockquote>
                 </div>
 
@@ -143,11 +141,11 @@ export const ConflictsTab: React.FC = () => {
               </div>
             </div>
 
-            {/* Bottom Verification Guidance */}
-            <div className="px-5 py-2.5 bg-seed/[0.02] border-t border-seed/10 text-xs text-seed-muted flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-crack" />
+            {/* Format note & Verification hint */}
+            <div className="px-5 py-3 border-t border-seed/10 bg-seed/[0.015] flex items-center gap-2 text-xs text-seed-muted">
+              <Info className="w-4 h-4 text-crack shrink-0" />
               <span>
-                <strong className="text-seed">Verification Guidance:</strong> Cross-examine the original notices from both authorities before relying on either value.
+                <strong className="text-seed font-medium">Format & Canonicalization Note:</strong> Value normalizers check whether differences are cosmetic (e.g. currency denominations, natural date formats, or percentages). These values reflect conflicting factual claims requiring authority verification.
               </span>
             </div>
           </div>

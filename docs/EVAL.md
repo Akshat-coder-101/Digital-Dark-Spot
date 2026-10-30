@@ -1,6 +1,6 @@
 # Digital Dark Spot — Pipeline Accuracy & Deterministic Evaluation Report
 
-**Generated:** 2026-10-30T13:02:11.226Z  
+**Generated:** 2026-10-30T13:34:31.097Z  
 **Environment:** Offline Deterministic Fixture Test Runner (`npm run eval`)  
 **Scope:** Core Analysis Engine (Temporal Detection, Verbatim Verification, Synonym Canonicalization, Conflict Matrix, Gap Detection, Checklist Prioritization)
 

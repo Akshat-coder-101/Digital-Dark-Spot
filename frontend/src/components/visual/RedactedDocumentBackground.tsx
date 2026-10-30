@@ -117,8 +117,14 @@ export const RedactedDocumentBackground: React.FC = () => {
       {/* Soft atmospheric radial depth gradient behind hero */}
       <div className="absolute top-1/6 right-1/4 w-[540px] h-[360px] rounded-full bg-rind/[0.035] dark:bg-rind/[0.05] blur-3xl pointer-events-none" />
 
-      {/* Base Redacted Document layer: very low opacity text bars */}
-      <div className="absolute inset-0 opacity-80">
+      {/* Base Redacted Document layer: masked to fade out behind text blocks on the left */}
+      <div
+        className="absolute inset-0 opacity-40 dark:opacity-45"
+        style={{
+          maskImage: 'linear-gradient(to right, transparent 0%, transparent 20%, black 65%, black 100%)',
+          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, transparent 20%, black 65%, black 100%)',
+        }}
+      >
         {renderLines(false)}
       </div>
 
