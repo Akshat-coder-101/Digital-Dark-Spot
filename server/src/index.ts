@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { llmManager } from './llm/index.js';
+import { sourcesRouter } from './routes/sources.js';
 
 // Load environment variables
 dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
@@ -14,6 +15,9 @@ const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
+
+// Mount routers
+app.use('/api/sources', sourcesRouter);
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {
