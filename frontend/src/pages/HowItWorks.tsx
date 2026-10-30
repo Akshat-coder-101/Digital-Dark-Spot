@@ -6,8 +6,8 @@ export const HowItWorks: React.FC = () => {
     <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-10 space-y-12">
       {/* Editorial Header */}
       <div className="space-y-3 border-b border-seed/10 pb-8">
-        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-rind/10 text-rind text-[11px] font-mono uppercase tracking-wider font-semibold">
-          <span>Methodology & Architecture</span>
+        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-rind/10 text-rind text-xs font-sans font-medium">
+          <span>Methodology & architecture</span>
         </div>
         <h1 className="font-heading text-3xl sm:text-4xl font-extrabold text-seed tracking-tight">
           How Digital Dark Spot Works
@@ -52,8 +52,8 @@ export const HowItWorks: React.FC = () => {
 
       {/* Philosophy Statement */}
       <div className="p-6 rounded-sm border border-seed/10 border-l-2 border-l-seed bg-seed/[0.01] space-y-2">
-        <h4 className="font-heading font-bold text-sm uppercase tracking-wider text-seed font-mono">
-          Core Research Philosophy
+        <h4 className="font-sans font-semibold text-sm text-seed">
+          Core research philosophy
         </h4>
         <p className="text-xs sm:text-sm text-seed leading-relaxed">
           We never present findings as definitive truth. We provide <strong className="text-seed">potential signals</strong>, expose <strong className="text-seed">unanswered questions</strong>, and deliver an actionable <strong className="text-seed">verification checklist</strong> so humans can audit primary government and institutional notices before taking critical steps.

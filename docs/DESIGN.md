@@ -123,3 +123,4 @@ Before creating or editing any UI component:
 - [ ] Does all text meet WCAG AA contrast against pith (`#F4F8EE`)?
 - [ ] Are animations restricted to `transform` and `opacity` with `<MotionConfig reducedMotion="user">` respected?
 - [ ] Is copy sentence case, calm, and objective (using *"potential gap"*, *"possible conflict"*, *"not found in the sources reviewed"*)?
+

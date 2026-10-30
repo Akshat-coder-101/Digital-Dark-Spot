@@ -7,16 +7,23 @@ import { cn } from '@/lib/utils';
 export const Navbar: React.FC = () => {
   const location = useLocation();
   const [isDark, setIsDark] = useState<boolean>(() => {
-    return document.documentElement.classList.contains('dark') ||
-      window.matchMedia('(prefers-color-scheme: dark)').matches;
+    try {
+      const saved = localStorage.getItem('theme');
+      if (saved) return saved === 'dark';
+    } catch {}
+    return false; // Light mode (#F4F8EE pith) is the default design canvas
   });
 
   useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    try {
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      }
+    } catch {}
   }, [isDark]);
 
   const navLinks = [
@@ -31,19 +38,19 @@ export const Navbar: React.FC = () => {
         {/* Brand Wordmark with small seed mark */}
         <Link
           to="/"
-          className="flex items-center gap-2 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rind rounded-sm"
+          className="flex items-center gap-2 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rind rounded-sm shrink-0"
         >
-          <div className="w-5 h-5 rounded-xs bg-rind flex items-center justify-center text-white transition-transform group-hover:scale-105">
+          <div className="w-5 h-5 rounded-xs bg-rind flex items-center justify-center text-white transition-transform group-hover:scale-105 shrink-0">
             <SeedIcon className="w-3 h-3 fill-white" />
           </div>
-          <span className="font-heading font-bold text-base tracking-tight text-seed">
+          <span className="font-heading font-bold text-sm sm:text-base tracking-tight text-seed whitespace-nowrap">
             Digital Dark Spot
           </span>
         </Link>
 
         {/* Navigation links & Theme toggle */}
         <div className="flex items-center gap-1 sm:gap-2">
-          <nav className="flex items-center gap-1">
+          <nav className="flex items-center gap-0.5 sm:gap-1">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.to;
               return (
@@ -51,14 +58,15 @@ export const Navbar: React.FC = () => {
                   key={link.to}
                   to={link.to}
                   className={cn(
-                    'px-2.5 py-1.5 rounded-sm text-xs font-medium transition-colors inline-flex items-center gap-1.5',
+                    'px-2 sm:px-2.5 py-1.5 rounded-sm text-xs font-medium transition-colors inline-flex items-center gap-1.5',
                     isActive
                       ? 'text-seed font-semibold border-b border-rind'
                       : 'text-seed-muted hover:text-seed hover:bg-seed/5'
                   )}
+                  title={link.label}
                 >
-                  {link.icon && <link.icon className="w-3.5 h-3.5 opacity-70" />}
-                  <span>{link.label}</span>
+                  {link.icon && <link.icon className="w-3.5 h-3.5 opacity-70 shrink-0" />}
+                  <span className="hidden sm:inline">{link.label}</span>
                 </Link>
               );
             })}

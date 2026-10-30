@@ -185,9 +185,9 @@ export const Discover: React.FC = () => {
     <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-8 space-y-8 pb-16">
       {/* Top Header */}
       <div className="space-y-2 border-b border-seed/10 pb-6">
-        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-rind/10 text-rind text-[11px] font-mono uppercase tracking-wider font-semibold">
+        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-rind/10 text-rind text-xs font-sans font-medium">
           <Search className="w-3 h-3" />
-          <span>Automatic Source Discovery</span>
+          <span>Automatic source discovery</span>
         </div>
         <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-seed tracking-tight">
           Discovered Sources

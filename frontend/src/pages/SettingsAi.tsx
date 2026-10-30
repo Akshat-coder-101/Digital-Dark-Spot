@@ -44,8 +44,8 @@ export const SettingsAi: React.FC = () => {
     <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-10 space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-seed/10 pb-6">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-rind/10 text-rind text-[11px] font-mono uppercase tracking-wider font-semibold mb-2">
-            <span>Diagnostics & Health</span>
+          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-rind/10 text-rind text-xs font-sans font-medium mb-2">
+            <span>Diagnostics & health</span>
           </div>
           <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-seed tracking-tight">
             AI Engine Diagnostics

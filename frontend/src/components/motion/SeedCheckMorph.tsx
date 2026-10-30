@@ -49,3 +49,4 @@ export const SeedCheckMorph: React.FC<SeedCheckMorphProps> = ({
     </button>
   );
 };
+

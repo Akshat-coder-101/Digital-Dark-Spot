@@ -132,9 +132,9 @@ export const Analyzing: React.FC = () => {
       {/* Calm Header */}
       <div className="border-b border-seed/10 pb-6 space-y-2">
         <div className="flex items-center justify-between">
-          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-rind/10 text-rind text-[11px] font-mono uppercase tracking-wider font-semibold">
+          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-rind/10 text-rind text-xs font-sans font-medium">
             <SeedIcon className="w-3 h-3 fill-current" />
-            <span>Forensic Investigation</span>
+            <span>Forensic investigation</span>
           </div>
           <span className="font-mono text-xs text-seed-muted">
             Session: <span className="text-seed font-semibold">{shortSessionId}</span>
