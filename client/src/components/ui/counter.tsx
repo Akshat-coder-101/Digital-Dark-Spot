@@ -1,0 +1,72 @@
+import React from 'react';
+import { cn } from '@/lib/utils';
+import { motion } from 'motion/react';
+
+export interface CounterProps {
+  value: number;
+  label: string;
+  icon: React.ReactNode;
+  variant?: 'rind' | 'seed' | 'crack' | 'wilt';
+  subtext?: string;
+  className?: string;
+  onClick?: () => void;
+}
+
+export const Counter: React.FC<CounterProps> = ({
+  value,
+  label,
+  icon,
+  variant = 'seed',
+  subtext,
+  className,
+  onClick
+}) => {
+  const variantStyles = {
+    rind: "border-rind/30 hover:border-rind/60 bg-rind/5 text-rind",
+    seed: "border-seed/20 hover:border-seed/50 bg-pith-card text-seed",
+    crack: "border-crack/30 hover:border-crack/60 bg-crack-subtle/50 text-crack",
+    wilt: "border-wilt/30 hover:border-wilt/60 bg-wilt-subtle/50 text-wilt"
+  };
+
+  const badgeStyles = {
+    rind: "bg-rind/15 text-rind",
+    seed: "bg-seed/10 text-seed",
+    crack: "bg-crack/15 text-crack",
+    wilt: "bg-wilt/20 text-wilt"
+  };
+
+  return (
+    <motion.button
+      type="button"
+      whileHover={{ y: -2, transition: { duration: 0.15 } }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      disabled={!onClick}
+      className={cn(
+        "flex flex-col p-4 rounded-2xl border text-left transition-all duration-200",
+        onClick ? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rind" : "cursor-default",
+        variantStyles[variant],
+        className
+      )}
+    >
+      <div className="flex items-center justify-between w-full mb-2">
+        <span className="text-xs font-medium uppercase tracking-wider text-seed-muted">
+          {label}
+        </span>
+        <div className={cn("p-1.5 rounded-lg", badgeStyles[variant])}>
+          {icon}
+        </div>
+      </div>
+      <div className="flex items-baseline gap-2">
+        <span className="font-heading text-3xl font-extrabold text-seed">
+          {value}
+        </span>
+        {subtext && (
+          <span className="text-xs text-seed-muted">
+            {subtext}
+          </span>
+        )}
+      </div>
+    </motion.button>
+  );
+};

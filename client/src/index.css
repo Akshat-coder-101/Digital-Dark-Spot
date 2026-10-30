@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-rind: #1F6B3A;
+    --color-rind-hover: #18552E;
+    --color-flesh: #F2506E;
+    --color-flesh-hover: #DE3E5B;
+    --color-pith: #F4F8EE;
+    --color-pith-card: #FFFFFF;
+    --color-pith-muted: #E8EFE1;
+    --color-seed: #15110F;
+    --color-seed-muted: #5C5855;
+    --color-crack: #E8A317;
+    --color-crack-subtle: #FEF7E6;
+    --color-wilt: #8E9982;
+    --color-wilt-subtle: #EFF3EC;
+
+    /* Shadcn compatible mappings */
+    --background: var(--color-pith);
+    --foreground: var(--color-seed);
+    --card: var(--color-pith-card);
+    --card-foreground: var(--color-seed);
+    --popover: var(--color-pith-card);
+    --popover-foreground: var(--color-seed);
+    --primary: var(--color-rind);
+    --primary-foreground: #FFFFFF;
+    --secondary: var(--color-pith-muted);
+    --secondary-foreground: var(--color-seed);
+    --muted: var(--color-pith-muted);
+    --muted-foreground: var(--color-seed-muted);
+    --accent: var(--color-pith-muted);
+    --accent-foreground: var(--color-rind);
+    --destructive: var(--color-flesh);
+    --destructive-foreground: #FFFFFF;
+    --border: #DCE5D3;
+    --input: #DCE5D3;
+    --ring: var(--color-rind);
+    --radius: 0.75rem;
+
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  .dark {
+    --color-rind: #4FBF7A;
+    --color-rind-hover: #62CD8B;
+    --color-flesh: #FF6B86;
+    --color-flesh-hover: #FF859C;
+    --color-pith: #0F1512;
+    --color-pith-card: #18211D;
+    --color-pith-muted: #222E28;
+    --color-seed: #F2F1ED;
+    --color-seed-muted: #9E9C97;
+    --color-crack: #F2B84B;
+    --color-crack-subtle: #2A2415;
+    --color-wilt: #75806D;
+    --color-wilt-subtle: #1B241E;
+
+    /* Shadcn compatible dark mappings */
+    --background: var(--color-pith);
+    --foreground: var(--color-seed);
+    --card: var(--color-pith-card);
+    --card-foreground: var(--color-seed);
+    --popover: var(--color-pith-card);
+    --popover-foreground: var(--color-seed);
+    --primary: var(--color-rind);
+    --primary-foreground: #0F1512;
+    --secondary: var(--color-pith-muted);
+    --secondary-foreground: var(--color-seed);
+    --muted: var(--color-pith-muted);
+    --muted-foreground: var(--color-seed-muted);
+    --accent: var(--color-pith-muted);
+    --accent-foreground: var(--color-rind);
+    --destructive: var(--color-flesh);
+    --destructive-foreground: #FFFFFF;
+    --border: #293830;
+    --input: #293830;
+    --ring: var(--color-rind);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+  }
+}
+
+@theme {
+  --color-rind: var(--color-rind);
+  --color-rind-hover: var(--color-rind-hover);
+  --color-flesh: var(--color-flesh);
+  --color-flesh-hover: var(--color-flesh-hover);
+  --color-pith: var(--color-pith);
+  --color-pith-card: var(--color-pith-card);
+  --color-pith-muted: var(--color-pith-muted);
+  --color-seed: var(--color-seed);
+  --color-seed-muted: var(--color-seed-muted);
+  --color-crack: var(--color-crack);
+  --color-crack-subtle: var(--color-crack-subtle);
+  --color-wilt: var(--color-wilt);
+  --color-wilt-subtle: var(--color-wilt-subtle);
+
+  --font-heading: 'Bricolage Grotesque', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+/* Accessible focus ring */
+*:focus-visible {
+  outline: 2px solid var(--color-rind);
+  outline-offset: 2px;
+}
