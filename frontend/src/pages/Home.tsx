@@ -218,7 +218,7 @@ export const Home: React.FC = () => {
   };
 
   return (
-    <div className="relative max-w-[1100px] mx-auto py-3 sm:py-5 space-y-6 sm:space-y-8">
+    <div className="relative max-w-[1100px] mx-auto py-3 sm:py-5 space-y-6 sm:space-y-8 overflow-x-clip">
       {/* Background "Redacted Document" with soft cursor spotlight and radial depth */}
       <RedactedDocumentBackground />
 

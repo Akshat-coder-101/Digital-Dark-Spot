@@ -229,6 +229,7 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
                     return (
                       <td
                         key={source.id}
+                        id={`coverage-cell-${row.attribute}-${source.id}`}
                         tabIndex={0}
                         role="gridcell"
                         aria-label={`${formattedName} in ${source.title}: ${cell.status}`}
@@ -236,14 +237,16 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
                             e.stopPropagation();
+                            sessionStorage.setItem('dds-last-focused-cell', `coverage-cell-${row.attribute}-${source.id}`);
                             handleCellClick(cell.claimId, row.attribute);
                           }
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
+                          sessionStorage.setItem('dds-last-focused-cell', `coverage-cell-${row.attribute}-${source.id}`);
                           handleCellClick(cell.claimId, row.attribute);
                         }}
-                        className="py-2 px-3 align-middle focus:outline-none focus:ring-1 focus:ring-rind rounded-xs cursor-pointer group"
+                        className="py-2 px-3 align-middle focus:outline-none focus:ring-1 focus:ring-structure-text rounded-xs cursor-pointer group"
                       >
                         <motion.div
                           initial={shouldReduceMotion ? { scale: 1, opacity: 1 } : { scale: 0.5, opacity: 0 }}

@@ -23,7 +23,10 @@ export const EvidenceDrawerMotion: React.FC<EvidenceDrawerMotionProps> = ({
   useEffect(() => {
     if (!open) return;
 
-    previouslyFocusedElement.current = document.activeElement as HTMLElement;
+    const opener = document.activeElement as HTMLElement;
+    if (opener && opener !== document.body) {
+      previouslyFocusedElement.current = opener;
+    }
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -41,7 +44,25 @@ export const EvidenceDrawerMotion: React.FC<EvidenceDrawerMotionProps> = ({
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      previouslyFocusedElement.current?.focus?.();
+      setTimeout(() => {
+        try {
+          const lastCellId = sessionStorage.getItem('dds-last-focused-cell');
+          if (lastCellId) {
+            const el = document.getElementById(lastCellId);
+            if (el) {
+              el.focus();
+              return;
+            }
+          }
+        } catch {}
+
+        if (previouslyFocusedElement.current && document.contains(previouslyFocusedElement.current)) {
+          previouslyFocusedElement.current.focus();
+        } else {
+          const fallback = document.querySelector('td[tabindex="0"]') as HTMLElement;
+          fallback?.focus?.();
+        }
+      }, 100);
     };
   }, [open, onClose]);
 
