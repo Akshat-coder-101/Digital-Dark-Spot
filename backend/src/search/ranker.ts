@@ -20,13 +20,22 @@ export function normalizeUrl(rawUrl: string): string {
 
 export function rankAndDedupeSearchResults(
   results: SearchResult[],
-  question: string,
-  maxSources: number = 6
+  questionOrMax?: string | number,
+  maxSourcesLimit: number = 6
 ): SearchResult[] {
+  let question = '';
+  let maxSources = maxSourcesLimit;
+
+  if (typeof questionOrMax === 'number') {
+    maxSources = questionOrMax;
+  } else if (typeof questionOrMax === 'string') {
+    question = questionOrMax;
+  }
+
   const seenUrls = new Set<string>();
   const domainCounts = new Map<string, number>();
 
-  const keywords = question
+  const keywords = (question || '')
     .toLowerCase()
     .replace(/[^a-z0-9 ]/g, ' ')
     .split(/\s+/)

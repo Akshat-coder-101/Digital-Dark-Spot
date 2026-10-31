@@ -20,3 +20,7 @@
 ## Decision 5: Automated Domain Vocabulary Ban-List Scanner
 - **Context**: Banned domain vocabulary (`scholarship`, `eligibility`, `renewal`, `marksheet`, `income limit`, `award amount`, `subsidy`, `laptop`, `NSP`) is strictly prohibited in engine code and UI string literals, permitted only in test fixtures and sample scenarios.
 - **Decision**: Created `scripts/ban-list-scan.ts` running as an automated verification check against 97+ non-fixture source files across both `backend/src` and `frontend/src`.
+
+## Decision 6: Hardened Discovery Service & Second-Pass Targeted Probe
+- **Context**: The discovery pipeline must handle arbitrary topics without fabricating fake URLs, domains, or government notices when search keys are unavailable, and must support targeted secondary passes for critical gaps.
+- **Decision**: Added `backend/test/test-discovery-phase2.ts` validating topic-tailored search formulation across diverse industries (e.g., Clean Hydrogen, Drone Regulations), authoritative institutional domain weighting, duplicate removal, no-search fallback messaging, and second-pass gap probing with updated gap titles without crashing when search API keys are absent.

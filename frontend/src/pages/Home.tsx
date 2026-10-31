@@ -393,7 +393,7 @@ export const Home: React.FC = () => {
                               type="url"
                               placeholder={
                                 idx === 0
-                                  ? 'https://scholarships.gov.in/notice-2026.html'
+                                  ? 'https://department.gov.in/notice-2026.html'
                                   : idx === 1
                                   ? 'https://education.gov.in/guidelines.pdf'
                                   : `https://example.gov/source-${idx + 1}`

@@ -40,11 +40,11 @@ export const Discover: React.FC = () => {
   // Editable Expected Attributes state
   const [attributes, setAttributes] = useState<string[]>([
     'application_deadline',
-    'eligibility_income_limit',
+    'primary_qualifying_criteria',
     'required_documents',
-    'official_application_portal',
-    'renewal_conditions',
-    'award_amount'
+    'official_portal_or_link',
+    'continuation_policy',
+    'pricing_or_financial_terms'
   ]);
   const [newAttrInput, setNewAttrInput] = useState('');
 

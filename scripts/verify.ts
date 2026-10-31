@@ -56,6 +56,7 @@ console.log('================================================================\n'
 runCommand('backend_tests', 'Phase 0/1', 'npx tsx backend/test/test-hackathon-scenarios.ts');
 runCommand('phase1_engine_tests', 'Phase 1', 'npx tsx backend/test/test-phase1-engine.ts');
 runCommand('normalization_tests', 'Phase 1', 'npm --prefix backend run test:norm');
+runCommand('discovery_phase2_tests', 'Phase 2', 'npx tsx backend/test/test-discovery-phase2.ts');
 
 // 2. Evaluation Suite
 runCommand('evaluation', 'Phase 0/3', 'npx tsx backend/scripts/eval.ts');
