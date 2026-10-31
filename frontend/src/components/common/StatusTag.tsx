@@ -7,6 +7,8 @@ export type StatusType =
   | 'sourced' 
   | 'ai_suggested' 
   | 'uncertain' 
+  | 'found'
+  | 'single_source'
   | 'gap' 
   | 'conflict' 
   | 'stale';
@@ -40,18 +42,28 @@ export const StatusTag: React.FC<StatusTagProps> = ({
       icon: <HelpCircle className={size === 'sm' ? "w-3 h-3" : "w-3.5 h-3.5"} />,
       styles: 'bg-wilt-subtle text-wilt border-wilt/40 dark:bg-wilt/20 dark:text-wilt'
     },
+    found: {
+      label: 'Found',
+      icon: <VerifiedCheckIcon className={size === 'sm' ? "w-3 h-3" : "w-3.5 h-3.5"} />,
+      styles: 'bg-rind/15 text-rind border-rind/30 dark:bg-rind/20 dark:text-rind'
+    },
+    single_source: {
+      label: 'Single source',
+      icon: <HelpCircle className={size === 'sm' ? "w-3 h-3" : "w-3.5 h-3.5"} />,
+      styles: 'bg-seed-muted/15 text-seed border-seed/20 dark:bg-seed-muted/20 dark:text-seed'
+    },
     gap: {
-      label: 'Potential gap',
+      label: 'Gap',
       icon: <SeedIcon className={size === 'sm' ? "w-3 h-3" : "w-3.5 h-3.5"} />,
-      styles: 'bg-seed text-pith border-seed dark:bg-seed-muted dark:text-pith'
+      styles: 'bg-seed/10 text-seed border-seed/20 dark:bg-seed/20 dark:text-seed'
     },
     conflict: {
-      label: 'Possible conflict',
+      label: 'Conflict',
       icon: <CrackIcon className={size === 'sm' ? "w-3 h-3" : "w-3.5 h-3.5"} />,
       styles: 'bg-crack-subtle text-crack border-crack/40 dark:bg-crack/20 dark:text-crack'
     },
     stale: {
-      label: 'Potentially stale',
+      label: 'Stale',
       icon: <WiltIcon className={size === 'sm' ? "w-3 h-3" : "w-3.5 h-3.5"} />,
       styles: 'bg-wilt-subtle text-wilt border-wilt/30 dark:bg-wilt/20 dark:text-wilt'
     }

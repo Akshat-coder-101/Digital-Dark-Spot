@@ -3,9 +3,20 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useReport } from './ReportContext';
 import { EvidenceDrawerMotion } from '@/components/motion/EvidenceDrawerMotion';
 import { StatusTag } from '@/components/common/StatusTag';
-import { SeedIcon } from '@/components/common/Icons';
+import { SeedIcon, CrackIcon } from '@/components/common/Icons';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, CheckCircle2, Calendar, Globe, X, AlertCircle, ShieldCheck } from 'lucide-react';
+import {
+  ExternalLink,
+  CheckCircle2,
+  Calendar,
+  Globe,
+  X,
+  AlertCircle,
+  ShieldCheck,
+  FileText,
+  Clock,
+  HelpCircle
+} from 'lucide-react';
 
 function formatSentenceCase(str: string): string {
   if (!str) return '';
@@ -15,6 +26,7 @@ function formatSentenceCase(str: string): string {
 
 /**
  * Renders the verbatim quote highlighted directly in its authentic surrounding source text.
+ * Shows up to 120 characters before and 120 characters after.
  */
 function VerbatimContextViewer({ fullText, quote }: { fullText?: string; quote: string }) {
   if (!fullText || !quote) {
@@ -34,7 +46,7 @@ function VerbatimContextViewer({ fullText, quote }: { fullText?: string; quote: 
     );
   }
 
-  // Show up to 120 characters before and 120 characters after
+  // Show exactly up to 120 characters before and 120 characters after
   const start = Math.max(0, idx - 120);
   const end = Math.min(fullText.length, idx + quote.length + 120);
   const before = (start > 0 ? '… ' : '') + fullText.slice(start, idx);
@@ -43,8 +55,11 @@ function VerbatimContextViewer({ fullText, quote }: { fullText?: string; quote: 
   return (
     <div className="p-4 rounded-xs bg-seed/[0.03] border border-seed/12 text-xs leading-relaxed text-seed-muted font-sans space-y-2">
       <div className="text-[11px] font-mono text-seed-muted/80 pb-1 border-b border-seed/10 flex items-center justify-between">
-        <span>Raw Document Excerpt</span>
-        <span className="text-[10px] text-rind font-semibold">100% Substring Match</span>
+        <span>Raw Document Excerpt (120 chars context)</span>
+        <span className="text-[10px] text-rind font-semibold inline-flex items-center gap-1">
+          <CheckCircle2 className="w-3 h-3 text-rind" />
+          Verbatim Substring Match
+        </span>
       </div>
       <div>
         <span>{before}</span>
@@ -86,14 +101,24 @@ export const EvidenceDrawerSubRoute: React.FC = () => {
     claim = report.claims.find(c => c.source_id === decodedId);
   }
 
+  const activeAttr = claim ? (claim.attribute || claim.original_attribute) : decodedId;
+
   // Associated source
   const source = claim
     ? report.sources.find(s => s.id === claim.source_id)
     : report.sources.find(s => s.id === decodedId);
 
-  // Associated gap or matrix row
-  const gap = report.gaps.find(g => g.id === decodedId || g.attribute === decodedId);
-  const matrixRow = report.coverageMatrix.find(m => m.attribute === decodedId);
+  // Associated gap, conflict, matrix row, freshness
+  const gap = report.gaps.find(g => g.id === decodedId || g.attribute === activeAttr);
+  const conflict = report.conflicts.find(c => c.attribute === activeAttr);
+  const matrixRow = report.coverageMatrix.find(m => m.attribute === activeAttr);
+  const freshnessWarning = source ? report.freshnessWarnings.find(f => f.source_id === source.id) : undefined;
+
+  // Other sources on this item
+  const otherClaims = report.claims.filter(c =>
+    (c.attribute === activeAttr || c.original_attribute === activeAttr) &&
+    (!claim || c.source_id !== claim.source_id)
+  );
 
   const handleClose = () => {
     navigate(-1);
@@ -105,18 +130,36 @@ export const EvidenceDrawerSubRoute: React.FC = () => {
     source?.domain?.includes('.edu') ||
     (source as any)?.isOfficialDomain;
 
+  // "Why this was flagged" explanation
+  let whyFlaggedText = 'Sourced evidence verified against primary source text.';
+  let whyFlaggedIcon = <CheckCircle2 className="w-3.5 h-3.5 text-rind shrink-0" />;
+
+  if (conflict) {
+    whyFlaggedText = conflict.description || 'Possible conflict detected between sources on this attribute.';
+    whyFlaggedIcon = <CrackIcon className="w-3.5 h-3.5 text-crack shrink-0" />;
+  } else if (gap) {
+    whyFlaggedText = gap.description || 'Not found in the sources reviewed.';
+    whyFlaggedIcon = <SeedIcon className="w-3.5 h-3.5 fill-current text-seed shrink-0" />;
+  } else if (freshnessWarning) {
+    whyFlaggedText = freshnessWarning.reason || 'Document is potentially outdated or references an earlier cycle.';
+    whyFlaggedIcon = <Clock className="w-3.5 h-3.5 text-wilt shrink-0" />;
+  } else if (claim && otherClaims.length === 0 && report.sources.length > 1) {
+    whyFlaggedText = 'Single source coverage only. This parameter was not corroborated by other reviewed sources.';
+    whyFlaggedIcon = <HelpCircle className="w-3.5 h-3.5 text-seed-muted shrink-0" />;
+  }
+
   return (
     <EvidenceDrawerMotion
       open={true}
       onClose={handleClose}
-      width="max-w-[540px]"
+      width="max-w-[560px]"
     >
       <div className="p-6 space-y-6 flex flex-col min-h-full bg-pith">
         {/* Header bar */}
         <div className="flex items-start justify-between pb-4 border-b border-seed/10 gap-3">
           <div>
             <span className="font-mono text-[10px] uppercase tracking-wider text-rind font-bold block">
-              Forensic Evidence Inspection
+              Evidence Inspection
             </span>
             <h3 className="font-heading font-extrabold text-lg text-seed leading-snug">
               {claim
@@ -157,7 +200,18 @@ export const EvidenceDrawerSubRoute: React.FC = () => {
               </p>
             </div>
 
-            {/* 3. Verbatim Context Viewer */}
+            {/* 3. Why this was flagged */}
+            <div className="p-3.5 rounded-xs border border-seed/12 bg-seed/[0.02] space-y-1.5">
+              <div className="flex items-center gap-1.5 text-xs font-heading font-bold text-seed">
+                {whyFlaggedIcon}
+                <span>Why this was flagged</span>
+              </div>
+              <p className="text-xs text-seed-muted leading-relaxed">
+                {whyFlaggedText}
+              </p>
+            </div>
+
+            {/* 4. Verbatim Context Viewer (120 chars each side) */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-mono text-[10px] uppercase tracking-wider text-seed-muted font-bold">
@@ -165,7 +219,7 @@ export const EvidenceDrawerSubRoute: React.FC = () => {
                 </span>
                 <span className="text-rind text-[11px] font-mono font-bold inline-flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  Grounded Verbatim Match
+                  Verbatim Substring Match
                 </span>
               </div>
 
@@ -175,11 +229,11 @@ export const EvidenceDrawerSubRoute: React.FC = () => {
               />
             </div>
 
-            {/* 4. Ground-Truth Source Card */}
+            {/* 5. Primary Source Material Card */}
             {source && (
               <div className="p-4 rounded-sm border border-seed/12 bg-pith space-y-2 text-xs">
                 <span className="font-mono text-[10px] uppercase tracking-wider text-seed-muted font-bold block">
-                  Ground-Truth Source Material
+                  Reviewed Source Material
                 </span>
                 <div className="space-y-1.5 text-seed">
                   <div className="flex items-center gap-2">
@@ -189,7 +243,8 @@ export const EvidenceDrawerSubRoute: React.FC = () => {
                         Official Source
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 rounded-2xs bg-seed/10 text-seed border border-seed/15 text-[10px] font-mono font-semibold">
+                      <span className="px-2 py-0.5 rounded-2xs bg-seed/10 text-seed border border-seed/15 text-[10px] font-mono font-semibold flex items-center gap-1">
+                        <FileText className="w-3 h-3 text-seed-muted" />
                         Secondary Document
                       </span>
                     )}
@@ -210,7 +265,43 @@ export const EvidenceDrawerSubRoute: React.FC = () => {
               </div>
             )}
 
-            {/* 5. Action Controls */}
+            {/* 6. Other sources on this item */}
+            <div className="space-y-2 pt-1">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-seed-muted font-bold block">
+                Other sources on this item ({report.sources.length - 1})
+              </span>
+              <div className="space-y-1.5">
+                {report.sources
+                  .filter(s => !claim || s.id !== claim.source_id)
+                  .map((s) => {
+                    const match = otherClaims.find(c => c.source_id === s.id);
+                    return (
+                      <div
+                        key={s.id}
+                        className="p-2.5 rounded-xs border border-seed/10 bg-seed/[0.015] flex items-center justify-between text-xs"
+                      >
+                        <div className="min-w-0 pr-2">
+                          <p className="font-medium text-seed truncate">{s.title}</p>
+                          <p className="text-[10px] font-mono text-seed-muted">{s.domain}</p>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          {match ? (
+                            <span className="text-[11px] font-mono font-semibold text-rind">
+                              Found: &ldquo;{match.value.slice(0, 30)}&rdquo;
+                            </span>
+                          ) : (
+                            <span className="text-[11px] font-mono text-seed-muted/70 italic">
+                              Not found in this source
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+
+            {/* Action Controls */}
             <div className="pt-6 border-t border-seed/10 flex flex-col gap-2 mt-auto">
               {source?.url && (
                 <Button
@@ -256,24 +347,25 @@ export const EvidenceDrawerSubRoute: React.FC = () => {
                 Total Information Dark Spot
               </span>
               <p className="font-heading text-base sm:text-lg font-extrabold text-seed leading-snug">
-                {formatSentenceCase(matrixRow?.attributeLabel || gap?.attribute || decodedId)} is not mentioned in any reviewed source
+                {formatSentenceCase(matrixRow?.attributeLabel || gap?.attribute || decodedId)} is not found in the sources reviewed
               </p>
             </div>
 
-            {/* 3. Description */}
-            <div className="p-4 rounded-xs bg-seed/[0.02] border border-seed/10 space-y-1.5">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-seed-muted font-bold block">
-                Audit Findings
-              </span>
+            {/* 3. Why this was flagged */}
+            <div className="p-3.5 rounded-xs border border-seed/12 bg-seed/[0.02] space-y-1.5">
+              <div className="flex items-center gap-1.5 text-xs font-heading font-bold text-seed">
+                <SeedIcon className="w-3.5 h-3.5 fill-current text-seed" />
+                <span>Why this was flagged</span>
+              </div>
               <p className="text-xs text-seed-muted leading-relaxed">
                 {gap?.description || "This expected decision parameter was completely unaddressed across all reviewed documents, leaving applicants with critical unknowns."}
               </p>
             </div>
 
-            {/* 4. Reviewed sources audited */}
+            {/* 4. Other sources on this item */}
             <div className="space-y-2">
               <span className="font-mono text-[10px] uppercase tracking-wider text-seed-muted font-bold block">
-                Reviewed Sources Audited ({report.sources.length})
+                Other sources on this item ({report.sources.length})
               </span>
               <div className="space-y-1.5">
                 {report.sources.map((s, idx) => (
@@ -286,7 +378,7 @@ export const EvidenceDrawerSubRoute: React.FC = () => {
                       <p className="text-[10px] font-mono text-seed-muted">{s.domain}</p>
                     </div>
                     <span className="text-[10px] font-mono text-seed-muted/80 shrink-0 italic">
-                      Omitted
+                      Not found in this source
                     </span>
                   </div>
                 ))}

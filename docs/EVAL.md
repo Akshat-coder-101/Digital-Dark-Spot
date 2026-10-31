@@ -1,6 +1,6 @@
 # Digital Dark Spot — Pipeline Accuracy & Deterministic Evaluation Report
 
-**Generated:** 2026-10-31T05:06:04.031Z  
+**Generated:** 2026-10-31T05:20:12.367Z  
 **Environment:** Offline Deterministic Fixture Test Runner (`npm run eval`)  
 **Scope:** Core Analysis Engine (Temporal Detection, Verbatim Verification, Synonym Canonicalization, Conflict Matrix, Gap Detection, Checklist Prioritization)
 
@@ -16,9 +16,9 @@ Digital Dark Spot utilizes a multi-layered verification and canonicalization eng
 
 | Scenario | Scenario Name | Sources | Claims | Total Gaps | Conflicts | Stale Warnings | Verification Status |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| `scenario-1` | **State Merit Scholarship with Conflicting Income and Stale Cycle** | 2 | 6 | 0 | 2 | 1 | **PASSED** (7ms) |
+| `scenario-1` | **State Merit Scholarship with Conflicting Income and Stale Cycle** | 2 | 6 | 0 | 2 | 1 | **PASSED** (8ms) |
 | `scenario-2` | **Clean Energy Scheme with Missing Critical Disbursement Attribute** | 2 | 5 | 1 | 0 | 1 | **PASSED** (2ms) |
-| `scenario-3` | **Global Fellowship with Full Consensus and Complete Coverage** | 2 | 8 | 0 | 0 | 0 | **PASSED** (2ms) |
+| `scenario-3` | **Global Fellowship with Full Consensus and Complete Coverage** | 2 | 8 | 0 | 0 | 0 | **PASSED** (1ms) |
 
 ## 3. Scenario Profiles
 

@@ -175,7 +175,7 @@ export const GapsTab: React.FC = () => {
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <StatusTag status="uncertain" customLabel="Thin Coverage" />
+                      <StatusTag status="single_source" />
                       <span className="font-sans text-xs text-seed-muted font-medium">
                         {attrName}
                       </span>

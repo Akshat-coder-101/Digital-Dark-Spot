@@ -20,7 +20,7 @@ export const ConflictsTab: React.FC = () => {
     return (
       <EmptyState
         icon={<VerifiedCheckIcon className="w-7 h-7 text-rind" />}
-        title="Zero Contradictions Found"
+        title="No possible conflicts found in the sources reviewed"
         description="All reviewed sources align on the extracted parameters with no conflicting values detected."
       />
     );
@@ -79,7 +79,7 @@ export const ConflictsTab: React.FC = () => {
                 </div>
                 <span className="text-xs font-mono text-crack font-bold inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-xs bg-crack/10 border border-crack/20">
                   <AlertTriangle className="w-3.5 h-3.5" />
-                  Contradiction across 2 sources
+                  Possible conflict across 2 sources
                 </span>
               </div>
 

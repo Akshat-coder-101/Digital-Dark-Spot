@@ -3,7 +3,7 @@ import { CoverageMatrixRow, IngestedSource } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'motion/react';
-import { Calendar, AlertCircle } from 'lucide-react';
+import { Calendar, AlertCircle, Check, CircleDashed, Zap, HelpCircle, Clock } from 'lucide-react';
 
 interface CoverageMapProps {
   reportId: string;
@@ -182,25 +182,31 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
                     <td className="py-2.5 px-2 text-center align-middle whitespace-nowrap">
                       {row.overallStatus === 'covered' && (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-sans font-semibold bg-rind/15 text-rind border border-rind/25">
-                          <span className="w-1.5 h-1.5 rounded-full bg-rind" />
-                          Covered
+                          <Check className="w-3 h-3 text-rind" />
+                          Found
                         </span>
                       )}
                       {row.overallStatus === 'gap' && (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-sans font-semibold bg-seed/10 text-seed border border-seed/20">
-                          <span className="w-1.5 h-1.5 rounded-full bg-seed" />
+                          <CircleDashed className="w-3 h-3 text-seed" />
                           Gap
                         </span>
                       )}
                       {row.overallStatus === 'conflict' && (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-sans font-semibold bg-crack/15 text-crack border border-crack/30">
-                          <span className="w-1.5 h-1.5 rounded-full bg-crack" />
+                          <Zap className="w-3 h-3 text-crack" />
                           Conflict
                         </span>
                       )}
                       {row.overallStatus === 'thin' && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-sans font-semibold bg-seed-muted/15 text-seed border border-seed/20">
+                          <HelpCircle className="w-3 h-3 text-seed-muted" />
+                          Single source
+                        </span>
+                      )}
+                      {row.overallStatus === 'stale' && (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-sans font-semibold bg-wilt/15 text-wilt border border-wilt/30">
-                          <span className="w-1.5 h-1.5 rounded-full bg-wilt" />
+                          <Clock className="w-3 h-3 text-wilt" />
                           Stale
                         </span>
                       )}
@@ -347,21 +353,24 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
         </table>
       </div>
 
-      {/* Short text legend beneath */}
+      {/* Short text legend beneath with icons and text */}
       <div className="pt-2 border-t border-seed/10 flex flex-wrap items-center justify-between text-xs text-seed-muted gap-3">
         <div className="flex flex-wrap items-center gap-4">
           <span className="font-bold text-seed">Legend:</span>
-          <span className="inline-flex items-center gap-1.5 text-rind font-medium">
-            <span className="w-2.5 h-2.5 rounded-full bg-rind" /> Found
+          <span className="inline-flex items-center gap-1 text-rind font-medium">
+            <Check className="w-3.5 h-3.5 text-rind" /> Found
           </span>
-          <span className="inline-flex items-center gap-1.5 text-seed font-medium">
-            <span className="w-2.5 h-2.5 rounded-full bg-seed" /> Not found (gap)
+          <span className="inline-flex items-center gap-1 text-seed font-medium">
+            <CircleDashed className="w-3.5 h-3.5 text-seed" /> Gap
           </span>
-          <span className="inline-flex items-center gap-1.5 text-crack font-medium">
-            <span className="w-2.5 h-2.5 rounded-full bg-crack" /> Conflict
+          <span className="inline-flex items-center gap-1 text-crack font-medium">
+            <Zap className="w-3.5 h-3.5 text-crack" /> Conflict
           </span>
-          <span className="inline-flex items-center gap-1.5 text-wilt font-medium">
-            <span className="w-2.5 h-2.5 rounded-full bg-wilt" /> Stale
+          <span className="inline-flex items-center gap-1 text-seed-muted font-medium">
+            <HelpCircle className="w-3.5 h-3.5 text-seed-muted" /> Single source
+          </span>
+          <span className="inline-flex items-center gap-1 text-wilt font-medium">
+            <Clock className="w-3.5 h-3.5 text-wilt" /> Stale
           </span>
         </div>
         <span className="text-[11px] font-sans text-seed-muted">

@@ -91,7 +91,15 @@ if (fs.existsSync(routeScript)) {
   skipCheck('route_test', 'Phase 4', 'Not yet reached (Phase 4 implementation)');
 }
 
-// 8. PDF Phase Tests (Phase 6, Optional)
+// 8. Report and Evidence Tests (Phase 5)
+const reportPhase5Script = path.join(process.cwd(), 'backend', 'test', 'test-phase5-report.ts');
+if (fs.existsSync(reportPhase5Script)) {
+  runCommand('report_phase5_tests', 'Phase 5', `npx tsx ${reportPhase5Script}`);
+} else {
+  skipCheck('report_phase5_tests', 'Phase 5', 'Not yet reached (Phase 5 implementation)');
+}
+
+// 9. PDF Phase Tests (Phase 6, Optional)
 const pdfScript = path.join(process.cwd(), 'backend', 'test', 'test-pdf.ts');
 if (fs.existsSync(pdfScript)) {
   runCommand('pdf_tests', 'Phase 6', `npx tsx ${pdfScript}`);

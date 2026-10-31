@@ -88,7 +88,7 @@ export type MatrixCellStatus = 'found' | 'missing' | 'conflict' | 'stale';
 export interface CoverageMatrixRow {
   attribute: string;
   attributeLabel: string;
-  overallStatus: 'covered' | 'gap' | 'conflict' | 'thin';
+  overallStatus: 'covered' | 'gap' | 'conflict' | 'thin' | 'stale';
   cells: Record<string, {
     sourceId: string;
     status: MatrixCellStatus;
