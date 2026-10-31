@@ -140,7 +140,7 @@ export class AnalysisPipeline {
 
       // Auto-recognize official portal sources (.gov, .gov.in, .nic.in, etc.) for portal-related attributes
       const portalAttrs = (extractionData.expected_attributes || []).filter((a: string) =>
-        areAttributesMatching(a, 'official_application_portal')
+        a.includes('portal') || a.includes('website') || a.includes('link')
       );
       if (portalAttrs.length > 0) {
         for (const source of readySources) {
@@ -174,6 +174,15 @@ export class AnalysisPipeline {
               }
             }
           }
+        }
+      }
+
+      // Update source usefulness stats
+      for (const source of readySources) {
+        const claimsForSrc = (extractionData.verified_claims || []).filter((c: any) => c.source_id === source.id);
+        source.claimsExtracted = claimsForSrc.length;
+        if (source.claimsExtracted === 0 && source.wordCount > 50) {
+          source.usefulnessStatus = 'NEEDS_ATTENTION';
         }
       }
 

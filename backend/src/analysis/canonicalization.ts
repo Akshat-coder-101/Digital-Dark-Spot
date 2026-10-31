@@ -1,184 +1,138 @@
 /**
- * Attribute canonicalization and synonym matching.
- * Maps diverse wording (e.g. "deadline" vs "last_date", "income_limit" vs "family_income")
- * to shared canonical keys to prevent false gaps and enable cross-source conflict detection.
+ * Topic-independent attribute canonicalization and qualifier separation.
+ * 
+ * Maps diverse wording to shared canonical keys without hardcoded domain synonym clusters.
+ * Enforces strict qualifier separation (e.g. primary vs secondary roles, maximum vs minimum)
+ * to prevent false conflicts or false matches.
  */
 
-const SYNONYM_CLUSTERS: Record<string, string[]> = {
-  application_deadline: [
-    'deadline',
-    'last_date',
-    'last_date_to_apply',
-    'closing_date',
-    'due_date',
-    'submission_deadline',
-    'end_date',
-    'cutoff_date',
-    'application_end_date',
-    'last_date_of_application'
-  ],
-  eligibility_income_limit: [
-    'income_limit',
-    'family_income',
-    'annual_income',
-    'household_income',
-    'income_ceiling',
-    'parental_income',
-    'income_criteria',
-    'family_annual_income',
-    'annual_family_income',
-    'maximum_income'
-  ],
-  required_documents: [
-    'documents_required',
-    'mandatory_documents',
-    'document_checklist',
-    'certificates_needed',
-    'documents_needed',
-    'documents_to_upload',
-    'necessary_documents',
-    'supporting_documents'
-  ],
-  award_amount: [
-    'scholarship_amount',
-    'stipend',
-    'funding_amount',
-    'financial_assistance',
-    'grant_amount',
-    'benefit_amount',
-    'scholarship_value',
-    'financial_aid_amount',
-    'amount'
-  ],
-  official_application_portal: [
-    'application_portal',
-    'portal_url',
-    'how_to_apply',
-    'website',
-    'official_link',
-    'application_link',
-    'portal_link',
-    'apply_online_url',
-    'application_url'
-  ],
-  renewal_conditions: [
-    'renewal_criteria',
-    'continuation_policy',
-    'renewal_requirements',
-    'renewal_terms',
-    'renewal_rules',
-    'scholarship_renewal'
-  ],
-  eligibility_criteria: [
-    'who_can_apply',
-    'eligibility_requirements',
-    'qualification',
-    'qualifying_criteria',
-    'eligibility',
-    'basic_eligibility'
-  ],
-  selection_process: [
-    'selection_criteria',
-    'merit_list',
-    'screening_process',
-    'how_candidates_are_selected',
-    'selection_procedure'
-  ],
-  age_limit: [
-    'maximum_age',
-    'minimum_age',
-    'age_criteria',
-    'age_eligibility'
-  ]
-};
+// Generic role or qualifier prefixes/suffixes that must not be merged across different qualifiers
+export const QUALIFIER_TOKENS = [
+  'primary',
+  'secondary',
+  'initial',
+  'extension',
+  'maximum',
+  'minimum',
+  'student',
+  'institution',
+  'officer',
+  'provider',
+  'resident',
+  'commercial',
+  'domestic',
+  'standard',
+  'expedited'
+];
 
-// Reverse lookup map: synonym -> canonical key
-const SYNONYM_MAP = new Map<string, string>();
-for (const [canonical, synonyms] of Object.entries(SYNONYM_CLUSTERS)) {
-  SYNONYM_MAP.set(canonical, canonical);
-  for (const syn of synonyms) {
-    SYNONYM_MAP.set(syn, canonical);
-  }
-}
-
-export function normalizeAttributeName(attr: string): string {
-  return attr
+export function normalizeAttributeName(attr: any): string {
+  if (!attr) return '';
+  const str = typeof attr === 'string' ? attr : (attr.attribute || attr.key || attr.name || String(attr));
+  return str
     .toLowerCase()
     .trim()
+    .replace(/['"]/g, '')
     .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '');
+    .replace(/^_+|_+$/g, '')
+    .replace(/_+/g, '_');
 }
 
-export function levenshteinDistance(a: string, b: string): number {
-  const m = a.length;
-  const n = b.length;
-  const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
-
-  for (let i = 0; i <= m; i++) dp[i][0] = i;
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      dp[i][j] = Math.min(
-        dp[i - 1][j] + 1,      // deletion
-        dp[i][j - 1] + 1,      // insertion
-        dp[i - 1][j - 1] + cost // substitution
-      );
-    }
-  }
-
-  return dp[m][n];
-}
-
-export function canonicalizeAttribute(attr: string): string {
+export function extractQualifier(attr: string): { qualifier?: string; baseKey: string } {
   const norm = normalizeAttributeName(attr);
-  if (SYNONYM_MAP.has(norm)) {
-    return SYNONYM_MAP.get(norm)!;
+  const parts = norm.split('_');
+
+  for (const q of QUALIFIER_TOKENS) {
+    if (parts.includes(q)) {
+      const remaining = parts.filter(p => p !== q).join('_');
+      return { qualifier: q, baseKey: remaining || norm };
+    }
   }
 
-  // Check token substring or prefix/suffix matches in clusters
-  for (const [canonical, synonyms] of Object.entries(SYNONYM_CLUSTERS)) {
-    if (norm === canonical || norm.includes(canonical) || canonical.includes(norm)) {
-      return canonical;
-    }
-    for (const syn of synonyms) {
-      if (norm === syn || norm.includes(syn) || syn.includes(norm)) {
-        return canonical;
-      }
+  return { baseKey: norm };
+}
+
+export function areAttributesMatching(attrA: any, attrB: any): boolean {
+  if (!attrA || !attrB) return false;
+
+  const normA = normalizeAttributeName(attrA);
+  const normB = normalizeAttributeName(attrB);
+
+  if (normA === normB) return true;
+
+  // Extract qualifiers
+  const { qualifier: qA, baseKey: baseA } = extractQualifier(normA);
+  const { qualifier: qB, baseKey: baseB } = extractQualifier(normB);
+
+  // If both have different explicit qualifiers, they must NOT match
+  if (qA && qB && qA !== qB) {
+    return false;
+  }
+
+  // If one has a qualifier and the other doesn't, allow match only if baseKeys are identical
+  if ((qA || qB) && baseA === baseB) {
+    return true;
+  }
+
+  // Token-based matching on base keys
+  const tokensA = new Set(baseA.split('_').filter(t => t.length > 2));
+  const tokensB = new Set(baseB.split('_').filter(t => t.length > 2));
+
+  if (tokensA.size === 0 || tokensB.size === 0) {
+    return false;
+  }
+
+  let intersectionCount = 0;
+  for (const t of tokensA) {
+    if (tokensB.has(t)) intersectionCount++;
+  }
+
+  const unionSize = new Set([...tokensA, ...tokensB]).size;
+  const jaccard = unionSize > 0 ? intersectionCount / unionSize : 0;
+
+  // Exact subset match for multi-token attributes (e.g. "submission_deadline" and "deadline")
+  const isSubset = intersectionCount === Math.min(tokensA.size, tokensB.size);
+  if (isSubset && Math.min(tokensA.size, tokensB.size) >= 1 && Math.max(tokensA.size, tokensB.size) <= 3) {
+    return true;
+  }
+
+  return jaccard >= 0.6;
+}
+
+export function canonicalizeAttribute(
+  rawAttribute: string,
+  targetAttributes: string[] = []
+): string {
+  const norm = normalizeAttributeName(rawAttribute);
+
+  for (const target of targetAttributes) {
+    if (areAttributesMatching(norm, target)) {
+      return normalizeAttributeName(target);
     }
   }
 
   return norm;
 }
 
-export function areAttributesMatching(attr1: string, attr2: string): boolean {
-  const c1 = canonicalizeAttribute(attr1);
-  const c2 = canonicalizeAttribute(attr2);
-  if (c1 === c2) return true;
+export function canonicalizeAttributeDetailed(
+  rawAttribute: string,
+  targetAttributes: string[] = []
+): { canonical: string; matched: boolean; qualifier?: string } {
+  const norm = normalizeAttributeName(rawAttribute);
+  const { qualifier } = extractQualifier(norm);
 
-  const n1 = normalizeAttributeName(attr1);
-  const n2 = normalizeAttributeName(attr2);
-  if (n1 === n2) return true;
-
-  // Token set overlap
-  const tokens1 = new Set(n1.split('_').filter(t => t.length > 2));
-  const tokens2 = new Set(n2.split('_').filter(t => t.length > 2));
-  let sharedTokens = 0;
-  for (const t of tokens1) {
-    if (tokens2.has(t)) sharedTokens++;
-  }
-  const minTokens = Math.min(tokens1.size, tokens2.size);
-  if (minTokens > 0 && sharedTokens === minTokens) {
-    return true;
+  for (const target of targetAttributes) {
+    if (areAttributesMatching(norm, target)) {
+      return {
+        canonical: normalizeAttributeName(target),
+        matched: true,
+        qualifier
+      };
+    }
   }
 
-  // String edit distance fallback for minor typos (e.g. "requred_documents")
-  const maxLen = Math.max(n1.length, n2.length);
-  if (maxLen >= 6) {
-    const dist = levenshteinDistance(n1, n2);
-    if (dist <= 2) return true;
-  }
-
-  return false;
+  return {
+    canonical: norm,
+    matched: false,
+    qualifier
+  };
 }

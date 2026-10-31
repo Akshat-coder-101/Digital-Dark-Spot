@@ -18,52 +18,75 @@ export const Home: React.FC = () => {
   const [activeModal, setActiveModal] = useState<'url' | 'text' | null>(null);
   const [isQuestionFocused, setIsQuestionFocused] = useState(false);
 
-  // Input states for intake modals
-  const [urlInput, setUrlInput] = useState('');
-  const [urlTitle, setUrlTitle] = useState('');
+  // Input states for intake modals (starts with URL 1 and URL 2)
+  const [urlList, setUrlList] = useState<string[]>(['', '']);
   const [textInput, setTextInput] = useState('');
   const [textTitle, setTextTitle] = useState('');
+
+  const updateUrlItem = (index: number, val: string) => {
+    setUrlList(prev => {
+      const copy = [...prev];
+      copy[index] = val;
+      return copy;
+    });
+  };
+
+  const addUrlRow = () => {
+    setUrlList(prev => [...prev, '']);
+  };
+
+  const removeUrlRow = (index: number) => {
+    setUrlList(prev => (prev.length > 1 ? prev.filter((_, i) => i !== index) : ['']));
+  };
 
   // UI state
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingSample, setIsLoadingSample] = useState(false);
 
-  // Quick suggestions
+  // Quick suggestions (Topic-independent)
   const suggestions = [
-    "What should I verify before applying for this scholarship?",
-    "What are the conflicting eligibility rules across these aid programs?",
-    "What critical renewal criteria are missing in these contracts?"
+    "What should I verify before applying for this program?",
+    "What are the conflicting requirements across these official guidelines?",
+    "What critical continuation criteria are missing in these specifications?"
   ];
 
-  // Add URL source
+  // Add multiple URL sources together
   const handleAddUrl = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const trimmed = urlInput.trim();
-    if (!trimmed) {
-      setError('Please enter a valid website URL.');
-      return;
-    }
+    const validUrls: string[] = [];
+    const invalidEntries: string[] = [];
 
-    try {
-      new URL(trimmed);
-    } catch {
-      setError('Please enter a valid URL starting with http:// or https://');
-      return;
-    }
-
-    setSources([
-      ...sources,
-      {
-        id: `url-${Date.now()}-${sources.length + 1}`,
-        type: 'url',
-        value: trimmed,
-        title: urlTitle.trim() || undefined
+    for (const raw of urlList) {
+      const parts = raw.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+      for (const p of parts) {
+        try {
+          new URL(p);
+          validUrls.push(p);
+        } catch {
+          invalidEntries.push(p);
+        }
       }
-    ]);
+    }
 
-    setUrlInput('');
-    setUrlTitle('');
+    if (validUrls.length === 0) {
+      if (invalidEntries.length > 0) {
+        setError('Please enter valid URLs starting with http:// or https://');
+      } else {
+        setError('Please enter at least one URL before adding.');
+      }
+      return;
+    }
+
+    const newSources: SourcePayload[] = validUrls.map((trimmed, idx) => ({
+      id: `url-${Date.now()}-${sources.length + idx + 1}`,
+      type: 'url',
+      value: trimmed,
+      title: trimmed
+    }));
+
+    setSources(prev => [...prev, ...newSources]);
+    setUrlList(['', '']);
     setActiveModal(null);
     setError(null);
   };
@@ -180,8 +203,8 @@ export const Home: React.FC = () => {
       }
 
       // CASE B: User provided sample data
-      if (sources.length === 3 && sources[0].id?.includes('sample')) {
-        navigate('/analyzing/sample-scholarship-report');
+      if (sources.length >= 1 && sources[0].id?.includes('sample')) {
+        navigate('/analyzing/sample-report-default');
         return;
       }
 
@@ -353,29 +376,62 @@ export const Home: React.FC = () => {
                       exit={{ opacity: 0, height: 0 }}
                       className="p-3 border border-seed/15 rounded-xs bg-pith space-y-2.5 overflow-hidden"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold font-heading text-seed">Add Source URL</span>
+                      <div className="flex items-center justify-between pb-1 border-b border-seed/10">
+                        <span className="text-xs font-bold font-heading text-seed">Add Specific URLs</span>
                         <button onClick={() => setActiveModal(null)} className="text-seed-muted hover:text-seed cursor-pointer">
                           <X className="w-4 h-4" />
                         </button>
                       </div>
-                      <input
-                        type="url"
-                        placeholder="https://scholarships.gov.in/notice-2026.html"
-                        value={urlInput}
-                        onChange={(e) => setUrlInput(e.target.value)}
-                        className="w-full text-xs p-2 rounded-xs border border-seed/15 bg-pith text-seed outline-none focus:border-rind"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Optional title (e.g. Official Guidelines 2026)"
-                        value={urlTitle}
-                        onChange={(e) => setUrlTitle(e.target.value)}
-                        className="w-full text-xs p-2 rounded-xs border border-seed/15 bg-pith text-seed outline-none focus:border-rind"
-                      />
-                      <div className="flex justify-end gap-2 pt-1">
-                        <Button size="sm" variant="outline" onClick={() => setActiveModal(null)}>Cancel</Button>
-                        <Button size="sm" variant="rind" onClick={handleAddUrl}>Add URL</Button>
+
+                      <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        {urlList.map((val, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <span className="text-[11px] font-mono text-seed-muted shrink-0 w-12 font-medium">
+                              URL {idx + 1}:
+                            </span>
+                            <input
+                              type="url"
+                              placeholder={
+                                idx === 0
+                                  ? 'https://scholarships.gov.in/notice-2026.html'
+                                  : idx === 1
+                                  ? 'https://education.gov.in/guidelines.pdf'
+                                  : `https://example.gov/source-${idx + 1}`
+                              }
+                              value={val}
+                              onChange={(e) => updateUrlItem(idx, e.target.value)}
+                              className="flex-1 text-xs p-2 rounded-xs border border-seed/15 bg-seed/[0.02] text-seed outline-none focus:border-rind"
+                            />
+                            {urlList.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeUrlRow(idx)}
+                                className="text-seed-muted hover:text-crack text-sm p-1 cursor-pointer"
+                                title="Remove row"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1 border-t border-seed/10">
+                        <button
+                          type="button"
+                          onClick={addUrlRow}
+                          className="text-[11px] text-rind hover:underline inline-flex items-center gap-1 font-semibold cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3" />
+                          <span>Add URL {urlList.length + 1}</span>
+                        </button>
+
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => setActiveModal(null)}>Cancel</Button>
+                          <Button size="sm" variant="rind" onClick={handleAddUrl}>
+                            Add {urlList.filter(u => u.trim()).length > 1 ? `All ${urlList.filter(u => u.trim()).length} URLs` : 'URLs'}
+                          </Button>
+                        </div>
                       </div>
                     </motion.div>
                   )}

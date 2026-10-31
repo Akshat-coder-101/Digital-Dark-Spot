@@ -11,3 +11,12 @@
 ## Decision 3: Deterministic Test Mocks (Rule 4 Compliance)
 - **Context**: Network calls to external AI providers (Groq/Gemini) can be non-deterministic, rate-limited, or blocked by sandbox boundaries during automated verification.
 - **Decision**: All automated unit and regression tests run against deterministic mock fixtures and pre-computed extractions. Real LLM calls are reserved strictly for manual live smoke testing.
+
+
+## Decision 4: Topic-Independent Typed Normalization & Qualifier Separation
+- **Context**: The engine must be topic-independent and must not use hardcoded domain synonym tables or hardcoded scholarship concepts.
+- **Decision**: Implemented `backend/src/analysis/normalization.ts` providing deterministic typed normalizers (number, money with multi-currency and Indian numbering, percent, date, list, boolean, url) and `compareTypedValues`. Materially different typed values create a `Sourced` conflict, while differing text expressions produce an `Uncertain` ("different wording, review") signal. Strict qualifier separation guarantees distinct applicant roles (e.g., student submission vs institute verification) never falsely conflict.
+
+## Decision 5: Automated Domain Vocabulary Ban-List Scanner
+- **Context**: Banned domain vocabulary (`scholarship`, `eligibility`, `renewal`, `marksheet`, `income limit`, `award amount`, `subsidy`, `laptop`, `NSP`) is strictly prohibited in engine code and UI string literals, permitted only in test fixtures and sample scenarios.
+- **Decision**: Created `scripts/ban-list-scan.ts` running as an automated verification check against 97+ non-fixture source files across both `backend/src` and `frontend/src`.

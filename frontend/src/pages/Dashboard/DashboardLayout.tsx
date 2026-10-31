@@ -63,7 +63,7 @@ export const DashboardLayout: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      if (id === 'sample-scholarship-report' || id === 'sample-scholarship') {
+      if (id.startsWith('sample-') || id === 'sample') {
         const sampleRes = await fetchSampleData();
         setReport(sampleRes.report);
       } else {

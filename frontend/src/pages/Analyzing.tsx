@@ -37,27 +37,27 @@ export const Analyzing: React.FC = () => {
     { id: 'checklist', name: 'Compiling Verification Checklist', detail: 'Synthesizing actionable checklist prioritized by High, Medium, and Low risk.' },
   ];
 
-  // If sample scholarship dataset is requested
+  // If sample demonstration dataset is requested
   useEffect(() => {
     if (!id) {
       navigate('/', { replace: true });
       return;
     }
 
-    if (id === 'sample-scholarship-report') {
+    if (id === 'sample-report-default' || id.startsWith('sample')) {
       setSourceChips([
-        { id: 's1', title: 'National Merit Scholarship 2026 Guidelines', status: 'pending' },
-        { id: 's2', title: 'Student Aid Review (2024-25 Cycle)', status: 'pending' },
-        { id: 's3', title: 'CollegeForum Community Thread', status: 'pending' }
+        { id: 's1', title: 'Primary Governing Notice Guidelines', status: 'pending' },
+        { id: 's2', title: 'Independent Review (2024-25 Cycle)', status: 'pending' },
+        { id: 's3', title: 'Community Discussion Forum Thread', status: 'pending' }
       ]);
 
       const stageDelays = [
-        { stage: 0, text: '3 scholarship sources loaded into investigative workspace...', action: () => {} },
+        { stage: 0, text: '3 reference sources loaded into investigative workspace...', action: () => {} },
         { stage: 1, text: 'Fetching and cleaning 3 documents (HTML sanitized, SSRF verified)...', action: () => {
           setSourceChips(prev => prev.map(s => ({ ...s, status: 'ready' })));
         }},
         { stage: 2, text: 'Extracting 8 expected attributes & verifying verbatim quotes...', action: () => {} },
-        { stage: 3, text: 'Cross-examining attributes: identifying missing renewal conditions and income conflicts...', action: () => {} },
+        { stage: 3, text: 'Cross-examining attributes: identifying potential gaps and parameter conflicts...', action: () => {} },
         { stage: 4, text: 'Checking temporal markers: 2024-25 cycle marked stale, forum post marked undated...', action: () => {} },
         { stage: 5, text: 'Compiling coverage matrix and prioritized verification checklist...', action: () => {} },
       ];
@@ -73,7 +73,7 @@ export const Analyzing: React.FC = () => {
         } else {
           clearInterval(interval);
           fetchSampleData().finally(() => {
-            navigate('/report/sample-scholarship-report/summary');
+            navigate('/report/sample-report-default/summary');
           });
         }
       }, 500);

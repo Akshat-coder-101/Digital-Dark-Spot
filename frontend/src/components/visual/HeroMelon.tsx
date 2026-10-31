@@ -43,13 +43,13 @@ export const HeroMelon: React.FC<HeroMelonProps> = ({ className }) => {
   // 3: Pale hatched stale wedge (temporal warning)
   // 6: Gap wedge (uncovered parameter)
   const wedges = [
-    { type: 'covered', label: 'Eligibility' },
+    { type: 'covered', label: 'Primary Criteria' },
     { type: 'covered', label: 'Deadline' },
     { type: 'covered', label: 'Benefits' },
-    { type: 'stale', label: 'Prior Cycle (2024)' },
+    { type: 'stale', label: 'Prior Cycle' },
     { type: 'covered', label: 'Submission' },
-    { type: 'covered', label: 'Income Limit' },
-    { type: 'gap', label: 'Renewal Policy' },
+    { type: 'covered', label: 'Terms' },
+    { type: 'gap', label: 'Continuation Policy' },
     { type: 'covered', label: 'Documents' },
   ];
 

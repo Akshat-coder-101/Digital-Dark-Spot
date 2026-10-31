@@ -9,10 +9,10 @@ export async function generateDiverseSearchQueries(question: string): Promise<st
       const systemPrompt = `You are an expert investigative search planner.
 Given a user's research question, generate 4 to 6 diverse, high-precision search engine queries aimed at uncovering:
 1. Official primary government / institutional notice
-2. Eligibility criteria and restrictions
+2. Primary qualifying criteria and restrictions
 3. Mandatory document requirements
 4. Deadlines, schedules, and cycle timeline
-5. Renewal / continuation policy (often missing!)
+5. Ongoing continuation terms and extension conditions (often missing!)
 6. Official application portal or submission link
 
 Include the current year (${currentYear}) in relevant queries.
@@ -50,10 +50,10 @@ Return ONLY raw JSON matching: { "queries": string[] }`;
 
   return [
     `${base} official notice guidelines ${currentYear}`,
-    `${base} eligibility criteria requirements`,
+    `${base} qualifying criteria requirements`,
     `${base} mandatory required documents checklist`,
     `${base} application deadline schedule ${currentYear}`,
-    `${base} renewal conditions policy continuation`,
+    `${base} continuation terms policy extension`,
     `${base} official portal link application submission`
   ];
 }

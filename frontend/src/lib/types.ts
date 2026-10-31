@@ -14,6 +14,7 @@ export interface IngestedSource {
   status: 'ready' | 'error';
   errorMessage?: string;
   fetchedAt: string;
+  sourceType?: 'real' | 'user_url' | 'user_text' | 'sample';
 }
 
 export interface ExtractedClaim {
@@ -51,6 +52,7 @@ export interface PossibleConflict {
     source_id: string;
     source_title: string;
     source_domain: string;
+    original_attribute?: string;
     value: string;
     quote: string;
     dateStatus?: string;
@@ -59,6 +61,7 @@ export interface PossibleConflict {
     source_id: string;
     source_title: string;
     source_domain: string;
+    original_attribute?: string;
     value: string;
     quote: string;
     dateStatus?: string;
@@ -134,3 +137,9 @@ export interface FullAnalysisReport {
   createdAt: string;
 }
 
+export type AnalysisStage =
+  | 'Fetching'
+  | 'Reading'
+  | 'Comparing'
+  | 'Checking dates'
+  | 'Building checklist';

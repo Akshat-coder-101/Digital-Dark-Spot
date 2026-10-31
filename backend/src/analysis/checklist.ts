@@ -18,11 +18,15 @@ export function buildPrioritizedChecklist(
   // 1. HIGH PRIORITY: All active conflicts
   for (const conf of conflicts) {
     const label = formatAttributeLabel(conf.attribute);
+    const earlierCycleNote = conf.mayBeExplainedByEarlierCycle
+      ? ` Note: discrepancy may reflect earlier cycle (${conf.mayBeExplainedByEarlierCycle}).`
+      : '';
+
     items.push({
       id: `check-${itemCounter++}`,
       priority: 'High',
       title: `Resolve conflicting ${label} specifications`,
-      description: `Discrepancy detected: "${conf.sourceA.source_title}" states "${conf.sourceA.value}", while "${conf.sourceB.source_title}" reports "${conf.sourceB.value}".`,
+      description: `Discrepancy detected: "${conf.sourceA.source_title}" states "${conf.sourceA.value}", while "${conf.sourceB.source_title}" reports "${conf.sourceB.value}".${earlierCycleNote}`,
       relatedAttribute: conf.attribute,
       suggestedOfficialSource: 'Official Regulatory Document or Primary Governing Portal',
       signalTag: 'Sourced',
@@ -30,8 +34,8 @@ export function buildPrioritizedChecklist(
     });
   }
 
-  // Critical attribute keywords for High priority gaps
-  const criticalKeywords = ['deadline', 'eligibility', 'income', 'requirement', 'portal', 'link', 'renewal'];
+  // Generic critical keywords for High priority gaps (no domain-specific banned words)
+  const criticalKeywords = ['deadline', 'date', 'mandatory', 'required', 'primary', 'link', 'portal', 'threshold', 'maximum', 'minimum', 'specification'];
 
   // 2. HIGH & MEDIUM PRIORITY: Gaps
   for (const gap of gaps) {
@@ -45,7 +49,7 @@ export function buildPrioritizedChecklist(
         title: `Confirm official policy for ${label}`,
         description: `No reviewed source covers "${label}". Verify whether mandatory criteria, limits, or steps apply.`,
         relatedAttribute: gap.attribute,
-        suggestedOfficialSource: 'Official Application Guidelines / Terms of Service',
+        suggestedOfficialSource: 'Official Application Guidelines / Primary Terms of Service',
         signalTag: 'AI-suggested',
         checked: false
       });
@@ -63,7 +67,7 @@ export function buildPrioritizedChecklist(
     }
   }
 
-  // 3. LOW PRIORITY: Freshness & Stale warnings
+  // 3. LOW & MEDIUM PRIORITY: Freshness & Stale warnings
   for (const fresh of freshness) {
     if (fresh.warningType === 'earlier_cycle') {
       items.push({
@@ -103,4 +107,3 @@ export function buildPrioritizedChecklist(
 
   return items;
 }
-

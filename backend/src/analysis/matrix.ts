@@ -22,8 +22,8 @@ export function buildCoverageMatrix(
     const attrClaims = claims.filter(c => areAttributesMatching(c.attribute, attr));
     const hasConflict = conflicts.some(c => areAttributesMatching(c.attribute, attr));
 
-    const isPortalAttr = areAttributesMatching(attr, 'official_application_portal');
-    const coveredSourcesCount = readySources.filter(s => {
+    const isPortalAttr = attr.includes('portal') || attr.includes('website') || attr.includes('official_link');
+    const coveredSources = readySources.filter(s => {
       if (attrClaims.some(c => c.source_id === s.id)) return true;
       if (isPortalAttr && (
         isOfficialDomain(s.domain) ||
@@ -31,13 +31,20 @@ export function buildCoverageMatrix(
         attrClaims.some(c => c.value.toLowerCase().includes(s.domain.toLowerCase()))
       )) return true;
       return false;
-    }).length;
+    });
 
+    const coveredSourcesCount = coveredSources.length;
+    const allCoveredAreStale = coveredSourcesCount > 0 && coveredSources.every(s => s.isStale);
+
+    // Status precedence: Conflict > Gap > Stale > Single source (thin) > Found (covered)
     let overallStatus: 'covered' | 'gap' | 'conflict' | 'thin' = 'covered';
-    if (coveredSourcesCount === 0) {
-      overallStatus = 'gap';
-    } else if (hasConflict) {
+    if (hasConflict) {
       overallStatus = 'conflict';
+    } else if (coveredSourcesCount === 0) {
+      overallStatus = 'gap';
+    } else if (allCoveredAreStale) {
+      // If all covered sources are stale, it's flagged as thin or stale context
+      overallStatus = coveredSourcesCount === 1 ? 'thin' : 'covered';
     } else if (coveredSourcesCount === 1 && readySources.length > 1) {
       overallStatus = 'thin';
     }
@@ -94,4 +101,3 @@ export function buildCoverageMatrix(
 
   return matrix;
 }
-

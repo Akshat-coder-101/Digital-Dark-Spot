@@ -17,32 +17,20 @@ export function extractSchemeInfo(report: {
     isOfficialDomain?: boolean;
   }>;
 }): SchemeInfo {
-  // If sample report
-  if (report.id === 'sample-scholarship-report' || report.id?.includes('sample')) {
-    return {
-      name: 'National Scholarship Scheme 2026',
-      cycle: '2026-27',
-      officialDomain: 'scholarships.gov.in',
-      officialTitle: 'National Scholarship Portal (NSP) — Central Guidelines 2026-27',
-      hasOfficialSource: true,
-      isSpecific: true
-    };
-  }
-
   const q = report.question ? report.question.trim() : '';
 
-  // Generic phrase blacklist: these are general questions, NOT specific scheme names
+  // Generic phrase blacklist: these are general questions, NOT specific program names
   const isGenericPhrase = (str: string) => {
     const s = str.toLowerCase().trim();
     return (
       !s ||
-      s.includes('this scholarship') ||
       s.includes('this program') ||
       s.includes('these programs') ||
       s.includes('these aid programs') ||
       s.includes('these contracts') ||
       s.includes('these documents') ||
-      s.includes('this grant') ||
+      s.includes('this policy') ||
+      s.includes('this topic') ||
       s.length < 3
     );
   };
@@ -83,14 +71,8 @@ export function extractSchemeInfo(report: {
     }
   }
 
-  // Only if question explicitly typed "NSP"
-  if (/\b(nsp|national scholarship portal)\b/i.test(q)) {
-    name = 'National Scholarship Portal (NSP)';
-    isSpecific = true;
-  }
-
   return {
-    name: name || 'General Inquiry',
+    name: name || (report.id?.includes('sample') ? 'Sample Demonstration Subject' : 'Investigated Subject'),
     cycle: detectedCycle,
     officialDomain: officialSource?.domain || null,
     officialTitle: officialSource?.title || null,

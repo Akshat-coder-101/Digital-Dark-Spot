@@ -47,7 +47,7 @@ export const FreshnessTab: React.FC = () => {
           <span>Why Temporal Verification is Critical</span>
         </div>
         <p className="text-xs text-seed-muted leading-relaxed">
-          Aggregator websites frequently update article titles with the current year (e.g. &ldquo;2026&rdquo;) to capture search traffic, while leaving outdated eligibility criteria, expired deadlines, or earlier cycle rules intact in the body text.
+          Aggregator websites frequently update article titles with the current year (e.g. &ldquo;2026&rdquo;) to capture search traffic, while leaving outdated qualifying criteria, expired deadlines, or earlier cycle rules intact in the body text.
         </p>
       </div>
 

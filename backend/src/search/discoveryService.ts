@@ -4,47 +4,9 @@ import { generateDiverseSearchQueries } from './queryGenerator.js';
 import { rankAndDedupeSearchResults } from './ranker.js';
 import { processSource } from '../ingestion/fetcher.js';
 import { IngestedSource } from '../ingestion/types.js';
-import { SAMPLE_RESEARCH_QUESTION, SAMPLE_SOURCES } from '../data/sampleData.js';
-import crypto from 'crypto';
+import { SAMPLE_DISCOVERY_RESULTS } from '../data/sampleData.js';
 
-export const SAMPLE_DISCOVERY_RESULTS: SearchResult[] = [
-  {
-    title: 'National Merit Scholarship 2026 Guidelines (Official Notice)',
-    url: 'https://scholarships.gov.fictional/guidelines-2026',
-    domain: 'scholarships.gov.fictional',
-    snippet: 'Official Gazette Announcement: Applications for the National Merit Scholarship 2026-27 cycle are now officially open. Strict deadline 15 April 2026.',
-    date: '12 January 2026',
-    isOfficial: true,
-    score: 95
-  },
-  {
-    title: 'Student Aid Review: Unofficial Guide to 2024-25 Scholarships',
-    url: 'https://collegescholars-blog.fictional/aid-review-2024-25',
-    domain: 'collegescholars-blog.fictional',
-    snippet: 'Review of the 2024-25 scholarship cycle: the family income limit was established at $40,000 maximum. Required 6-month bank statements.',
-    date: '10 September 2024',
-    isOfficial: false,
-    score: 82
-  },
-  {
-    title: 'CollegeForum Community Discussion Thread #892',
-    url: 'https://talkcampus.fictional/threads/scholarship-892',
-    domain: 'talkcampus.fictional',
-    snippet: 'Student discussion: candidates require minimum 3.2 cumulative GPA to be eligible for consideration. Renewal criteria are not published.',
-    date: undefined,
-    isOfficial: false,
-    score: 74
-  },
-  {
-    title: 'State Higher Education Council — Merit Aid Registry',
-    url: 'https://highered.state.gov.fictional/merit-aid',
-    domain: 'highered.state.gov.fictional',
-    snippet: 'Central state register for government-sponsored tertiary scholarships and application links.',
-    date: '2026-01-05',
-    isOfficial: true,
-    score: 88
-  }
-];
+export { SAMPLE_DISCOVERY_RESULTS };
 
 export class DiscoveryService {
   private jobs: Map<string, DiscoveryJob> = new Map();
@@ -72,100 +34,89 @@ export class DiscoveryService {
     };
     this.jobs.set(id, job);
 
-    // If sample scholarship query or offline requested, return pre-saved sample discovery
-    if (
-      id.includes('sample') ||
-      question.toLowerCase().includes('scholarship') ||
-      !searchManager.hasAnyKeys()
-    ) {
+    // Explicit Sample Demo Mode
+    if (id.includes('sample')) {
       job.queriesGenerated = [
-        `${question} official guidelines 2026`,
-        `${question} eligibility income criteria`,
+        `${question} official guidelines 2026-27`,
+        `${question} qualifying criteria parameters`,
         `${question} required documents portal`
       ];
       job.sourcesFound = SAMPLE_DISCOVERY_RESULTS;
       job.status = 'ready';
       job.progressPercent = 100;
-      job.message = 'Discovery complete (Sample offline mode).';
+      job.message = 'Discovery complete (Sample Demonstration Mode).';
       return job;
     }
 
+    // Check if web search keys are available
+    if (!searchManager.hasAnyKeys()) {
+      // DO NOT fabricate fake sources. Gracefully formulate investigative queries and notify user.
+      try {
+        const queries = await generateDiverseSearchQueries(question);
+        job.queriesGenerated = queries;
+      } catch {
+        job.queriesGenerated = [
+          `${question} official guidelines 2026`,
+          `${question} requirements qualifying criteria`,
+          `${question} mandatory documents checklist`
+        ];
+      }
+      job.sourcesFound = [];
+      job.status = 'ready';
+      job.progressPercent = 100;
+      job.message = 'Web search API key is not configured. Formulated investigative search queries. You may add specific URLs, paste text excerpts, or load sample demonstration data.';
+      return job;
+    }
+
+    // Web Search API is available: execute multi-query search
     try {
-      // 1. Generate diverse queries
       const queries = await generateDiverseSearchQueries(question);
       job.queriesGenerated = queries;
       job.progressPercent = 40;
-      job.message = `Executing multi-angle search across ${queries.length} queries...`;
+      job.message = `Executing ${queries.length} targeted search queries across official and secondary sources...`;
 
-      // 2. Execute searches across queries
+      const searchPromises = queries.map(q => searchManager.search(q, { maxResults: 5 }));
+      const queryResults = await Promise.allSettled(searchPromises);
+
       const allResults: SearchResult[] = [];
-      const querySlice = queries.slice(0, 4); // cap to 4 queries to avoid burning search quota
-
-      for (const q of querySlice) {
-        try {
-          const res = await searchManager.search(q, 4);
-          allResults.push(...res);
-        } catch (searchErr) {
-          console.warn(`[Discovery] Search query failed: "${q}":`, searchErr);
+      for (const res of queryResults) {
+        if (res.status === 'fulfilled') {
+          allResults.push(...res.value);
         }
       }
 
-      if (allResults.length === 0) {
-        throw new Error('No search results returned from configured search engines.');
-      }
+      job.progressPercent = 70;
+      job.message = 'Ranking and filtering search results...';
 
-      // 3. Deduplicate, Rank, and filter top sources
-      job.progressPercent = 65;
-      job.message = 'Deduplicating and prioritizing official/institutional domains...';
-      const ranked = rankAndDedupeSearchResults(allResults, question, maxSources);
-
-      // 4. Safe Ingestion & Snippet Fallback
-      job.status = 'fetching';
-      job.progressPercent = 85;
-      job.message = 'Verifying security and fetching page contents...';
-
-      const enrichedResults: SearchResult[] = [];
-      for (const r of ranked) {
-        try {
-          const ingested = await processSource({ type: 'url', value: r.url, title: r.title }, 0);
-          if (ingested.status === 'ready' && ingested.wordCount > 30) {
-            enrichedResults.push({
-              ...r,
-              date: ingested.detectedDate || ingested.detectedCycle || r.date,
-              rawContent: ingested.cleanedText,
-              limited: false
-            });
-          } else {
-            // Fallback to search snippet labelled "limited"
-            enrichedResults.push({
-              ...r,
-              rawContent: r.snippet,
-              limited: true
-            });
-          }
-        } catch {
-          enrichedResults.push({
-            ...r,
-            rawContent: r.snippet,
-            limited: true
-          });
-        }
-      }
-
-      job.sourcesFound = enrichedResults;
+      const ranked = rankAndDedupeSearchResults(allResults, maxSources);
+      job.sourcesFound = ranked;
       job.status = 'ready';
       job.progressPercent = 100;
-      job.message = `Found ${enrichedResults.length} relevant sources ready for inspection.`;
+      job.message = `Found ${ranked.length} relevant sources ready for investigation.`;
+
       return job;
     } catch (err: any) {
-      console.error(`[Discovery] Job ${id} failed:`, err);
       job.status = 'error';
-      job.error = err.message || 'Automatic source discovery failed';
-      job.message = err.message || 'Automatic source discovery failed';
+      job.error = err.message || 'Discovery search failed';
+      job.message = 'Search discovery encountered an error.';
       return job;
     }
+  }
+
+  public async ingestSelectedSources(
+    selectedUrlsOrTexts: Array<{ type: 'url' | 'text'; value: string; title?: string }>
+  ): Promise<IngestedSource[]> {
+    const promises = selectedUrlsOrTexts.map((item, idx) =>
+      processSource({
+        type: item.type,
+        value: item.value,
+        title: item.title,
+        sourceType: item.type === 'url' ? 'real' : 'user_text'
+      }, idx)
+    );
+
+    return Promise.all(promises);
   }
 }
 
 export const discoveryService = new DiscoveryService();
-

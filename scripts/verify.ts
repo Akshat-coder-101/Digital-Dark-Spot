@@ -54,6 +54,8 @@ console.log('================================================================\n'
 
 // 1. Backend Core Unit Tests
 runCommand('backend_tests', 'Phase 0/1', 'npx tsx backend/test/test-hackathon-scenarios.ts');
+runCommand('phase1_engine_tests', 'Phase 1', 'npx tsx backend/test/test-phase1-engine.ts');
+runCommand('normalization_tests', 'Phase 1', 'npm --prefix backend run test:norm');
 
 // 2. Evaluation Suite
 runCommand('evaluation', 'Phase 0/3', 'npx tsx backend/scripts/eval.ts');
@@ -120,3 +122,4 @@ if (anyFailed) {
   console.log('✅ Verification PASSED cleanly!\n');
   process.exit(0);
 }
+

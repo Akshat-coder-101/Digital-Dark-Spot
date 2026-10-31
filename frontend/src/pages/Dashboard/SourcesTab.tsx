@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useReport } from './ReportContext';
-import { ExternalLink, ChevronDown, ChevronUp, FileText, Globe, Calendar } from 'lucide-react';
+import { ExternalLink, ChevronDown, ChevronUp, FileText, Globe, Calendar, Database, ShieldCheck } from 'lucide-react';
 
 export const SourcesTab: React.FC = () => {
   const { report } = useReport();
@@ -21,8 +21,7 @@ export const SourcesTab: React.FC = () => {
       domain.endsWith('.nic.in') ||
       domain.endsWith('.edu') ||
       domain.endsWith('.ac.in') ||
-      domain.includes('.gov.') ||
-      domain.includes('.gov.fictional')
+      domain.includes('.gov.')
     );
   };
 
@@ -34,7 +33,7 @@ export const SourcesTab: React.FC = () => {
             Reviewed Source Material ({report.sources.length})
           </h3>
           <p className="text-xs text-seed-muted">
-            All ingested URLs, pasted texts, extracted metadata, and fetch statuses.
+            All ingested URLs, user notes, and verified demo datasets cross-examined during this gap audit.
           </p>
         </div>
       </div>
@@ -44,30 +43,38 @@ export const SourcesTab: React.FC = () => {
         <table className="w-full text-left text-xs border-collapse">
           <thead>
             <tr className="border-b border-seed/10 bg-seed/[0.02]">
-              <th scope="col" className="py-2.5 px-3 font-heading font-bold text-seed">Source Title & Domain</th>
-              <th scope="col" className="py-2.5 px-2 font-heading font-bold text-seed">Authority Hint</th>
+              <th scope="col" className="py-2.5 px-3 font-heading font-bold text-seed">Source Title & Origin</th>
+              <th scope="col" className="py-2.5 px-2 font-heading font-bold text-seed">Source Type</th>
+              <th scope="col" className="py-2.5 px-2 font-heading font-bold text-seed">Authority</th>
               <th scope="col" className="py-2.5 px-2 font-heading font-bold text-seed">Date Status</th>
-              <th scope="col" className="py-2.5 px-2 font-heading font-bold text-seed">Fetch Status</th>
-              <th scope="col" className="py-2.5 px-2 font-heading font-bold text-seed text-center">Extracted</th>
-              <th scope="col" className="py-2.5 px-2 font-heading font-bold text-seed text-center">Discarded</th>
-              <th scope="col" className="py-2.5 px-3 font-heading font-bold text-seed text-right">Action</th>
+              <th scope="col" className="py-2.5 px-2 font-heading font-bold text-seed">Status</th>
+              <th scope="col" className="py-2.5 px-2 font-heading font-bold text-seed text-center">Claims</th>
+              <th scope="col" className="py-2.5 px-3 font-heading font-bold text-seed text-right">Inspect</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-seed/10">
             {report.sources.map((source, idx) => {
               const claimsExtracted = report.claims.filter(c => c.source_id === source.id).length;
               const isOfficial = isOfficialDomain(source.domain, source.id, (source as any).isOfficialDomain);
+              const isSample = source.url?.startsWith('sample://') || source.sourceType === 'sample' || report.id?.includes('sample') || source.id?.startsWith('src-sample');
+              const isUserProvided = source.type === 'text' || source.sourceType === 'user_text' || source.sourceType === 'user_url';
 
               return (
                 <tr key={source.id} className="hover:bg-seed/[0.015] transition-colors">
                   {/* Title & Domain */}
                   <td className="py-3 px-3">
-                    <div className="flex items-start gap-2.5 min-w-[200px]">
+                    <div className="flex items-start gap-2.5 min-w-[220px]">
                       <div className="p-1 rounded-xs bg-seed/5 text-seed shrink-0 mt-0.5">
-                        {source.type === 'url' ? <Globe className="w-3.5 h-3.5 text-rind" /> : <FileText className="w-3.5 h-3.5 text-seed" />}
+                        {isSample ? (
+                          <Database className="w-3.5 h-3.5 text-crack" />
+                        ) : source.type === 'url' ? (
+                          <Globe className="w-3.5 h-3.5 text-rind" />
+                        ) : (
+                          <FileText className="w-3.5 h-3.5 text-seed" />
+                        )}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-heading font-bold text-xs text-seed truncate max-w-[240px]">
+                        <p className="font-heading font-bold text-xs text-seed truncate max-w-[260px]">
                           {source.title}
                         </p>
                         <p className="text-[10px] font-mono text-seed-muted">
@@ -77,15 +84,33 @@ export const SourcesTab: React.FC = () => {
                     </div>
                   </td>
 
+                  {/* Origin Classification */}
+                  <td className="py-3 px-2">
+                    {isSample ? (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-xs text-[10px] font-mono font-bold bg-crack/15 text-crack border border-crack/30">
+                        SAMPLE DATA
+                      </span>
+                    ) : isUserProvided ? (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-xs text-[10px] font-mono font-medium bg-seed/10 text-seed border border-seed/20">
+                        USER-PROVIDED
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-xs text-[10px] font-mono font-medium bg-rind/10 text-rind border border-rind/20">
+                        REAL SOURCE
+                      </span>
+                    )}
+                  </td>
+
                   {/* Authority Hint */}
                   <td className="py-3 px-2">
                     {isOfficial ? (
                       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-xs text-[10px] font-mono font-semibold bg-rind/10 text-rind border border-rind/20">
-                        Official (.gov/.edu)
+                        <ShieldCheck className="w-3 h-3" />
+                        Official
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-xs text-[10px] font-mono font-medium bg-seed/5 text-seed-muted">
-                        Secondary source
+                        Secondary
                       </span>
                     )}
                   </td>
@@ -100,10 +125,10 @@ export const SourcesTab: React.FC = () => {
 
                   {/* Fetch Status */}
                   <td className="py-3 px-2">
-                    <span className={`inline-block text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-xs ${
+                    <span className={`inline-block text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-xs ${
                       source.status === 'ready' ? 'bg-rind/10 text-rind' : 'bg-flesh/10 text-flesh'
                     }`}>
-                      {source.status === 'ready' ? 'Ready' : 'Failed'}
+                      {source.status === 'ready' ? 'Verified' : 'Failed'}
                     </span>
                   </td>
 
@@ -112,15 +137,10 @@ export const SourcesTab: React.FC = () => {
                     {claimsExtracted}
                   </td>
 
-                  {/* Claims Discarded */}
-                  <td className="py-3 px-2 text-center font-mono text-seed-muted">
-                    0
-                  </td>
-
                   {/* Action Link & Preview Toggle */}
                   <td className="py-3 px-3 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      {source.url && (
+                      {source.url && !source.url.startsWith('sample://') && !source.url.startsWith('text://') && (
                         <a
                           href={source.url}
                           target="_blank"
@@ -148,7 +168,7 @@ export const SourcesTab: React.FC = () => {
         </table>
       </div>
 
-      {/* Expanded Preview Drawer/Accordion if toggled */}
+      {/* Expanded Preview Accordion if toggled */}
       {expandedSourceId && (
         <div className="p-4 rounded-sm border border-seed/10 bg-pith space-y-2">
           <div className="flex items-center justify-between text-xs text-seed-muted border-b border-seed/10 pb-2">
@@ -163,7 +183,7 @@ export const SourcesTab: React.FC = () => {
             </button>
           </div>
           <p className="text-xs text-seed-muted font-mono leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap">
-            {report.sources.find(s => s.id === expandedSourceId)?.rawText?.slice(0, 800) || 'Raw text unavailable.'}...
+            {report.sources.find(s => s.id === expandedSourceId)?.rawText?.slice(0, 1200) || 'Raw text unavailable.'}...
           </p>
         </div>
       )}

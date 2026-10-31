@@ -71,7 +71,7 @@ export const HowItWorks: React.FC = () => {
             Cross-Document Layering & Fracture Discovery
           </h2>
           <p className="text-xs sm:text-sm text-seed-muted leading-relaxed">
-            By layering multiple primary sources—from official notices to public forums—the deterministic engine compares corresponding provisions row by row to detect unstated eligibility conditions and contradictory rules.
+            By layering multiple primary sources—from official notices to public forums—the deterministic engine compares corresponding provisions row by row to detect unstated qualifying conditions and contradictory rules.
           </p>
         </div>
         <div className="w-full max-w-[440px] shrink-0 flex justify-center">

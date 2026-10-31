@@ -1,5 +1,24 @@
 import { IngestedSource } from '../ingestion/types.js';
 
+export type ValueType = 'number' | 'money' | 'percent' | 'date' | 'list' | 'boolean' | 'text';
+export type DateKind = 'publication' | 'deadline' | 'validity' | 'unknown';
+
+export interface TypedClaim {
+  id: string;
+  source_id: string;
+  source_title: string;
+  source_domain: string;
+  attributeKey: string;
+  valueType: ValueType;
+  rawValue: string;
+  normalizedValue: any;
+  quote: string;
+  subject?: string;
+  qualifier?: string;
+  dateKind?: DateKind;
+  confidence: number;
+}
+
 export interface ExtractedClaim {
   id: string;
   source_id: string;
@@ -11,6 +30,10 @@ export interface ExtractedClaim {
   quote: string;
   verified: boolean;
   charOffset?: number;
+  qualifier?: string;
+  subject?: string;
+  valueType?: ValueType;
+  normalizedValue?: any;
 }
 
 export interface RawLLMExtraction {
@@ -20,6 +43,8 @@ export interface RawLLMExtraction {
     attribute: string;
     value: string;
     quote: string;
+    qualifier?: string;
+    subject?: string;
   }>;
   open_questions: string[];
   summary?: string;
@@ -51,8 +76,10 @@ export interface PotentialGap {
 export interface PossibleConflict {
   id: string;
   attribute: string;
+  qualifier?: string;
   title: string;
   description: string;
+  mayBeExplainedByEarlierCycle?: string;
   sourceA: {
     source_id: string;
     source_title: string;
@@ -72,7 +99,7 @@ export interface PossibleConflict {
     dateStatus?: string;
   };
   statusLabel: 'Possible conflict';
-  signalTag: 'Sourced';
+  signalTag: 'Sourced' | 'Uncertain';
 }
 
 export interface FreshnessWarning {

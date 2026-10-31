@@ -57,7 +57,11 @@ analyzeRouter.post('/', async (req: Request, res: Response): Promise<void> => {
       id: s.id,
       type: s.type === 'text' ? 'text' : 'url',
       value: typeof s.value === 'string' ? s.value : '',
-      title: typeof s.title === 'string' ? s.title : undefined
+      title: typeof s.title === 'string' ? s.title : undefined,
+      domain: typeof s.domain === 'string' ? s.domain : undefined,
+      detectedDate: typeof s.date === 'string' ? s.date : undefined,
+      rawContent: typeof s.rawContent === 'string' ? s.rawContent : undefined,
+      sourceType: s.sourceType
     }));
 
     const customAttrs: string[] | undefined = Array.isArray(expectedAttributes)

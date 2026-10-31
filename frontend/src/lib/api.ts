@@ -3,6 +3,10 @@ export interface SourcePayload {
   type: 'url' | 'text';
   value: string;
   title?: string;
+  domain?: string;
+  date?: string;
+  rawContent?: string;
+  sourceType?: string;
 }
 
 export interface DiscoveredSource {
@@ -13,6 +17,8 @@ export interface DiscoveredSource {
   domain: string;
   isOfficial: boolean;
   limited?: boolean;
+  rawContent?: string;
+  sourceType?: string;
 }
 
 export async function fetchSampleData() {
@@ -52,14 +58,16 @@ export async function getJobStatus(jobId: string) {
   return res.json();
 }
 
-export async function getReport(reportId: string) {
-  const res = await fetch(`/api/report/${encodeURIComponent(reportId)}`);
+export async function getAnalysisReport(reportId: string) {
+  const res = await fetch(`/api/analyze/report/${encodeURIComponent(reportId)}`);
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `Failed to fetch report: HTTP ${res.status}`);
+    throw new Error(err.error || `Failed to fetch analysis report: HTTP ${res.status}`);
   }
   return res.json();
 }
+
+export const getReport = getAnalysisReport;
 
 export async function startDiscovery(question: string) {
   const res = await fetch('/api/discover', {
@@ -70,7 +78,7 @@ export async function startDiscovery(question: string) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `Discovery request failed with HTTP ${res.status}`);
+    throw new Error(err.error || 'Failed to start automated source discovery.');
   }
 
   return res.json() as Promise<{ discoveryId: string; status: string; message: string }>;
@@ -80,7 +88,7 @@ export async function getDiscoveryJob(discoveryId: string) {
   const res = await fetch(`/api/discover/${encodeURIComponent(discoveryId)}`);
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `Failed to fetch discovery job: HTTP ${res.status}`);
+    throw new Error(err.error || 'Failed to fetch discovery job status.');
   }
   return res.json();
 }

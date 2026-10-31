@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio';
-import { SourceInput, IngestedSource } from './types.js';
+import { SourceInput, IngestedSource, CredibilityHint, UsefulnessStatus } from './types.js';
 import { validateUrlForSSRF } from './ssrf.js';
 import { detectTemporalMetadata } from './metadata.js';
 import crypto from 'crypto';
@@ -12,80 +12,135 @@ export function cleanExtractedText(raw: string): string {
     .trim();
 }
 
+function extractHostname(val: string): string {
+  try {
+    return new URL(val).hostname;
+  } catch {
+    return 'custom-source';
+  }
+}
+
+export function determineCredibilityHint(domain: string): CredibilityHint {
+  const d = domain.toLowerCase();
+  if (
+    d.endsWith('.gov') ||
+    d.includes('.gov.') ||
+    d.endsWith('.nic.in') ||
+    d.includes('.nic.') ||
+    d.endsWith('.edu') ||
+    d.includes('.edu.') ||
+    d.endsWith('.ac.in') ||
+    d.endsWith('.ac.uk') ||
+    d.includes('.ac.') ||
+    d.endsWith('.org')
+  ) {
+    return 'institutional';
+  }
+  return 'general';
+}
+
 export async function processSource(input: SourceInput, index: number): Promise<IngestedSource> {
   const id = input.id || `src-${Date.now()}-${index + 1}-${crypto.randomBytes(3).toString('hex')}`;
   const nowIso = new Date().toISOString();
+  const isSample = input.sourceType === 'sample' || input.value?.startsWith('sample://') || id.includes('sample');
 
-  // CASE 1: Pasted Text
-  if (input.type === 'text') {
-    const raw = (input.value || '').trim();
+  // CASE 1: Pre-extracted rawContent or Pasted Text (No HTTP request needed)
+  if (input.rawContent || input.type === 'text') {
+    const raw = (input.rawContent || input.value || '').trim();
+    const defaultDomain = input.domain || (input.type === 'url' ? extractHostname(input.value) : (isSample ? 'sample-data.example' : 'pasted-content'));
+    const credibilityHint = determineCredibilityHint(defaultDomain);
+
     if (!raw) {
       return {
         id,
-        type: 'text',
-        domain: 'pasted-content',
-        title: input.title || `Pasted Source ${index + 1}`,
+        type: input.type,
+        url: input.type === 'url' ? input.value : undefined,
+        domain: defaultDomain,
+        title: input.title || `Source ${index + 1}`,
         rawText: '',
         cleanedText: '',
         wordCount: 0,
+        textCharacterCount: 0,
+        claimsExtracted: 0,
+        claimsDiscarded: 0,
+        usefulnessStatus: 'FAILED',
+        credibilityHint,
         detectedDate: null,
         detectedCycle: null,
         isStale: false,
         isUndated: true,
         status: 'error',
         errorMessage: 'Source text cannot be empty.',
-        fetchedAt: nowIso
+        fetchedAt: nowIso,
+        sourceType: input.sourceType || (isSample ? 'sample' : (input.type === 'text' ? 'user_text' : 'user_url'))
       };
     }
 
     const cleaned = cleanExtractedText(raw);
     const firstLine = cleaned.split('\n')[0].slice(0, 60).trim();
-    const title = input.title || (firstLine.length > 5 ? firstLine : `Pasted Note ${index + 1}`);
+    const title = input.title || (firstLine.length > 5 ? firstLine : `Source ${index + 1}`);
     const temporal = detectTemporalMetadata(cleaned, title);
     const wordCount = cleaned.split(/\s+/).filter(Boolean).length;
+    const textCharacterCount = cleaned.length;
+    const usefulnessStatus: UsefulnessStatus = textCharacterCount < 50 ? 'NEEDS_ATTENTION' : 'READY';
 
     return {
       id,
-      type: 'text',
-      domain: 'pasted-content',
+      type: input.type,
+      url: input.type === 'url' ? input.value : undefined,
+      domain: defaultDomain,
       title,
       rawText: raw,
       cleanedText: cleaned,
       wordCount,
-      detectedDate: temporal.detectedDate,
+      textCharacterCount,
+      claimsExtracted: 0,
+      claimsDiscarded: 0,
+      usefulnessStatus,
+      credibilityHint,
+      detectedDate: input.detectedDate || temporal.detectedDate,
       detectedCycle: temporal.detectedCycle,
       isStale: temporal.isStale,
       isUndated: temporal.isUndated,
       status: 'ready',
-      fetchedAt: nowIso
+      fetchedAt: nowIso,
+      sourceType: input.sourceType || (isSample ? 'sample' : (input.type === 'text' ? 'user_text' : 'user_url'))
     };
   }
 
-  // CASE 2: URL
+  // CASE 2: URL without pre-extracted rawContent (Execute SSRF-validated network fetch)
   const rawUrl = (input.value || '').trim();
   const ssrfCheck = await validateUrlForSSRF(rawUrl);
   if (!ssrfCheck.valid || !ssrfCheck.url) {
+    const domain = ssrfCheck.url?.hostname || 'unknown-host';
     return {
       id,
       type: 'url',
       url: rawUrl,
-      domain: ssrfCheck.url?.hostname || 'unknown-host',
+      domain,
       title: input.title || rawUrl,
       rawText: '',
       cleanedText: '',
       wordCount: 0,
+      textCharacterCount: 0,
+      claimsExtracted: 0,
+      claimsDiscarded: 0,
+      usefulnessStatus: 'FAILED',
+      credibilityHint: determineCredibilityHint(domain),
       detectedDate: null,
       detectedCycle: null,
       isStale: false,
       isUndated: true,
       status: 'error',
       errorMessage: ssrfCheck.error || 'Blocked by security policy (SSRF).',
-      fetchedAt: nowIso
+      fetchedAt: nowIso,
+      sourceType: input.sourceType || (isSample ? 'sample' : 'user_url')
     };
   }
 
   const parsedUrl = ssrfCheck.url;
   const domain = parsedUrl.hostname;
+  const credibilityHint = determineCredibilityHint(domain);
 
   // Fetch with 12s timeout
   const controller = new AbortController();
@@ -109,13 +164,19 @@ export async function processSource(input: SourceInput, index: number): Promise<
         rawText: '',
         cleanedText: '',
         wordCount: 0,
+        textCharacterCount: 0,
+        claimsExtracted: 0,
+        claimsDiscarded: 0,
+        usefulnessStatus: 'FAILED',
+        credibilityHint,
         detectedDate: null,
         detectedCycle: null,
         isStale: false,
         isUndated: true,
         status: 'error',
         errorMessage: `HTTP ${response.status} ${response.statusText}`,
-        fetchedAt: nowIso
+        fetchedAt: nowIso,
+        sourceType: input.sourceType || (isSample ? 'sample' : 'real')
       };
     }
 
@@ -136,6 +197,8 @@ export async function processSource(input: SourceInput, index: number): Promise<
     const bodyText = $('body').text() || $.text();
     const cleaned = cleanExtractedText(bodyText);
     const wordCount = cleaned.split(/\s+/).filter(Boolean).length;
+    const textCharacterCount = cleaned.length;
+    const usefulnessStatus: UsefulnessStatus = textCharacterCount < 50 ? 'NEEDS_ATTENTION' : 'READY';
 
     // Detect temporal metadata
     const temporal = detectTemporalMetadata(cleaned, finalTitle);
@@ -149,12 +212,18 @@ export async function processSource(input: SourceInput, index: number): Promise<
       rawText: bodyText,
       cleanedText: cleaned,
       wordCount,
+      textCharacterCount,
+      claimsExtracted: 0,
+      claimsDiscarded: 0,
+      usefulnessStatus,
+      credibilityHint,
       detectedDate: temporal.detectedDate,
       detectedCycle: temporal.detectedCycle,
       isStale: temporal.isStale,
       isUndated: temporal.isUndated,
       status: 'ready',
-      fetchedAt: nowIso
+      fetchedAt: nowIso,
+      sourceType: input.sourceType || 'real'
     };
   } catch (fetchErr: any) {
     const isTimeout = fetchErr.name === 'AbortError' || fetchErr.message?.includes('aborted');
@@ -167,6 +236,11 @@ export async function processSource(input: SourceInput, index: number): Promise<
       rawText: '',
       cleanedText: '',
       wordCount: 0,
+      textCharacterCount: 0,
+      claimsExtracted: 0,
+      claimsDiscarded: 0,
+      usefulnessStatus: 'FAILED',
+      credibilityHint,
       detectedDate: null,
       detectedCycle: null,
       isStale: false,
@@ -175,7 +249,8 @@ export async function processSource(input: SourceInput, index: number): Promise<
       errorMessage: isTimeout
         ? 'Request timed out (12s limit exceeded). Page may be blocking automated retrieval.'
         : `Network error: ${fetchErr.message || 'Failed to connect'}`,
-      fetchedAt: nowIso
+      fetchedAt: nowIso,
+      sourceType: input.sourceType || 'user_url'
     };
   } finally {
     clearTimeout(timeoutId);
@@ -183,30 +258,6 @@ export async function processSource(input: SourceInput, index: number): Promise<
 }
 
 export async function ingestSources(inputs: SourceInput[]): Promise<IngestedSource[]> {
-  const promises = inputs.map((input, idx) => processSource(input, idx));
-  const results = await Promise.allSettled(promises);
-
-  return results.map((res, idx) => {
-    if (res.status === 'fulfilled') {
-      return res.value;
-    }
-    return {
-      id: inputs[idx].id || `src-${Date.now()}-${idx + 1}`,
-      type: inputs[idx].type,
-      url: inputs[idx].type === 'url' ? inputs[idx].value : undefined,
-      domain: 'unknown',
-      title: inputs[idx].title || `Source ${idx + 1}`,
-      rawText: '',
-      cleanedText: '',
-      wordCount: 0,
-      detectedDate: null,
-      detectedCycle: null,
-      isStale: false,
-      isUndated: true,
-      status: 'error',
-      errorMessage: res.reason?.message || 'Unexpected ingestion processing failure',
-      fetchedAt: new Date().toISOString()
-    };
-  });
+  const promises = inputs.map((input, index) => processSource(input, index));
+  return Promise.all(promises);
 }
-

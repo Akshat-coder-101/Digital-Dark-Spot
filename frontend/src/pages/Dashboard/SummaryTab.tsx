@@ -79,7 +79,7 @@ export const SummaryTab: React.FC = () => {
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-rind" />
               <span className="text-[11px] font-mono uppercase tracking-wider text-rind font-bold">
-                Identified Scholarship / Target Scheme
+                Identified Program / Target Subject
               </span>
             </div>
             <h2 className="font-heading font-extrabold text-base sm:text-lg text-seed">
