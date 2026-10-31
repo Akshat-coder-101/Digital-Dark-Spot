@@ -1,0 +1,537 @@
+{
+  "scenario-a-aurora": {
+    "id": "scenario-a-aurora",
+    "name": "Aurora Merit Scholarship [SAMPLE DATA]",
+    "question": "What are the eligibility requirements, family income limit, and renewal rules for the Aurora Merit Scholarship?",
+    "sourceCount": 3,
+    "verifiedClaimsCount": 5,
+    "claims": [
+      {
+        "source_id": "src-sample-aurora-official",
+        "attribute": "application_deadline",
+        "value": "30 April 2026",
+        "verified": true
+      },
+      {
+        "source_id": "src-sample-aurora-official",
+        "attribute": "eligibility_income_limit",
+        "value": "INR 5,00,000 per annum",
+        "verified": true
+      },
+      {
+        "source_id": "src-sample-aurora-official",
+        "attribute": "required_documents",
+        "value": "certified academic transcripts and resident certificate",
+        "verified": true
+      },
+      {
+        "source_id": "src-sample-aurora-official",
+        "attribute": "official_application_portal",
+        "value": "https://education.aurora.example",
+        "verified": true
+      },
+      {
+        "source_id": "src-sample-aurora-blog",
+        "attribute": "eligibility_income_limit",
+        "value": "INR 3,50,000 per annum",
+        "verified": true
+      }
+    ],
+    "conflictsCount": 1,
+    "conflicts": [
+      {
+        "attribute": "eligibility_income_limit",
+        "description": "Source \"Aurora State Higher Education Directorate - 2026 Official Guidelines [SAMPLE DATA]\" states \"INR 5,00,000 per annum\", while source \"Student Aid Review: Unofficial Guide to Aurora Scholarships (2024-25 Cycle) [SAMPLE DATA]\" reports \"INR 3,50,000 per annum\". Discrepancy may be explained by reference to an earlier cycle (2024-25). Review with primary authority documentation."
+      }
+    ],
+    "gapsCount": 4,
+    "totalGaps": [
+      "renewal_conditions"
+    ],
+    "thinGaps": [
+      "application_deadline",
+      "required_documents",
+      "official_application_portal"
+    ],
+    "freshnessWarningsCount": 3,
+    "freshnessWarnings": [
+      {
+        "warningType": "deadline_passed"
+      },
+      {
+        "warningType": "earlier_cycle"
+      },
+      {
+        "warningType": "undated"
+      }
+    ],
+    "matrixRowsCount": 5,
+    "matrixStatuses": [
+      {
+        "attribute": "application_deadline",
+        "overallStatus": "thin"
+      },
+      {
+        "attribute": "eligibility_income_limit",
+        "overallStatus": "conflict"
+      },
+      {
+        "attribute": "required_documents",
+        "overallStatus": "thin"
+      },
+      {
+        "attribute": "official_application_portal",
+        "overallStatus": "thin"
+      },
+      {
+        "attribute": "renewal_conditions",
+        "overallStatus": "gap"
+      }
+    ],
+    "checklistCount": 8,
+    "checklistPriorities": {
+      "High": 3,
+      "Medium": 5,
+      "Low": 0
+    }
+  },
+  "scenario-b-solarbridge": {
+    "id": "scenario-b-solarbridge",
+    "name": "SolarBridge Rooftop Subsidy 2026 [SAMPLE DATA]",
+    "question": "What are the rooftop solar subsidy guidelines, capacity limits, and battery requirements under the SolarBridge scheme?",
+    "sourceCount": 3,
+    "verifiedClaimsCount": 5,
+    "claims": [
+      {
+        "source_id": "src-sample-solar-gazette",
+        "attribute": "maximum_capacity_rating",
+        "value": "10 kW per household",
+        "verified": true
+      },
+      {
+        "source_id": "src-sample-solar-gazette",
+        "attribute": "application_deadline",
+        "value": "31 December 2026",
+        "verified": true
+      },
+      {
+        "source_id": "src-sample-solar-gazette",
+        "attribute": "required_documents",
+        "value": "property ownership proof and electricity billing history",
+        "verified": true
+      },
+      {
+        "source_id": "src-sample-solar-gazette",
+        "attribute": "official_portal",
+        "value": "https://energy.solarbridge.example",
+        "verified": true
+      },
+      {
+        "source_id": "src-sample-solar-installer",
+        "attribute": "maximum_capacity_rating",
+        "value": "5 kW for residential connections",
+        "verified": true
+      }
+    ],
+    "conflictsCount": 1,
+    "conflicts": [
+      {
+        "attribute": "maximum_capacity_rating",
+        "description": "Source \"Ministry of Clean Energy - SolarBridge 2026 Guidelines [SAMPLE DATA]\" states \"10 kW per household\", while source \"SolarBridge Rooftop Scheme Technical Analysis [SAMPLE DATA]\" reports \"5 kW for residential connections\". Review with primary authority documentation."
+      }
+    ],
+    "gapsCount": 4,
+    "totalGaps": [
+      "battery_storage_mandate"
+    ],
+    "thinGaps": [
+      "application_deadline",
+      "required_documents",
+      "official_portal"
+    ],
+    "freshnessWarningsCount": 1,
+    "freshnessWarnings": [
+      {
+        "warningType": "earlier_cycle"
+      }
+    ],
+    "matrixRowsCount": 5,
+    "matrixStatuses": [
+      {
+        "attribute": "maximum_capacity_rating",
+        "overallStatus": "conflict"
+      },
+      {
+        "attribute": "application_deadline",
+        "overallStatus": "thin"
+      },
+      {
+        "attribute": "required_documents",
+        "overallStatus": "thin"
+      },
+      {
+        "attribute": "official_portal",
+        "overallStatus": "thin"
+      },
+      {
+        "attribute": "battery_storage_mandate",
+        "overallStatus": "gap"
+      }
+    ],
+    "checklistCount": 6,
+    "checklistPriorities": {
+      "High": 2,
+      "Medium": 4,
+      "Low": 0
+    }
+  },
+  "scenario-c-nimbus-air": {
+    "id": "scenario-c-nimbus-air",
+    "name": "Nimbus Air 14 versus Nimbus Air 16 [SAMPLE DATA]",
+    "question": "Compare memory, display resolution, battery runtime, and port configuration between Nimbus Air 14 and Nimbus Air 16.",
+    "sourceCount": 3,
+    "verifiedClaimsCount": 4,
+    "claims": [
+      {
+        "source_id": "src-sample-nimbus-official",
+        "attribute": "display_specification",
+        "value": "14.2-inch OLED panel",
+        "verified": true
+      },
+      {
+        "source_id": "src-sample-nimbus-official",
+        "attribute": "battery_runtime",
+        "value": "18 hours battery life",
+        "verified": true
+      },
+      {
+        "source_id": "src-sample-nimbus-official",
+        "attribute": "memory_capacity",
+        "value": "32 GB unified memory as standard",
+        "verified": true
+      },
+      {
+        "source_id": "src-sample-nimbus-retailer",
+        "attribute": "memory_capacity",
+        "value": "16 GB unified memory",
+        "verified": true
+      }
+    ],
+    "conflictsCount": 1,
+    "conflicts": [
+      {
+        "attribute": "memory_capacity",
+        "description": "Source \"Nimbus Air Official Product Specification Matrix [SAMPLE DATA]\" states \"32 GB unified memory as standard\", while source \"Hardware Retailer Benchmarks: Nimbus Air Series [SAMPLE DATA]\" reports \"16 GB unified memory\". Review with primary authority documentation."
+      }
+    ],
+    "gapsCount": 3,
+    "totalGaps": [
+      "thunderbolt_port_count"
+    ],
+    "thinGaps": [
+      "display_specification",
+      "battery_runtime"
+    ],
+    "freshnessWarningsCount": 1,
+    "freshnessWarnings": [
+      {
+        "warningType": "undated"
+      }
+    ],
+    "matrixRowsCount": 4,
+    "matrixStatuses": [
+      {
+        "attribute": "memory_capacity",
+        "overallStatus": "conflict"
+      },
+      {
+        "attribute": "display_specification",
+        "overallStatus": "thin"
+      },
+      {
+        "attribute": "battery_runtime",
+        "overallStatus": "thin"
+      },
+      {
+        "attribute": "thunderbolt_port_count",
+        "overallStatus": "gap"
+      }
+    ],
+    "checklistCount": 5,
+    "checklistPriorities": {
+      "High": 2,
+      "Medium": 3,
+      "Low": 0
+    }
+  },
+  "scenario-1-conflicting-scholarship": {
+    "id": "scenario-1",
+    "name": "State Merit Scholarship with Conflicting Income and Stale Cycle",
+    "question": "What are the eligibility requirements, family income limit, and deadline for the State Merit Scholarship?",
+    "sourceCount": 2,
+    "verifiedClaimsCount": 6,
+    "claims": [
+      {
+        "source_id": "src-official",
+        "attribute": "application_deadline",
+        "value": "15 March 2026",
+        "verified": true
+      },
+      {
+        "source_id": "src-official",
+        "attribute": "eligibility_income_limit",
+        "value": "Rs 6,00,000",
+        "verified": true
+      },
+      {
+        "source_id": "src-official",
+        "attribute": "required_documents",
+        "value": "Income Certificate and previous academic marks cards",
+        "verified": true
+      },
+      {
+        "source_id": "src-official",
+        "attribute": "official_application_portal",
+        "value": "https://scholarships.state.gov.in",
+        "verified": true
+      },
+      {
+        "source_id": "src-blog",
+        "attribute": "application_deadline",
+        "value": "30 August 2024",
+        "verified": true
+      },
+      {
+        "source_id": "src-blog",
+        "attribute": "eligibility_income_limit",
+        "value": "Rs 2,50,000",
+        "verified": true
+      }
+    ],
+    "conflictsCount": 2,
+    "conflicts": [
+      {
+        "attribute": "application_deadline",
+        "description": "Source \"Official State Scholarships Portal - 2026 Notification\" states \"15 March 2026\", while source \"State Scholarship Eligibility & Last Date - Education Updates\" reports \"30 August 2024\". Discrepancy may be explained by reference to an earlier cycle (2024-25). Review with primary authority documentation."
+      },
+      {
+        "attribute": "eligibility_income_limit",
+        "description": "Source \"Official State Scholarships Portal - 2026 Notification\" states \"Rs 6,00,000\", while source \"State Scholarship Eligibility & Last Date - Education Updates\" reports \"Rs 2,50,000\". Discrepancy may be explained by reference to an earlier cycle (2024-25). Review with primary authority documentation."
+      }
+    ],
+    "gapsCount": 2,
+    "totalGaps": [],
+    "thinGaps": [
+      "required_documents",
+      "official_application_portal"
+    ],
+    "freshnessWarningsCount": 3,
+    "freshnessWarnings": [
+      {
+        "warningType": "deadline_passed"
+      },
+      {
+        "warningType": "deadline_passed"
+      },
+      {
+        "warningType": "earlier_cycle"
+      }
+    ],
+    "matrixRowsCount": 4,
+    "matrixStatuses": [
+      {
+        "attribute": "application_deadline",
+        "overallStatus": "conflict"
+      },
+      {
+        "attribute": "eligibility_income_limit",
+        "overallStatus": "conflict"
+      },
+      {
+        "attribute": "required_documents",
+        "overallStatus": "thin"
+      },
+      {
+        "attribute": "official_application_portal",
+        "overallStatus": "thin"
+      }
+    ],
+    "checklistCount": 9,
+    "checklistPriorities": {
+      "High": 4,
+      "Medium": 3,
+      "Low": 2
+    }
+  },
+  "scenario-2-missing-attribute-scheme": {
+    "id": "scenario-2",
+    "name": "Clean Energy Scheme with Missing Critical Disbursement Attribute",
+    "question": "What are the subsidy amount, applicant eligibility, and disbursement timeline for the Clean Energy Startup scheme?",
+    "sourceCount": 2,
+    "verifiedClaimsCount": 5,
+    "claims": [
+      {
+        "source_id": "src-ministry",
+        "attribute": "award_amount",
+        "value": "Rs 25,00,000",
+        "verified": true
+      },
+      {
+        "source_id": "src-ministry",
+        "attribute": "eligibility_criteria",
+        "value": "DPIIT recognition and registered office in India",
+        "verified": true
+      },
+      {
+        "source_id": "src-ministry",
+        "attribute": "official_application_portal",
+        "value": "National Single Window Portal",
+        "verified": true
+      },
+      {
+        "source_id": "src-industry",
+        "attribute": "award_amount",
+        "value": "Rs 25 lakh",
+        "verified": true
+      },
+      {
+        "source_id": "src-industry",
+        "attribute": "official_application_portal",
+        "value": "National Single Window Portal",
+        "verified": true
+      }
+    ],
+    "conflictsCount": 0,
+    "conflicts": [],
+    "gapsCount": 2,
+    "totalGaps": [
+      "disbursement_timeline"
+    ],
+    "thinGaps": [
+      "eligibility_criteria"
+    ],
+    "freshnessWarningsCount": 0,
+    "freshnessWarnings": [],
+    "matrixRowsCount": 4,
+    "matrixStatuses": [
+      {
+        "attribute": "award_amount",
+        "overallStatus": "covered"
+      },
+      {
+        "attribute": "eligibility_criteria",
+        "overallStatus": "thin"
+      },
+      {
+        "attribute": "disbursement_timeline",
+        "overallStatus": "gap"
+      },
+      {
+        "attribute": "official_application_portal",
+        "overallStatus": "covered"
+      }
+    ],
+    "checklistCount": 4,
+    "checklistPriorities": {
+      "High": 1,
+      "Medium": 1,
+      "Low": 2
+    }
+  },
+  "scenario-3-harmonious-fellowship": {
+    "id": "scenario-3",
+    "name": "Global Fellowship with Full Consensus and Complete Coverage",
+    "question": "What is the award stipend, application deadline, and required documents for the 2026 Global AI Fellowship?",
+    "sourceCount": 2,
+    "verifiedClaimsCount": 8,
+    "claims": [
+      {
+        "source_id": "src-fellowship-host",
+        "attribute": "award_amount",
+        "value": "$50,000",
+        "verified": true
+      },
+      {
+        "source_id": "src-fellowship-host",
+        "attribute": "application_deadline",
+        "value": "15 April 2026",
+        "verified": true
+      },
+      {
+        "source_id": "src-fellowship-host",
+        "attribute": "required_documents",
+        "value": "research proposal, CV, and two recommendation letters",
+        "verified": true
+      },
+      {
+        "source_id": "src-fellowship-host",
+        "attribute": "official_application_portal",
+        "value": "https://fellowship.institute.edu",
+        "verified": true
+      },
+      {
+        "source_id": "src-fellowship-partner",
+        "attribute": "award_amount",
+        "value": "$ 50000",
+        "verified": true
+      },
+      {
+        "source_id": "src-fellowship-partner",
+        "attribute": "application_deadline",
+        "value": "15 April 2026",
+        "verified": true
+      },
+      {
+        "source_id": "src-fellowship-partner",
+        "attribute": "required_documents",
+        "value": "CV, research proposal, two recommendation letters",
+        "verified": true
+      },
+      {
+        "source_id": "src-fellowship-partner",
+        "attribute": "official_application_portal",
+        "value": "https://fellowship.institute.edu",
+        "verified": true
+      }
+    ],
+    "conflictsCount": 0,
+    "conflicts": [],
+    "gapsCount": 0,
+    "totalGaps": [],
+    "thinGaps": [],
+    "freshnessWarningsCount": 2,
+    "freshnessWarnings": [
+      {
+        "warningType": "deadline_passed"
+      },
+      {
+        "warningType": "deadline_passed"
+      }
+    ],
+    "matrixRowsCount": 4,
+    "matrixStatuses": [
+      {
+        "attribute": "award_amount",
+        "overallStatus": "covered"
+      },
+      {
+        "attribute": "application_deadline",
+        "overallStatus": "covered"
+      },
+      {
+        "attribute": "required_documents",
+        "overallStatus": "covered"
+      },
+      {
+        "attribute": "official_application_portal",
+        "overallStatus": "covered"
+      }
+    ],
+    "checklistCount": 3,
+    "checklistPriorities": {
+      "High": 2,
+      "Medium": 0,
+      "Low": 1
+    }
+  }
+}

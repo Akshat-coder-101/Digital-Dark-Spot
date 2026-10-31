@@ -7,6 +7,8 @@ export interface LLMCompletionOptions {
   user: string;
   jsonSchema?: Record<string, any>;
   zodSchema?: z.ZodSchema<any>;
+  sourceId?: string;
+  task?: string;
 }
 
 export interface LLMResult<T = any> {

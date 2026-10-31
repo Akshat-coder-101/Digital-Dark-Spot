@@ -10,6 +10,7 @@ import { geminiAdapter } from './adapters/gemini.js';
 import { openaiAdapter } from './adapters/openai.js';
 import { anthropicAdapter } from './adapters/anthropic.js';
 import { groqAdapter } from './adapters/groq.js';
+import { telemetry } from './telemetry.js';
 
 export function maskKey(key: string): string {
   if (!key) return '';
@@ -32,6 +33,7 @@ export class LLMManager {
   private keyStates: Map<ProviderName, KeyState[]> = new Map();
   private keyIndex: Map<ProviderName, number> = new Map();
   private models: Map<ProviderName, string> = new Map();
+  private geminiFallbackModel: string = 'gemini-2.5-flash';
   private providerOrder: ProviderName[] = ['gemini', 'groq', 'openai', 'anthropic'];
   private consecutiveJsonFailures: Map<ProviderName, number> = new Map();
 
@@ -47,6 +49,7 @@ export class LLMManager {
   public reloadEnvironment(): void {
     // Models
     this.models.set('gemini', process.env.GEMINI_MODEL || 'gemini-3-flash-preview');
+    this.geminiFallbackModel = process.env.GEMINI_FALLBACK_MODEL || 'gemini-2.5-flash';
     this.models.set('groq', process.env.GROQ_MODEL || 'qwen/qwen3.8-27b');
     this.models.set('openai', process.env.OPENAI_MODEL || 'gpt-4o-mini');
     this.models.set('anthropic', process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022');
@@ -88,16 +91,20 @@ export class LLMManager {
   }
 
   // Get an available key for a provider using round-robin
-  private getNextKey(provider: ProviderName): KeyState | null {
+  private getNextKey(provider: ProviderName, allowCooldownFallback = false): KeyState | null {
     const states = this.keyStates.get(provider) || [];
     const now = Date.now();
 
     // Filter available keys: not disabled and not in cooldown
-    const available = states.filter(s => {
+    let available = states.filter(s => {
       if (s.disabled) return false;
       if (s.cooldownUntil && s.cooldownUntil > now) return false;
       return true;
     });
+
+    if (available.length === 0 && allowCooldownFallback) {
+      available = states.filter(s => !s.disabled);
+    }
 
     if (available.length === 0) return null;
 
@@ -176,81 +183,126 @@ export class LLMManager {
 
     let lastError: Error | null = null;
     let attempts = 0;
-    const maxTotalAttempts = 3;
 
+    // Ordered failover across enabled providers and models (primary -> stable fallback)
+    const targets: Array<{ provider: ProviderName; model: string; label: string }> = [];
     for (const provider of this.providerOrder) {
-      const adapter = this.adapters.get(provider);
-      const model = this.models.get(provider);
-      if (!adapter || !model) continue;
+      const primaryModel = this.models.get(provider);
+      if (primaryModel) {
+        targets.push({ provider, model: primaryModel, label: `${provider}:${primaryModel}` });
+      }
+      if (provider === 'gemini' && this.geminiFallbackModel && this.geminiFallbackModel !== primaryModel) {
+        targets.push({ provider: 'gemini', model: this.geminiFallbackModel, label: `gemini-fallback:${this.geminiFallbackModel}` });
+      }
+    }
 
-      let keyState = this.getNextKey(provider);
-      while (keyState && attempts < maxTotalAttempts) {
-        attempts++;
+    for (const target of targets) {
+      const adapter = this.adapters.get(target.provider);
+      if (!adapter) continue;
+
+      let keyState = this.getNextKey(target.provider, target.label.includes('fallback'));
+      if (!keyState) continue;
+
+      attempts++;
+      const callStart = Date.now();
+      const inChars = (options.user?.length || 0) + (options.system?.length || 0);
+
+      try {
+        // Attempt completion
+        let rawText = await adapter.complete(keyState.key, target.model, options);
+        let cleaned = stripCodeFences(rawText);
+
+        // Try parsing JSON and validating schema
+        let parsed: any;
         try {
-          // Attempt completion
-          let rawText = await adapter.complete(keyState.key, model, options);
-          let cleaned = stripCodeFences(rawText);
+          parsed = JSON.parse(cleaned);
+          if (options.zodSchema) {
+            parsed = options.zodSchema.parse(parsed);
+          }
+        } catch (jsonErr: any) {
+          const fails = (this.consecutiveJsonFailures.get(target.provider) || 0) + 1;
+          this.consecutiveJsonFailures.set(target.provider, fails);
+          console.warn(`[LLM] JSON parse failure #${fails} from ${target.label}: ${jsonErr.message}`);
 
-          // Try parsing JSON and validating schema
-          let parsed: any;
-          try {
-            parsed = JSON.parse(cleaned);
-            if (options.zodSchema) {
-              parsed = options.zodSchema.parse(parsed);
+          if (fails >= 2) {
+            const cooldownUntil = Date.now() + 5 * 60 * 1000;
+            const states = this.keyStates.get(target.provider) || [];
+            for (const s of states) {
+              s.cooldownUntil = cooldownUntil;
             }
-          } catch (jsonErr: any) {
-            const fails = (this.consecutiveJsonFailures.get(provider) || 0) + 1;
-            this.consecutiveJsonFailures.set(provider, fails);
-            console.warn(`[LLM] JSON parse failure #${fails} from ${provider}: ${jsonErr.message}`);
-
-            if (fails >= 2) {
-              const cooldownUntil = Date.now() + 5 * 60 * 1000;
-              const states = this.keyStates.get(provider) || [];
-              for (const s of states) {
-                s.cooldownUntil = cooldownUntil;
-              }
-              console.warn(`[LLM] Provider ${provider} placed in 5-minute cooldown due to 2 consecutive JSON failures. Failing over to next provider.`);
-              break;
-            }
-
-            // Retry once with a "valid JSON only" reminder
-            console.warn(`[LLM] Retrying ${provider} once with strict JSON prompt reminder...`);
-            const retryOptions: LLMCompletionOptions = {
-              ...options,
-              user: `${options.user}\n\nCRITICAL ERROR: Your previous response was not valid JSON. You MUST return ONLY a raw valid JSON object with no markdown fences, no explanation, and no formatting errors.`
-            };
-
-            rawText = await adapter.complete(keyState.key, model, retryOptions);
-            cleaned = stripCodeFences(rawText);
-            parsed = JSON.parse(cleaned);
-            if (options.zodSchema) {
-              parsed = options.zodSchema.parse(parsed);
-            }
+            console.warn(`[LLM] Provider ${target.provider} placed in cooldown. Failing over.`);
+            telemetry.logCall({
+              provider: target.label,
+              sourceId: options.sourceId,
+              inputChars: inChars,
+              outputChars: rawText.length,
+              durationMs: Date.now() - callStart,
+              attempt: attempts,
+              outcome: 'failover',
+              cooldownWaitMs: 5 * 60 * 1000
+            });
+            continue;
           }
 
-          // Reset consecutive failure count on success
-          this.consecutiveJsonFailures.set(provider, 0);
-
-          // Success!
-          return {
-            data: parsed as T,
-            provider,
-            model,
-            cached: false,
-            attempts
+          // Retry once with a "valid JSON only" reminder
+          console.warn(`[LLM] Retrying ${target.label} once with strict JSON prompt reminder...`);
+          const retryOptions: LLMCompletionOptions = {
+            ...options,
+            user: `${options.user}\n\nCRITICAL ERROR: Your previous response was not valid JSON. You MUST return ONLY a raw valid JSON object with no markdown fences, no explanation, and no formatting errors.`
           };
-        } catch (err: any) {
-          lastError = err;
-          const status = err.status || (err.message && err.message.match(/\b(400|401|403|404|429|500|502|503|504)\b/)?.[0] ? parseInt(err.message.match(/\b(400|401|403|404|429|500|502|503|504)\b/)[0]) : undefined);
 
-          this.recordKeyError(provider, keyState, status);
-
-          // Short backoff before next attempt (100ms * attempt)
-          await new Promise(r => setTimeout(r, attempts * 100));
-
-          // Try next key for same provider, if available
-          keyState = this.getNextKey(provider);
+          rawText = await adapter.complete(keyState.key, target.model, retryOptions);
+          cleaned = stripCodeFences(rawText);
+          parsed = JSON.parse(cleaned);
+          if (options.zodSchema) {
+            parsed = options.zodSchema.parse(parsed);
+          }
         }
+
+        // Reset consecutive failure count on success
+        this.consecutiveJsonFailures.set(target.provider, 0);
+
+        const durationMs = Date.now() - callStart;
+        telemetry.logCall({
+          provider: target.label,
+          sourceId: options.sourceId,
+          inputChars: inChars,
+          outputChars: rawText.length,
+          durationMs,
+          attempt: attempts,
+          outcome: 'success'
+        });
+
+        // Success!
+        return {
+          data: parsed as T,
+          provider: target.provider,
+          model: target.model,
+          cached: false,
+          attempts
+        };
+      } catch (err: any) {
+        lastError = err;
+        const durationMs = Date.now() - callStart;
+        const msg = String(err.message || '');
+        const match = msg.match(/\b(400|401|403|404|413|429|500|502|503|504)\b/);
+        const status = err.status || (match ? parseInt(match[0], 10) : undefined);
+
+        this.recordKeyError(target.provider, keyState, status);
+        console.warn(`[LLM Failover] Target ${target.label} failed with status ${status || 'network error'}. Failing over across providers/models...`);
+
+        telemetry.logCall({
+          provider: target.label,
+          sourceId: options.sourceId,
+          inputChars: inChars,
+          outputChars: 0,
+          durationMs,
+          attempt: attempts,
+          outcome: 'failover'
+        });
+
+        // Short backoff (150ms)
+        await new Promise(r => setTimeout(r, 150));
       }
     }
 
