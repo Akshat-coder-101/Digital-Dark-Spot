@@ -110,6 +110,10 @@ if (fs.existsSync(pdfScript)) {
   skipCheck('pdf_tests', 'Phase 6', 'Not yet reached (Optional Phase 6)');
 }
 
+// 10. Safety and Robustness Tests (Part D)
+runCommand('edge_cases_tests', 'Part D', 'npx tsx backend/test/test-edge-cases.ts');
+runCommand('failover_tests', 'Part D', 'npx tsx backend/test/test-failover.ts');
+
 // Print Results Table
 console.log('\n┌──────────────────────────────┬──────────┬──────────┬───────────┬────────────────────────────────────────────────────┐');
 console.log('│ Check                        │ Phase    │ Status   │ Time (ms) │ Details                                            │');

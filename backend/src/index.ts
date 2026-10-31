@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { llmManager } from './llm/index.js';
 import { sourcesRouter } from './routes/sources.js';
 import { analyzeRouter } from './routes/analyze.js';
@@ -62,13 +63,15 @@ const showAiStatus = process.env.SHOW_AI_STATUS === 'true';
 
 // Diagnostic LLM status endpoint (keys masked, never returned; gated by SHOW_AI_STATUS=true)
 app.get('/api/llm/status', (_req, res) => {
-  if (!showAiStatus) {
-    res.status(404).json({ error: 'Endpoint not found or disabled in production.' });
+  const isEnabled = process.env.SHOW_AI_STATUS === 'true';
+  if (!isEnabled) {
+    res.json({ available: false });
     return;
   }
   try {
     const diagnostics = llmManager.getDiagnostics();
     res.json({
+      available: true,
       providers: diagnostics,
       hasConfiguredKeys: llmManager.hasAnyKeys(),
       timestamp: new Date().toISOString()
@@ -76,6 +79,33 @@ app.get('/api/llm/status', (_req, res) => {
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// Saved snapshots endpoint (if docs/demo-snapshots/ is empty, available=false)
+app.get('/api/snapshots', (_req, res) => {
+  const candidates = [
+    path.resolve(process.cwd(), 'docs', 'demo-snapshots'),
+    path.resolve(process.cwd(), '../docs', 'demo-snapshots')
+  ];
+  let targetDir = candidates[0];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) {
+      targetDir = c;
+      break;
+    }
+  }
+
+  let snapshots: string[] = [];
+  if (fs.existsSync(targetDir)) {
+    snapshots = fs.readdirSync(targetDir).filter(f => f.endsWith('.json'));
+  }
+
+  res.json({
+    available: snapshots.length > 0,
+    count: snapshots.length,
+    snapshots,
+    message: snapshots.length === 0 ? 'No snapshots in docs/demo-snapshots/' : undefined
+  });
 });
 
 export { app };

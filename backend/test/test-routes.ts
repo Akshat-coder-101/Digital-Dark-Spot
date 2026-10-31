@@ -121,9 +121,18 @@ async function main() {
       assert.strictEqual(res.status, 404);
     }),
 
-    runTest('GET /api/llm/status: Disabled by default (returns 404)', async () => {
+    runTest('GET /api/llm/status: Disabled when SHOW_AI_STATUS is not true (returns { available: false })', async () => {
+      delete process.env.SHOW_AI_STATUS;
       const res = await invokeRoute('GET', '/api/llm/status');
-      assert.strictEqual(res.status, 404);
+      assert.strictEqual(res.status, 200);
+      assert.strictEqual(res.body.available, false);
+    }),
+
+    runTest('GET /api/snapshots: Returns { available: false } when docs/demo-snapshots is empty', async () => {
+      const res = await invokeRoute('GET', '/api/snapshots');
+      assert.strictEqual(res.status, 200);
+      assert.strictEqual(res.body.available, false);
+      assert.strictEqual(res.body.count, 0);
     }),
 
     runTest('POST /api/discover: Starts automated discovery job', async () => {

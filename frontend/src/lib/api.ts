@@ -21,6 +21,16 @@ export interface DiscoveredSource {
   sourceType?: string;
 }
 
+export async function getSnapshots(): Promise<{ available: boolean; count: number; snapshots: string[] }> {
+  try {
+    const res = await fetch('/api/snapshots');
+    if (!res.ok) return { available: false, count: 0, snapshots: [] };
+    return await res.json();
+  } catch {
+    return { available: false, count: 0, snapshots: [] };
+  }
+}
+
 export async function fetchSampleData(scenarioId?: string) {
   const url = scenarioId ? `/api/sample/${encodeURIComponent(scenarioId)}` : '/api/sample';
   const res = await fetch(url);
