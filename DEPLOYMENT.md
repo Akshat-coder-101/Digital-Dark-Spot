@@ -17,23 +17,23 @@ This guide details instructions for building, testing, deploying, and maintainin
 
 Create a `.env` file in the project root or configure these variables in your deployment environment (e.g. Docker, Railway, Render, Fly.io, Kubernetes).
 
-| Variable | Required | Secret | Default | Description |
-| :--- | :---: | :---: | :--- | :--- |
-| `PORT` | No | No | `3001` | Backend HTTP listening port. |
-| `NODE_ENV` | No | No | `development` | Set to `production` in production deployments. |
-| `SHOW_AI_STATUS` | No | No | `false` | When `false` in production, gates `/settings/ai` and `/api/llm/status`. |
-| `LLM_PROVIDER_ORDER` | No | No | `gemini,groq,openai,anthropic` | Failover order across supported LLM providers. |
-| `GEMINI_API_KEYS` | Recommended | **Yes** | — | Comma-separated Google Gemini API keys for round-robin rotation. |
-| `GEMINI_MODEL` | No | No | `gemini-1.5-flash` | Gemini model ID. |
-| `GROQ_API_KEYS` | Optional | **Yes** | — | Comma-separated Groq API keys for high-speed fallback. |
-| `GROQ_MODEL` | No | No | `qwen/qwen3.8-27b` | Groq model ID. |
-| `OPENAI_API_KEYS` | Optional | **Yes** | — | Comma-separated OpenAI API keys. |
-| `OPENAI_MODEL` | No | No | `gpt-4o-mini` | OpenAI model ID. |
-| `ANTHROPIC_API_KEYS`| Optional | **Yes** | — | Comma-separated Anthropic API keys. |
-| `ANTHROPIC_MODEL` | No | No | `claude-3-5-haiku-20241022` | Anthropic model ID. |
-| `TAVILY_API_KEYS` | Optional | **Yes** | — | Comma-separated Tavily search API keys for auto-discovery. |
-| `BRAVE_API_KEYS` | Optional | **Yes** | — | Comma-separated Brave search API keys for auto-discovery. |
-| `DISABLE_RATE_LIMIT`| No | No | `false` | Set to `true` only during automated integration test runs. |
+| Variable | Required | Secret | Default | Purpose | Example Value |
+| :--- | :---: | :---: | :--- | :--- | :--- |
+| `PORT` | No | No | `3001` | Backend HTTP listening port. | `3001` |
+| `NODE_ENV` | No | No | `development` | Set to `production` in production deployments. | `production` |
+| `SHOW_AI_STATUS` | No | No | `false` | When `false` in production, gates `/settings/ai` and `/api/llm/status`. | `false` |
+| `LLM_PROVIDER_ORDER` | No | No | `gemini,groq,openai,anthropic` | Failover order across supported LLM providers. | `gemini,groq` |
+| `GEMINI_API_KEYS` | Recommended | **Yes** | — | Comma-separated Google Gemini API keys for round-robin rotation. | `AIzaSyD...key1,AIzaSyB...key2` |
+| `GEMINI_MODEL` | No | No | `gemini-1.5-flash` | Gemini model ID. | `gemini-1.5-flash` |
+| `GROQ_API_KEYS` | Optional | **Yes** | — | Comma-separated Groq API keys for high-speed fallback. | `gsk_...key1,gsk_...key2` |
+| `GROQ_MODEL` | No | No | `qwen/qwen3.8-27b` | Groq model ID. | `qwen/qwen3.8-27b` |
+| `OPENAI_API_KEYS` | Optional | **Yes** | — | Comma-separated OpenAI API keys. | `sk-...key1,sk-...key2` |
+| `OPENAI_MODEL` | No | No | `gpt-4o-mini` | OpenAI model ID. | `gpt-4o-mini` |
+| `ANTHROPIC_API_KEYS`| Optional | **Yes** | — | Comma-separated Anthropic API keys. | `sk-ant-...key1` |
+| `ANTHROPIC_MODEL` | No | No | `claude-3-5-haiku-20241022` | Anthropic model ID. | `claude-3-5-haiku-20241022` |
+| `TAVILY_API_KEYS` | Optional | **Yes** | — | Comma-separated Tavily search API keys for auto-discovery. | `tvly-...key1` |
+| `BRAVE_API_KEYS` | Optional | **Yes** | — | Comma-separated Brave search API keys for auto-discovery. | `BS...key1` |
+| `DISABLE_RATE_LIMIT`| No | No | `false` | Set to `true` only during automated integration test runs. | `false` |
 
 > [!IMPORTANT]
 > **Zero Key Leak Guarantee**: Never commit `.env` to version control. Before every commit or deploy, run `npm run check:secrets`.
@@ -152,3 +152,20 @@ After deployment, verify system health using these endpoints:
    npm run check:secrets
    # Asserts 0 unmasked API keys in tracked code
    ```
+
+---
+
+## 6. Self-Hosting Checklist
+
+Follow this checklist when setting up a self-hosted instance:
+
+- [ ] **Node.js Environment**: Verify Node.js v18+ or v20+ LTS is installed (`node -v`).
+- [ ] **Dependency Installation**: Run `npm install` cleanly in project root.
+- [ ] **Environment Configuration**: Copy `.env.example` to `.env` and fill valid keys; ensure `.env` is ignored by `.gitignore`.
+- [ ] **Verification Suite**: Execute `npm run verify` and verify all 11 test checks pass cleanly.
+- [ ] **Secrets Audit**: Run `npm run check:secrets` to confirm zero unmasked API keys exist in source control.
+- [ ] **Production Build**: Execute `npm run build` to generate `backend/dist` and `frontend/dist`.
+- [ ] **Reverse Proxy**: Configure Caddy or Nginx with TLS termination, gzip/zstd compression, and WebSocket / HTTP proxying to port 3001.
+- [ ] **Rate Limiting & SSRF Guards**: Verify SSRF protection is active (default) and rate limiting is enabled (`DISABLE_RATE_LIMIT=false`).
+- [ ] **Health Check**: Confirm `GET /api/health` returns HTTP 200 `{"status":"ok"}`.
+

@@ -8,6 +8,7 @@ import { analyzeRouter } from './routes/analyze.js';
 import { sampleRouter } from './routes/sample.js';
 import { discoverRouter } from './routes/discover.js';
 import { analysisPipeline } from './analysis/pipeline.js';
+import { loadFixtureScenario } from './data/sampleData.js';
 
 // Load environment variables
 dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
@@ -29,7 +30,17 @@ app.use('/api/discover', discoverRouter);
 // Direct report endpoint: GET /api/report/:id
 app.get('/api/report/:id', (req, res) => {
   const reportId = String(req.params.id);
-  const report = analysisPipeline.getReport(reportId);
+  let report = analysisPipeline.getReport(reportId);
+  if (!report && reportId.startsWith('sample-')) {
+    try {
+      const scenarioKey = reportId.replace(/^sample-/, '');
+      const fixtureData = loadFixtureScenario(scenarioKey);
+      analysisPipeline.setReport(fixtureData.report);
+      report = fixtureData.report;
+    } catch {
+      // not a sample fixture
+    }
+  }
   if (!report) {
     res.status(404).json({ error: `Report ${reportId} not found.` });
     return;

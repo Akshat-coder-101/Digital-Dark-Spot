@@ -45,3 +45,65 @@ Extracted from the styleguide into modular, standalone motion components:
 | **Animated Checkbox** | Radix Checkbox + Motion | `frontend/src/components/ui/animated-checkbox.tsx` | `/discover/:id` & `/report/:id/checklist` |
 | **Coverage Data Table** | shadcn Table | `frontend/src/components/visual/CoverageMatrixTable.tsx` | `/report/:id` (Matrix View) |
 | **Empty State** | Radix Primitive Card | `frontend/src/components/ui/empty-state.tsx` | Dashboard tabs when zero items found |
+
+---
+
+## 📋 Primary Application Components Inventory
+
+Detailed props interfaces and accessibility specifications for core application components:
+
+### 1. `CoverageMap`
+- **File**: `frontend/src/components/visual/CoverageMap.tsx`
+- **Purpose**: Displays the cross-source parameter coverage matrix, comparing expected attributes against all ingested primary sources.
+- **Props Interface**:
+  ```typescript
+  interface CoverageMapProps {
+    reportId: string;
+    matrix: CoverageMatrixRow[];
+    sources: IngestedSource[];
+    selectedAttribute?: string | null;
+    onSelectAttribute?: (attr: string) => void;
+    className?: string;
+  }
+  ```
+- **Accessibility Notes**: Implements ARIA `table`, `row`, and `gridcell` semantics. All cell statuses display both text labels and SVGs/icons; status is never conveyed by color alone. Supports keyboard navigation (`Enter` and `Space` to inspect evidence). Respects `prefers-reduced-motion`.
+
+### 2. `EvidenceDrawerSubRoute`
+- **File**: `frontend/src/pages/Dashboard/EvidenceDrawerSubRoute.tsx`
+- **Purpose**: Slide-over evidence inspection panel displaying raw document excerpts with exact 120-character surrounding context windows, "Why this was flagged" metadata, and cross-source comparisons.
+- **Props Interface**: Route sub-component parameterized via URL route (`/report/:id/evidence/:claimId`).
+- **Accessibility Notes**: Uses `aria-modal="true"` dialog overlay, traps focus, supports `Escape` key and close button dismissal, and maintains high-contrast highlight markers (`<mark>`).
+
+### 3. `StatusTag`
+- **File**: `frontend/src/components/common/StatusTag.tsx`
+- **Purpose**: Renders standardized, token-compliant status badges.
+- **Props Interface**:
+  ```typescript
+  type StatusType = 'sourced' | 'ai_suggested' | 'uncertain' | 'found' | 'single_source' | 'gap' | 'conflict' | 'stale';
+
+  interface StatusTagProps {
+    status: StatusType;
+    customLabel?: string;
+    className?: string;
+    size?: 'sm' | 'md';
+  }
+  ```
+- **Accessibility Notes**: Renders `role="status"` with an associated icon geometry (`aria-hidden="true"`) alongside clear text labels, ensuring full screen-reader and monochrome display compliance.
+
+### 4. `DotField`
+- **File**: `frontend/src/components/DotField.tsx`
+- **Purpose**: Interactive Fibonacci-sphere particle canvas with breathing motion and cursor proximity displacement.
+- **Props Interface**:
+  ```typescript
+  interface DotFieldProps {
+    className?: string;
+  }
+  ```
+- **Accessibility Notes**: Strictly checks `window.matchMedia("(prefers-reduced-motion: reduce)")`. When reduced motion is requested, animates 0 frames and renders a single static background projection. Automatically updates CSS variable colors upon light/dark theme toggle via `MutationObserver`.
+
+### 5. `ChecklistTab`
+- **File**: `frontend/src/pages/Dashboard/ChecklistTab.tsx`
+- **Purpose**: Interactive prioritized verification checklist with High/Medium/Low badges, official verification suggestions, and one-click Markdown clipboard export.
+- **Props Interface**: Context-driven via `useReport()`.
+- **Accessibility Notes**: Checkbox controls have clear `aria-label` bindings, and state transitions use accessible spring transforms.
+

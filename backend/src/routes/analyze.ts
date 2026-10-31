@@ -20,7 +20,7 @@ export const analyzeRouter = Router();
 // POST /api/analyze
 analyzeRouter.post('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim() || req.socket.remoteAddress || '127.0.0.1';
+    const clientIp = (req.headers && req.headers['x-forwarded-for'] as string)?.split(',')[0].trim() || req.socket?.remoteAddress || '127.0.0.1';
     const now = Date.now();
     const rateRecord = ipRateLimits.get(clientIp);
     const skipRateLimit = process.env.DISABLE_RATE_LIMIT === 'true';
@@ -28,9 +28,12 @@ analyzeRouter.post('/', async (req: Request, res: Response): Promise<void> => {
     if (!skipRateLimit) {
       if (rateRecord && rateRecord.resetTime > now) {
         if (rateRecord.count >= RATE_LIMIT_MAX_PER_HOUR) {
+          const retryAfterSec = Math.max(1, Math.ceil((rateRecord.resetTime - now) / 1000));
+          res.setHeader('Retry-After', String(retryAfterSec));
           res.status(429).json({
             error: 'RATE_LIMIT_EXCEEDED: You have reached the analysis request limit (5 analyses per hour).',
             sampleAvailable: true,
+            retryAfter: retryAfterSec,
             message: 'To protect system capacity during high load, rate limits apply. You can continue exploring without restrictions by selecting "Use sample data".'
           });
           return;

@@ -13,9 +13,7 @@
 
 ## 1. Overview & Core Philosophy
 
-People rely on online information to make critical decisions about education, careers, public schemes, research, and legal matters. However, online information is fragmented, outdated, and full of conflicting blog posts.
-
-Standard search engines and AI chatbots summarize what is *available*. **Digital Dark Spot** reveals what is **missing**, **contradicted**, or **outdated** across multiple sources, grounding every finding in verbatim evidence quotes.
+Digital Dark Spot is an AI-assisted research and verification platform that cross-examines multi-source documents to detect hidden information gaps, conflicting requirements, and outdated claims. Instead of generating ungrounded summaries, it validates every finding with verbatim source quotes and delivers a prioritized checklist to guide reliable decision-making.
 
 > [!IMPORTANT]
 > **Candidate Signals, Not Definitive Truth:** Digital Dark Spot identifies information dark spots and delivers an actionable, prioritized checklist to guide human verification against primary government and institutional sources.
@@ -25,9 +23,9 @@ Standard search engines and AI chatbots summarize what is *available*. **Digital
 ## 2. System Architecture
 
 ```mermaid
-flowchart TD
+graph TD
     User([User Prompt & Source Material]) --> Intake[Intake Layer / Sources Ingestion]
-    Intake --> SSRF[SSRF Security Guard & 12s Fetcher]
+    Intake --> SSRF[SSRF Security Guard & Ingest Fetcher]
     Intake --> Temporal[Temporal & Cycle Detection]
     
     SSRF --> Untrusted[Delimited Untrusted Context]
@@ -39,17 +37,17 @@ flowchart TD
     Verifier --> Discarded[Discard Hallucinated Quotes]
     Verifier --> VerifiedClaims[Verified Ground-Truth Claims]
     
-    VerifiedClaims --> Canonical[Synonym & Value Equivalence Engine]
+    VerifiedClaims --> Canonical[Typed Value Normalizer & Qualifier Separation]
     Temporal --> DeterministicEngine[Deterministic Analysis Engine]
     Canonical --> DeterministicEngine
     
-    DeterministicEngine --> Gaps[Potential Gaps: Total & Thin]
+    DeterministicEngine --> Gaps[Potential Gaps: Total & Single-Source]
     DeterministicEngine --> Conflicts[Possible Contradictions]
-    DeterministicEngine --> Freshness[Stale & Undated Warnings]
-    DeterministicEngine --> Matrix[Coverage Matrix: Attribute x Source]
+    DeterministicEngine --> Freshness[Potentially Stale & Undated Warnings]
+    DeterministicEngine --> Matrix[Coverage Matrix: Parameter x Source]
     DeterministicEngine --> Checklist[Prioritized Verification Checklist]
     
-    Gaps --> UI[Interactive Dashboard & Half-Melon Slice View]
+    Gaps --> UI[Interactive Verification Dashboard]
     Conflicts --> UI
     Freshness --> UI
     Matrix --> UI
@@ -58,7 +56,24 @@ flowchart TD
 
 ---
 
-## 3. Quickstart (3 Commands)
+## 3. Hackathon Requirements to Implementation Mapping
+
+| Hackathon Requirement | Engine Implementation | Frontend Component | Verification Evidence |
+| :--- | :--- | :--- | :--- |
+| **Structured Multi-Source Summary** | `AnalysisPipeline.run()`, `extraction.ts` | `SummaryTab.tsx`, `DashboardLayout.tsx` | Verbatim quote extraction across multiple documents. |
+| **Potential Gaps Identification** | `detectGaps()` in `gaps.ts` | `GapsTab.tsx` | Flags both total gaps and thin single-source parameters. |
+| **Possible Conflicts & Contradictions** | `detectConflicts()` in `conflicts.ts`, `normalization.ts` | `ConflictsTab.tsx` | Compares matching qualifiers; typed differences yield `Sourced` conflicts, wording differences yield `Uncertain`. |
+| **Outdated & Undated Warnings** | `auditFreshness()` in `freshness.ts`, `metadata.ts` | `FreshnessTab.tsx` | Distinguishes publication dates from deadlines; flags items older than 18 months or earlier cycles. |
+| **Prioritized Verification Checklist** | `buildPrioritizedChecklist()` in `checklist.ts` | `ChecklistTab.tsx` | High/Medium/Low prioritized checklist with actionable advice and Markdown export. |
+| **Sourced vs AI-Suggested vs Uncertain** | `types.ts` signalTag model | `StatusTag.tsx` | Unambiguous badges: `Sourced`, `AI-suggested`, `Uncertain` with icon plus text. |
+| **Verbatim Evidence Tracing** | `verifyClaimsVerbatim()` in `verifier.js` | `EvidenceDrawerSubRoute.tsx` | Verbatim substring match in raw document excerpt with 120-character context window. |
+| **Topic Independence & Anti-Hallucination** | Typed normalizers in `normalization.ts`, ban-list scanner | Topic-tailored UI inputs without hardcoded domain jargon | 97+ files clean in `scripts/ban-list-scan.ts`; 3 varied sample scenarios. |
+| **Coverage Parameter Matrix** | `buildCoverageMatrix()` in `matrix.ts` | `CoverageMap.tsx` | Interactive matrix displaying `Found`, `Conflict`, `Single source`, `Gap`, and `Stale` with icons. |
+| **No Source Fabrication** | `discoveryService.ts` fallback | `Discover.tsx`, `Home.tsx` | Gracefully falls back to user URL/paste/sample data with clear origin labels (`REAL SOURCE`, `USER-PROVIDED`, `SAMPLE DATA`). |
+
+---
+
+## 4. Quickstart (3 Commands)
 
 You can clone, install, and run Digital Dark Spot immediately:
 
@@ -66,8 +81,8 @@ You can clone, install, and run Digital Dark Spot immediately:
 # 1. Install dependencies
 npm install
 
-# 2. Run deterministic accuracy evaluation suite (zero API keys needed)
-npm run eval
+# 2. Run complete 11-step verification suite (zero API keys needed)
+npm run verify
 
 # 3. Start development server (Frontend + Backend)
 npm run dev
@@ -77,13 +92,16 @@ Open **`http://localhost:5173`** in your browser.
 
 ---
 
-## 4. Zero-Key Offline Demo Mode
+## 5. Zero-Key Offline Demo Mode
 
 Digital Dark Spot does **not** require any API keys to be evaluated or demonstrated:
 1. Open `http://localhost:5173`.
-2. Click **"Try Demo: Fictional Scholarship Dataset"** on the home screen.
-3. The platform instantly loads the verified, ground-truth reference dataset and executes the complete 5-stage analysis pipeline deterministically.
-4. If live API keys are exhausted or unavailable during custom search queries, the system cleanly prompts the user to explore the offline dataset rather than throwing unhandled errors.
+2. Choose one of the 3 verified sample scenarios on the home screen:
+   - **Sample A: Aurora Merit Scholarship** (Education & financial aid guidelines)
+   - **Sample B: SolarBridge Rooftop Subsidy 2026** (Clean energy rooftop installation incentives)
+   - **Sample C: Nimbus Air 14 vs Nimbus Air 16** (Hardware and engineering benchmarks)
+3. The platform instantly loads the verified reference dataset and executes the complete deterministic analysis pipeline.
+4. If live search API keys are unavailable during custom search queries, the system cleanly prompts the user to explore offline datasets or provide their own URLs/notes without fabricating fake sources.
 
 ---
 
