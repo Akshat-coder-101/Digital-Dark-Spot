@@ -12,7 +12,7 @@ const buttonVariants = cva(
         default: "bg-signal text-signal-ink hover:bg-signal/90 font-medium shadow-xs",
         signal: "bg-signal text-signal-ink hover:bg-signal/90 font-medium shadow-xs",
         structure: "bg-structure text-white hover:bg-structure/90 shadow-sm",
-        rind: "bg-signal text-signal-ink hover:bg-signal/90 font-medium shadow-xs",
+        rind: "bg-rind text-signal-ink hover:bg-rind-hover font-medium shadow-xs",
         flesh: "bg-gap text-white hover:bg-gap/90 shadow-sm",
         gap: "bg-gap text-white hover:bg-gap/90 shadow-sm",
         subtle: "bg-surface hover:bg-surface-2 text-text border border-border shadow-xs",

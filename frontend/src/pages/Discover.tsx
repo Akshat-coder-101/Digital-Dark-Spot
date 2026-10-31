@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { AnimatedCheckbox } from '@/components/ui/animated-checkbox';
-import { getDiscoveryJob, startAnalysis, SourcePayload, DiscoveredSource } from '@/lib/api';
+import { getDiscoveryJob, startAnalysis, startDiscovery, SourcePayload, DiscoveredSource } from '@/lib/api';
 import {
   Search,
   Globe,
@@ -10,12 +10,15 @@ import {
   AlertCircle,
   Plus,
   ArrowRight,
+  ArrowLeft,
   Loader2,
   ExternalLink,
   Info,
   ShieldCheck,
   FileText,
   Database,
+  RefreshCw,
+  Sparkles,
   X
 } from 'lucide-react';
 
@@ -37,27 +40,23 @@ export const Discover: React.FC = () => {
   const [extraTextTitle, setExtraTextTitle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Editable Expected Attributes state
-  const [attributes, setAttributes] = useState<string[]>([
-    'application_deadline',
-    'primary_qualifying_criteria',
-    'required_documents',
-    'official_portal_or_link',
-    'continuation_policy',
-    'pricing_or_financial_terms'
-  ]);
+  // Editable Expected Attributes state (Topic-tailored from discovery)
+  const [attributes, setAttributes] = useState<string[]>([]);
+  const [hasCustomizedAttributes, setHasCustomizedAttributes] = useState(false);
   const [newAttrInput, setNewAttrInput] = useState('');
 
   const handleAddAttribute = () => {
-    const trimmed = newAttrInput.trim().toLowerCase().replace(/[^a-z0-9_]+/g, '_').replace(/^_+|_+$/g, '');
+    const trimmed = newAttrInput.trim();
     if (!trimmed) return;
-    if (attributes.includes(trimmed)) return;
+    if (attributes.some(a => a.toLowerCase() === trimmed.toLowerCase())) return;
     setAttributes(prev => [...prev, trimmed]);
+    setHasCustomizedAttributes(true);
     setNewAttrInput('');
   };
 
   const handleRemoveAttribute = (attr: string) => {
     setAttributes(prev => prev.filter(a => a !== attr));
+    setHasCustomizedAttributes(true);
   };
 
   useEffect(() => {
@@ -70,7 +69,7 @@ export const Discover: React.FC = () => {
 
     const pollJob = async () => {
       try {
-        const data = await getDiscoveryJob(id);
+        const data = await getDiscoveryJob(id, question);
         if (isCancelled) return;
 
         const job = data.job;
@@ -78,6 +77,14 @@ export const Discover: React.FC = () => {
         setMessage(job.message);
         if (Array.isArray(job.queriesGenerated)) {
           setQueries(job.queriesGenerated);
+        }
+
+        if (Array.isArray(job.suggestedAttributes) && job.suggestedAttributes.length > 0 && !hasCustomizedAttributes) {
+          const formatted = job.suggestedAttributes.map((a: string) => {
+            const cleaned = a.replace(/_/g, ' ').trim();
+            return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+          });
+          setAttributes(formatted);
         }
 
         if (job.status === 'ready') {
@@ -239,13 +246,18 @@ export const Discover: React.FC = () => {
           title: s.title,
           domain: s.domain,
           date: s.date,
-          rawContent: s.rawContent || (isSample ? s.snippet : undefined),
+          rawContent: s.rawContent || s.snippet || undefined,
+          snippet: s.snippet,
           sourceType: isSample ? 'sample' : (s.sourceType || 'real')
         };
       });
 
-    if (chosenSources.length === 0) {
-      setError('Please select or add at least one source before proceeding with analysis.');
+    setError(null);
+
+    // Only prompt if sources were actually discovered, but user actively unselected all of them.
+    // In question-only fallback mode (0 sources found), allow proceeding with empty sources directly.
+    if (sources.length > 0 && chosenSources.length === 0) {
+      setError('Please select at least one of the discovered sources or add your own.');
       return;
     }
 
@@ -257,7 +269,8 @@ export const Discover: React.FC = () => {
         return;
       }
 
-      const res = await startAnalysis(question, chosenSources, false, attributes);
+      const customAttrsToSend = hasCustomizedAttributes && attributes.length > 0 ? attributes : undefined;
+      const res = await startAnalysis(question, chosenSources, false, customAttrsToSend);
       navigate(`/analyzing/${res.jobId}`);
     } catch (err: any) {
       setError(err.message || 'Failed to start analysis');
@@ -266,7 +279,19 @@ export const Discover: React.FC = () => {
   };
 
   return (
-    <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-8 space-y-8 pb-16">
+    <div className="max-w-275 mx-auto px-4 sm:px-6 py-8 space-y-6 pb-16">
+      {/* Back to Query Button */}
+      <div>
+        <button
+          type="button"
+          onClick={() => navigate('/', { state: { question } })}
+          className="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-text transition-colors cursor-pointer group"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
+          <span>Back to query & edit</span>
+        </button>
+      </div>
+
       {/* Top Header */}
       <div className="space-y-2 border-b border-seed/10 pb-6">
         <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-rind/10 text-rind text-xs font-sans font-medium">
@@ -281,25 +306,39 @@ export const Discover: React.FC = () => {
         </p>
       </div>
 
-      {/* Mandatory Disclaimer Note */}
-      <div className="p-3.5 rounded-sm bg-seed/[0.02] border border-seed/10 flex items-center gap-2.5 text-xs text-seed-muted">
+      {/* Mandatory Transparency Note */}
+      <div className="p-3.5 rounded-sm bg-seed/2 border border-seed/10 flex items-center gap-2.5 text-xs text-seed-muted">
         <Info className="w-4 h-4 text-rind shrink-0" />
         <span>
-          <strong className="text-seed font-semibold">Transparency:</strong> Information gap analysis cross-examines verified content across multiple sources. Select which sources to include, or add custom URLs and notes below.
+          These are sources retrieved for your question. Search results are not a complete view of the web.
         </span>
       </div>
 
-      {/* Error Banner */}
-      {error && (
-        <div className="p-4 rounded-sm bg-flesh/10 border border-flesh/30 text-flesh flex items-start gap-2.5 text-xs font-medium" role="alert">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-          <p>{error}</p>
+      {/* Error Banner with Actionable Return */}
+      {error && !(sources.length === 0 && error.toLowerCase().includes('select')) && (
+        <div className="p-4 rounded-lg bg-gap/10 border border-gap/30 text-gap space-y-2.5 text-xs" role="alert">
+          <div className="flex items-center gap-2 font-bold text-sm">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>Source Discovery Issue</span>
+          </div>
+          <p className="text-text leading-relaxed">{error}</p>
+          <div className="pt-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/', { state: { question } })}
+              className="gap-1.5"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Return to Edit Query
+            </Button>
+          </div>
         </div>
       )}
 
       {/* Loading Search State */}
       {loading ? (
-        <div className="p-8 sm:p-12 text-center space-y-4 border border-seed/10 rounded-sm bg-seed/[0.01]">
+        <div className="p-8 sm:p-12 text-center space-y-4 border border-seed/10 rounded-sm bg-seed/1">
           <Loader2 className="w-7 h-7 animate-spin text-rind mx-auto" />
           <div className="space-y-1">
             <h3 className="font-heading font-bold text-lg text-seed">{message}</h3>
@@ -323,24 +362,55 @@ export const Discover: React.FC = () => {
         </div>
       ) : (
         <>
-          {/* Fallback Banner When No Search Keys are Configured / 0 Sources Found */}
+          {/* Phase 5 Honest Fallback Banner When 0 Sources Found */}
           {sources.length === 0 ? (
-            <div className="p-6 rounded-sm bg-seed/[0.02] border border-seed/15 space-y-4">
+            <div className="p-6 rounded-sm bg-seed/2 border border-seed/15 space-y-4">
               <div className="flex items-start gap-3">
                 <div className="p-2 rounded-xs bg-crack/15 text-crack shrink-0 mt-0.5">
                   <AlertCircle className="w-5 h-5" />
                 </div>
                 <div className="space-y-1">
                   <h3 className="font-heading font-bold text-base text-seed">
-                    Web discovery is currently unavailable.
+                    {message || "No sources reviewed. AI-suggested: no sources could be retrieved for this question. These are verification suggestions, not source-backed findings."}
                   </h3>
                   <p className="text-xs text-seed-muted leading-relaxed">
-                    No external web search provider keys are active in this environment. To proceed with the information gap audit, you can add specific source URLs or paste document excerpts below, or explore the pre-verified offline demonstration dataset.
+                    Automated web search could not retrieve external sources for this question at this time (provider limits, quota, or offline sandbox). You can proceed to view AI-suggested verification guidance and open questions, retry discovery, add direct URLs, or paste document text excerpts below.
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-3 pt-1">
+                <Button
+                  variant="rind"
+                  size="sm"
+                  onClick={handleAnalyzeSelected}
+                  disabled={isSubmitting}
+                  className="font-bold gap-1.5"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{isSubmitting ? 'Preparing Guidance...' : 'Proceed with AI-Suggested Checklist'}</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    setLoading(true);
+                    setError(null);
+                    try {
+                      const discRes = await startDiscovery(question);
+                      navigate(`/discover/${discRes.discoveryId}`, { replace: true });
+                    } catch (err: any) {
+                      setError(err.message || 'Retry failed');
+                      setLoading(false);
+                    }
+                  }}
+                  className="text-xs font-semibold gap-1.5"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Retry Discovery</span>
+                </Button>
+
                 <Button
                   variant="outline"
                   size="sm"
@@ -388,7 +458,7 @@ export const Discover: React.FC = () => {
                     <div
                       key={idx}
                       className={`p-4 transition-colors ${
-                        isSelected ? 'bg-pith' : 'bg-seed/[0.02] opacity-75'
+                        isSelected ? 'bg-pith' : 'bg-seed/2 opacity-75'
                       }`}
                     >
                       <div className="flex items-start gap-3">
@@ -429,7 +499,12 @@ export const Discover: React.FC = () => {
                               )}
                               {source.limited && (
                                 <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-xs bg-crack/10 text-crack border border-crack/20">
-                                  Limited Snippet
+                                  Limited (supporting text only)
+                                </span>
+                              )}
+                              {source.unavailable && (
+                                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-xs bg-gap/10 text-gap border border-gap/20">
+                                  Unavailable
                                 </span>
                               )}
                             </div>
@@ -444,6 +519,11 @@ export const Discover: React.FC = () => {
                               <span className="flex items-center gap-1">
                                 <Calendar className="w-3.5 h-3.5 opacity-60" />
                                 {source.date}
+                              </span>
+                            )}
+                            {source.relevanceHint && (
+                              <span className="text-[10px] font-sans font-medium px-2 py-0.5 rounded-xs bg-rind/5 text-rind border border-rind/15">
+                                {source.relevanceHint}
                               </span>
                             )}
                           </div>
@@ -480,7 +560,7 @@ export const Discover: React.FC = () => {
           )}
 
           {/* Supplement with Additional Sources */}
-          <div className="p-5 rounded-sm border border-dashed border-seed/20 bg-seed/[0.01] space-y-4">
+          <div className="p-5 rounded-sm border border-dashed border-seed/20 bg-seed/1 space-y-4">
             <h4 className="font-heading font-bold text-sm text-seed flex items-center gap-1.5">
               <Plus className="w-4 h-4 text-rind" />
               Add User-Provided Sources (Multiple URLs or Document Excerpt)
@@ -513,12 +593,12 @@ export const Discover: React.FC = () => {
                         onChange={(e) => updateUrlItem(idx, e.target.value)}
                         placeholder={
                           idx === 0
-                            ? 'https://scholarships.gov.in/guidelines-2026.html'
+                            ? 'https://example.org/specifications.html'
                             : idx === 1
-                            ? 'https://education.gov.in/notice-2026.pdf'
-                            : `https://example.gov/source-${idx + 1}`
+                            ? 'https://example.org/guidelines.pdf'
+                            : `https://example.org/source-${idx + 1}`
                         }
-                        className="flex-1 px-3 py-1.5 rounded-sm border border-seed/15 bg-seed/[0.02] text-xs focus:ring-1 focus:ring-rind text-seed placeholder:text-seed-muted/60"
+                        className="flex-1 px-3 py-1.5 rounded-sm border border-seed/15 bg-seed/2 text-xs focus:ring-1 focus:ring-rind text-seed placeholder:text-seed-muted/60"
                       />
                       {urlList.length > 1 && (
                         <button
@@ -559,7 +639,7 @@ export const Discover: React.FC = () => {
                     value={extraTextTitle}
                     onChange={(e) => setExtraTextTitle(e.target.value)}
                     placeholder="Document Label / Title (e.g. Official Gazette Circular)"
-                    className="w-full px-3 py-1.5 rounded-sm border border-seed/15 bg-seed/[0.02] text-xs text-seed placeholder:text-seed-muted/60"
+                    className="w-full px-3 py-1.5 rounded-sm border border-seed/15 bg-seed/2 text-xs text-seed placeholder:text-seed-muted/60"
                   />
                   <div className="space-y-2">
                     <textarea
@@ -567,7 +647,7 @@ export const Discover: React.FC = () => {
                       onChange={(e) => setExtraText(e.target.value)}
                       placeholder="Paste official text rules, clauses, or excerpts..."
                       rows={3}
-                      className="w-full p-2.5 rounded-sm border border-seed/15 bg-seed/[0.02] text-xs resize-none text-seed placeholder:text-seed-muted/60"
+                      className="w-full p-2.5 rounded-sm border border-seed/15 bg-seed/2 text-xs resize-none text-seed placeholder:text-seed-muted/60"
                     />
                     <div className="flex justify-end">
                       <Button variant="outline" size="sm" onClick={handleAddExtraText} className="text-xs font-semibold">
@@ -600,22 +680,28 @@ export const Discover: React.FC = () => {
 
             {/* Chip List */}
             <div className="flex flex-wrap gap-2 pt-1">
-              {attributes.map((attr, idx) => (
-                <div
-                  key={idx}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm bg-seed/5 border border-seed/10 text-xs text-seed font-mono"
-                >
-                  <span>{attr}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveAttribute(attr)}
-                    className="text-seed-muted hover:text-crack text-sm leading-none ml-0.5"
-                    title="Remove parameter"
+              {attributes.length === 0 ? (
+                <span className="text-xs text-seed-muted/70 italic">
+                  AI will derive topic-specific decision parameters from the question and retrieved sources...
+                </span>
+              ) : (
+                attributes.map((attr, idx) => (
+                  <div
+                    key={idx}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm bg-seed/5 border border-seed/10 text-xs text-seed font-mono"
                   >
-                    ×
-                  </button>
-                </div>
-              ))}
+                    <span>{attr}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAttribute(attr)}
+                      className="text-seed-muted hover:text-crack text-sm leading-none ml-0.5"
+                      title="Remove parameter"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
 
             {/* Add new attribute */}
@@ -630,7 +716,7 @@ export const Discover: React.FC = () => {
                     handleAddAttribute();
                   }
                 }}
-                placeholder="e.g. stipend_amount, renewal_gpa"
+                placeholder="e.g. warranty_period, battery_specifications"
                 className="flex-1 px-3 py-1.5 rounded-sm border border-seed/15 bg-pith text-xs focus:ring-1 focus:ring-rind text-seed placeholder:text-seed-muted/60"
               />
               <Button variant="outline" size="sm" onClick={handleAddAttribute}>
@@ -641,7 +727,8 @@ export const Discover: React.FC = () => {
 
           {/* Action Bottom Bar */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-seed/10">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/', { state: { question } })} className="gap-1.5">
+              <ArrowLeft className="w-3.5 h-3.5" />
               Change Question
             </Button>
 

@@ -57,6 +57,7 @@ runCommand('backend_tests', 'Phase 0/1', 'npx tsx backend/test/test-hackathon-sc
 runCommand('phase1_engine_tests', 'Phase 1', 'npx tsx backend/test/test-phase1-engine.ts');
 runCommand('normalization_tests', 'Phase 1', 'npm --prefix backend run test:norm');
 runCommand('discovery_phase2_tests', 'Phase 2', 'npx tsx backend/test/test-discovery-phase2.ts');
+runCommand('question_only_tests', 'Phase 8', 'npx tsx backend/test/test-question-only-discovery.ts');
 
 // 2. Evaluation Suite
 runCommand('evaluation', 'Phase 0/3', 'npx tsx backend/scripts/eval.ts');
@@ -113,6 +114,9 @@ if (fs.existsSync(pdfScript)) {
 // 10. Safety and Robustness Tests (Part D)
 runCommand('edge_cases_tests', 'Part D', 'npx tsx backend/test/test-edge-cases.ts');
 runCommand('failover_tests', 'Part D', 'npx tsx backend/test/test-failover.ts');
+runCommand('reliability_quality_tests', 'Reliability', 'npx tsx backend/test/test-reliability-quality.ts');
+runCommand('data_reduction_quality_tests', 'Quality', 'npx tsx backend/test/test-data-reduction-quality.ts');
+runCommand('hardware_verification_tests', 'Quality', 'npx tsx backend/test/test-laptop-verification.ts');
 
 // Print Results Table
 console.log('\n┌──────────────────────────────┬──────────┬──────────┬───────────┬────────────────────────────────────────────────────┐');

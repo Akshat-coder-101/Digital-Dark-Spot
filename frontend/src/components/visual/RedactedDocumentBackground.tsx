@@ -94,7 +94,7 @@ export const RedactedDocumentBackground: React.FC = () => {
                 className={`h-2 rounded-xs shrink-0 ${b} ${
                   interactive
                     ? 'bg-seed/15 dark:bg-seed/20'
-                    : 'bg-seed/[0.035] dark:bg-seed/[0.045]'
+                    : 'bg-seed/3.5 dark:bg-seed/4.5'
                 }`}
               />
             );

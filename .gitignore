@@ -5,9 +5,15 @@ node_modules/
 
 # Environment variables
 .env
+backend/.env
 .env.local
 .env.production
 .env.development
+
+# Local data store & snapshots
+data/
+backend/data/
+data/store/
 
 # Build outputs
 dist/

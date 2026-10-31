@@ -42,7 +42,7 @@ export const SourcesTab: React.FC = () => {
       <div className="w-full overflow-x-auto rounded-sm border border-seed/10 bg-pith">
         <table className="w-full text-left text-xs border-collapse">
           <thead>
-            <tr className="border-b border-seed/10 bg-seed/[0.02]">
+            <tr className="border-b border-seed/10 bg-seed/2">
               <th scope="col" className="py-2.5 px-3 font-heading font-bold text-seed">Source Title & Origin</th>
               <th scope="col" className="py-2.5 px-2 font-heading font-bold text-seed">Source Type</th>
               <th scope="col" className="py-2.5 px-2 font-heading font-bold text-seed">Authority</th>
@@ -60,10 +60,10 @@ export const SourcesTab: React.FC = () => {
               const isUserProvided = source.type === 'text' || source.sourceType === 'user_text' || source.sourceType === 'user_url';
 
               return (
-                <tr key={source.id} className="hover:bg-seed/[0.015] transition-colors">
+                <tr key={source.id} className="hover:bg-seed/1.5 transition-colors">
                   {/* Title & Domain */}
                   <td className="py-3 px-3">
-                    <div className="flex items-start gap-2.5 min-w-[220px]">
+                    <div className="flex items-start gap-2.5 min-w-55">
                       <div className="p-1 rounded-xs bg-seed/5 text-seed shrink-0 mt-0.5">
                         {isSample ? (
                           <Database className="w-3.5 h-3.5 text-crack" />
@@ -74,7 +74,7 @@ export const SourcesTab: React.FC = () => {
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-heading font-bold text-xs text-seed truncate max-w-[260px]">
+                        <p className="font-heading font-bold text-xs text-seed truncate max-w-65">
                           {source.title}
                         </p>
                         <p className="text-[10px] font-mono text-seed-muted">

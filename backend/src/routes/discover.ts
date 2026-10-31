@@ -68,9 +68,20 @@ discoverRouter.post('/', async (req: Request, res: Response): Promise<void> => {
 });
 
 // GET /api/discover/:id
-discoverRouter.get('/:id', (req: Request, res: Response): void => {
+discoverRouter.get('/:id', async (req: Request, res: Response): Promise<void> => {
   const id = String(req.params.id);
-  const job = discoveryService.getJob(id);
+  let job = discoveryService.getJob(id);
+
+  // If not found in memory or persistent store, attempt auto-recovery
+  if (!job) {
+    const questionFromQuery = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    if (questionFromQuery) {
+      console.log(`[Discover Recovery] Re-running discovery for job ${id} from query question: "${questionFromQuery}"`);
+      job = await discoveryService.runDiscovery(id, questionFromQuery);
+    } else if (id.includes('sample')) {
+      job = await discoveryService.runDiscovery(id, 'Sample Topic');
+    }
+  }
 
   if (!job) {
     res.status(404).json({ error: `Discovery job ${id} not found.` });

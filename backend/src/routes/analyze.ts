@@ -11,6 +11,13 @@ const ipRateLimits = new Map<string, RateLimitRecord>();
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour window
 const RATE_LIMIT_MAX_PER_HOUR = 5; // 5 analyses per hour per IP
 
+interface JobInputsRecord {
+  question: string;
+  sourceInputs: SourceInput[];
+  customAttrs?: string[];
+}
+const jobInputsStore = new Map<string, JobInputsRecord>();
+
 export function resetRateLimitsForTesting(): void {
   ipRateLimits.clear();
 }
@@ -51,12 +58,9 @@ analyzeRouter.post('/', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    if (!Array.isArray(sources) || sources.length === 0) {
-      res.status(400).json({ error: 'At least one source (URL or pasted text) is required.' });
-      return;
-    }
+    const sourcesList = Array.isArray(sources) ? sources : [];
 
-    const sourceInputs: SourceInput[] = sources.map((s: any, idx: number) => ({
+    const sourceInputs: SourceInput[] = sourcesList.map((s: any, idx: number) => ({
       id: s.id,
       type: s.type === 'text' ? 'text' : 'url',
       value: typeof s.value === 'string' ? s.value : '',
@@ -73,6 +77,13 @@ analyzeRouter.post('/', async (req: Request, res: Response): Promise<void> => {
 
     const jobId = `job-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
 
+    // Store inputs for seamless retry if LLM providers fail
+    jobInputsStore.set(jobId, {
+      question,
+      sourceInputs,
+      customAttrs
+    });
+
     // Kick off pipeline asynchronously so response is immediate
     analysisPipeline.run(jobId, question, sourceInputs, Boolean(forceRerun), undefined, customAttrs).catch(err => {
       console.error(`Error in async pipeline job ${jobId}:`, err);
@@ -86,6 +97,29 @@ analyzeRouter.post('/', async (req: Request, res: Response): Promise<void> => {
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Internal analysis startup error' });
   }
+});
+
+// POST /api/analyze/:id/retry (Reuses already-discovered sources without returning to input)
+analyzeRouter.post('/:id/retry', (req: Request, res: Response): void => {
+  const jobId = String(req.params.id);
+  const inputs = jobInputsStore.get(jobId);
+
+  if (!inputs) {
+    res.status(404).json({ error: `Cannot retry: Job ${jobId} inputs not found.` });
+    return;
+  }
+
+  // Re-run pipeline asynchronously
+  analysisPipeline.run(jobId, inputs.question, inputs.sourceInputs, true, undefined, inputs.customAttrs).catch(err => {
+    console.error(`Error in async pipeline retry for ${jobId}:`, err);
+  });
+
+  res.json({
+    success: true,
+    jobId,
+    status: 'retrying',
+    message: 'Analysis retry initiated using existing sources.'
+  });
 });
 
 // GET /api/analyze/:id/status

@@ -8,14 +8,14 @@ export async function generateDiverseSearchQueries(question: string): Promise<st
     try {
       const systemPrompt = `You are an expert investigative search planner.
 Given a user's research question, generate 4 to 6 diverse, high-precision search engine queries aimed at uncovering:
-1. Official primary government / institutional notice
-2. Primary qualifying criteria and restrictions
-3. Mandatory document requirements
-4. Deadlines, schedules, and cycle timeline
-5. Ongoing continuation terms and extension conditions (often missing!)
-6. Official application portal or submission link
+1. Primary official sources, manufacturer specifications, or authoritative notices
+2. Key qualifying criteria, core specifications, or essential standards
+3. Critical requirements, mandatory documentation, or hardware/software terms
+4. Timeline, deadlines, release schedules, or validity periods
+5. Caveats, ongoing conditions, exclusions, or warranty terms
+6. Official portal, verification links, or purchase/application channels
 
-Include the current year (${currentYear}) in relevant queries.
+Include the current year (${currentYear}) where relevant.
 Return ONLY raw JSON matching: { "queries": string[] }`;
 
       const userPrompt = `Research Question: "${question}"`;
@@ -43,18 +43,18 @@ Return ONLY raw JSON matching: { "queries": string[] }`;
     }
   }
 
-  // Deterministic fallback query builder
+  // Topic-neutral deterministic fallback queries
   const base = question
     .replace(/[?.,!]/g, '')
     .trim();
 
   return [
-    `${base} official notice guidelines ${currentYear}`,
-    `${base} qualifying criteria requirements`,
-    `${base} mandatory required documents checklist`,
-    `${base} application deadline schedule ${currentYear}`,
-    `${base} continuation terms policy extension`,
-    `${base} official portal link application submission`
+    `${base} official specifications documentation ${currentYear}`,
+    `${base} key criteria requirements`,
+    `${base} critical verification factors considerations`,
+    `${base} schedule timeline dates ${currentYear}`,
+    `${base} limitations exceptions policy`,
+    `${base} official primary source link`
   ];
 }
 

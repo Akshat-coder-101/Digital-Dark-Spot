@@ -1,8 +1,65 @@
 import * as cheerio from 'cheerio';
+import zlib from 'zlib';
 import { SourceInput, IngestedSource, CredibilityHint, UsefulnessStatus } from './types.js';
 import { validateUrlForSSRF } from './ssrf.js';
 import { detectTemporalMetadata } from './metadata.js';
 import crypto from 'crypto';
+
+export function extractTextFromPdfBuffer(buf: Buffer): string {
+  let pos = 0;
+  let out = '';
+  while (pos < buf.length) {
+    const streamStart = buf.indexOf(Buffer.from('stream'), pos);
+    if (streamStart === -1) break;
+    let dataStart = streamStart + 6;
+    if (buf[dataStart] === 13) dataStart++;
+    if (buf[dataStart] === 10) dataStart++;
+    const streamEnd = buf.indexOf(Buffer.from('endstream'), dataStart);
+    if (streamEnd === -1) break;
+    let slice = buf.slice(dataStart, streamEnd);
+    if (slice[slice.length - 1] === 10) slice = slice.slice(0, slice.length - 1);
+    if (slice[slice.length - 1] === 13) slice = slice.slice(0, slice.length - 1);
+    let uncompressed = slice;
+    try {
+      uncompressed = zlib.inflateSync(slice);
+    } catch {
+      // uncompressed or alternative filter
+    }
+    const s = uncompressed.toString('latin1');
+    const parenMatches = s.match(/\(([^()]*)\)/g);
+    if (parenMatches) {
+      for (const pm of parenMatches) {
+        const text = pm.slice(1, -1).replace(/\\([()\\])/g, '$1').trim();
+        if (text && text.length > 1) {
+          out += text + ' ';
+        }
+      }
+    }
+    pos = streamEnd + 9;
+  }
+  return out.replace(/\s+/g, ' ').trim();
+}
+
+const JUNK_BOILERPLATE_REGEX = /(something went wrong|page not found|404 not found|access denied|sign in to continue|session expired|please log in|enable javascript to continue|cloudflare|robot check|captcha|you have been signed out|log in to your account)/i;
+
+export function stripBoilerplate(text: string): { cleaned: string; isJunk: boolean } {
+  const lines = text.split('\n');
+  const filteredLines: string[] = [];
+  let junkMatches = 0;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (JUNK_BOILERPLATE_REGEX.test(trimmed)) {
+      junkMatches++;
+      continue;
+    }
+    filteredLines.push(line);
+  }
+
+  const cleaned = cleanExtractedText(filteredLines.join('\n'));
+  const isJunk = junkMatches > 0 && (cleaned.length < 300 || junkMatches >= Math.max(1, lines.length / 2));
+  return { cleaned, isJunk };
+}
 
 export function cleanExtractedText(raw: string): string {
   return raw
@@ -37,6 +94,42 @@ export function determineCredibilityHint(domain: string): CredibilityHint {
     return 'institutional';
   }
   return 'general';
+}
+
+export function classifyUrlFailure(
+  rawUrl: string,
+  detailError?: string
+): 'invalid URL' | 'private address' | 'blocked or timed out' {
+  if (!rawUrl || !rawUrl.trim()) {
+    return 'invalid URL';
+  }
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return 'invalid URL';
+    }
+  } catch {
+    return 'invalid URL';
+  }
+
+  if (detailError) {
+    const errLower = detailError.toLowerCase();
+    if (errLower.includes('malformed') || errLower.includes('protocol')) {
+      return 'invalid URL';
+    }
+    if (
+      errLower.includes('ssrf') ||
+      errLower.includes('private') ||
+      errLower.includes('loopback') ||
+      errLower.includes('localhost') ||
+      errLower.includes('protected ip') ||
+      errLower.includes('internal')
+    ) {
+      return 'private address';
+    }
+  }
+
+  return 'blocked or timed out';
 }
 
 export async function processSource(input: SourceInput, index: number): Promise<IngestedSource> {
@@ -76,13 +169,17 @@ export async function processSource(input: SourceInput, index: number): Promise<
       };
     }
 
-    const cleaned = cleanExtractedText(raw);
+    const { cleaned, isJunk } = stripBoilerplate(raw);
     const firstLine = cleaned.split('\n')[0].slice(0, 60).trim();
     const title = input.title || (firstLine.length > 5 ? firstLine : `Source ${index + 1}`);
     const temporal = detectTemporalMetadata(cleaned, title);
     const wordCount = cleaned.split(/\s+/).filter(Boolean).length;
     const textCharacterCount = cleaned.length;
-    const usefulnessStatus: UsefulnessStatus = textCharacterCount < 50 ? 'NEEDS_ATTENTION' : 'READY';
+    // Mark source Limited if usable text is under ~1,500 characters or junk page detected
+    const isLimited = textCharacterCount < 1500 || isJunk;
+    const usefulnessStatus: UsefulnessStatus = isLimited
+      ? 'NEEDS_ATTENTION'
+      : (textCharacterCount < 50 ? 'NEEDS_ATTENTION' : 'READY');
 
     return {
       id,
@@ -103,8 +200,9 @@ export async function processSource(input: SourceInput, index: number): Promise<
       isStale: temporal.isStale,
       isUndated: temporal.isUndated,
       status: 'ready',
-      fetchedAt: nowIso,
-      sourceType: input.sourceType || (isSample ? 'sample' : (input.type === 'text' ? 'user_text' : 'user_url'))
+      isLimited,
+      sourceType: input.sourceType || (isSample ? 'sample' : (isLimited ? 'limited' : (input.type === 'text' ? 'user_text' : 'user_url'))),
+      fetchedAt: nowIso
     };
   }
 
@@ -112,7 +210,41 @@ export async function processSource(input: SourceInput, index: number): Promise<
   const rawUrl = (input.value || '').trim();
   const ssrfCheck = await validateUrlForSSRF(rawUrl);
   if (!ssrfCheck.valid || !ssrfCheck.url) {
-    const domain = ssrfCheck.url?.hostname || 'unknown-host';
+    let domain = 'unknown-host';
+    try { domain = new URL(rawUrl).hostname; } catch {}
+    const plainReason = classifyUrlFailure(rawUrl, ssrfCheck.error);
+    // Server-side logging only for the actual failure reason
+    console.error(`[Ingest Failure] SSRF/URL validation check failed for "${rawUrl}":`, ssrfCheck.error || 'Invalid URL');
+
+    // If supporting text/snippet exists from search provider and not a private internal address
+    const fallbackText = cleanExtractedText(input.snippet || input.rawContent || '');
+    if (fallbackText.length >= 20 && plainReason !== 'private address') {
+      return {
+        id,
+        type: 'url',
+        url: rawUrl,
+        domain,
+        title: input.title || domain,
+        rawText: fallbackText,
+        cleanedText: fallbackText,
+        wordCount: fallbackText.split(/\s+/).filter(Boolean).length,
+        textCharacterCount: fallbackText.length,
+        claimsExtracted: 0,
+        claimsDiscarded: 0,
+        usefulnessStatus: 'NEEDS_ATTENTION',
+        credibilityHint: determineCredibilityHint(domain),
+        detectedDate: null,
+        detectedCycle: null,
+        isStale: false,
+        isUndated: true,
+        status: 'ready',
+        isLimited: true,
+        sourceType: 'limited',
+        errorMessage: 'Network retrieval failed; using supporting provider text.',
+        fetchedAt: nowIso
+      };
+    }
+
     return {
       id,
       type: 'url',
@@ -132,9 +264,10 @@ export async function processSource(input: SourceInput, index: number): Promise<
       isStale: false,
       isUndated: true,
       status: 'error',
-      errorMessage: ssrfCheck.error || 'Blocked by security policy (SSRF).',
+      isUnavailable: true,
+      errorMessage: plainReason,
       fetchedAt: nowIso,
-      sourceType: input.sourceType || (isSample ? 'sample' : 'user_url')
+      sourceType: 'unavailable'
     };
   }
 
@@ -149,12 +282,44 @@ export async function processSource(input: SourceInput, index: number): Promise<
   try {
     const response = await fetch(parsedUrl.toString(), {
       headers: {
-        'User-Agent': 'DigitalDarkSpotBot/1.0 (+https://digitaldarkspot.example/bot)'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
       },
       signal: controller.signal
     });
 
     if (!response.ok) {
+      // Server-side logging only
+      console.error(`[Ingest Failure] HTTP fetch failed for "${rawUrl}" with status ${response.status} ${response.statusText}`);
+
+      // Check if supporting snippet/text is available from search provider
+      const fallbackText = cleanExtractedText(input.snippet || input.rawContent || '');
+      if (fallbackText.length >= 20) {
+        return {
+          id,
+          type: 'url',
+          url: rawUrl,
+          domain,
+          title: input.title || domain,
+          rawText: fallbackText,
+          cleanedText: fallbackText,
+          wordCount: fallbackText.split(/\s+/).filter(Boolean).length,
+          textCharacterCount: fallbackText.length,
+          claimsExtracted: 0,
+          claimsDiscarded: 0,
+          usefulnessStatus: 'NEEDS_ATTENTION',
+          credibilityHint,
+          detectedDate: null,
+          detectedCycle: null,
+          isStale: false,
+          isUndated: true,
+          status: 'ready',
+          isLimited: true,
+          sourceType: 'limited',
+          errorMessage: 'Live page retrieval failed; using supporting provider text.',
+          fetchedAt: nowIso
+        };
+      }
+
       return {
         id,
         type: 'url',
@@ -174,31 +339,108 @@ export async function processSource(input: SourceInput, index: number): Promise<
         isStale: false,
         isUndated: true,
         status: 'error',
-        errorMessage: `HTTP ${response.status} ${response.statusText}`,
+        isUnavailable: true,
+        errorMessage: 'blocked or timed out',
         fetchedAt: nowIso,
-        sourceType: input.sourceType || (isSample ? 'sample' : 'real')
+        sourceType: 'unavailable'
       };
     }
 
-    const html = await response.text();
-    const $ = cheerio.load(html);
+    const contentType = response.headers.get('content-type') || '';
+    const isPdf = contentType.toLowerCase().includes('application/pdf') || rawUrl.toLowerCase().split('?')[0].endsWith('.pdf');
 
-    // Remove noise elements
-    $('script, style, nav, footer, header, noscript, svg, iframe, form, button').remove();
+    let bodyText = '';
+    let finalTitle = input.title || domain;
 
-    // Extract title
-    const docTitle = $('meta[property="og:title"]').attr('content') ||
-      $('title').first().text() ||
-      $('h1').first().text() ||
-      domain;
-    const finalTitle = (input.title || docTitle || domain).trim();
+    if (isPdf) {
+      const arrayBuffer = await response.arrayBuffer();
+      bodyText = extractTextFromPdfBuffer(Buffer.from(arrayBuffer));
+      finalTitle = input.title || `${domain} (PDF Document)`;
+    } else {
+      const html = await response.text();
+      const $ = cheerio.load(html);
 
-    // Extract body text
-    const bodyText = $('body').text() || $.text();
-    const cleaned = cleanExtractedText(bodyText);
+      // Remove noise elements
+      $('script, style, nav, footer, header, noscript, svg, iframe, form, button').remove();
+
+      // Extract title
+      const docTitle = $('meta[property="og:title"]').attr('content') ||
+        $('title').first().text() ||
+        $('h1').first().text() ||
+        domain;
+      finalTitle = (input.title || docTitle || domain).trim();
+
+      // Extract body text
+      bodyText = $('body').text() || $.text();
+    }
+
+    const { cleaned, isJunk } = stripBoilerplate(bodyText);
     const wordCount = cleaned.split(/\s+/).filter(Boolean).length;
     const textCharacterCount = cleaned.length;
-    const usefulnessStatus: UsefulnessStatus = textCharacterCount < 50 ? 'NEEDS_ATTENTION' : 'READY';
+
+    // Detect empty or JavaScript-only pages, or pure boilerplate junk pages
+    if (textCharacterCount < 20 || wordCount === 0 || (isJunk && textCharacterCount < 100)) {
+      console.warn(`[Ingest Failure] Empty or JavaScript-only page content for "${rawUrl}" (length: ${textCharacterCount}, words: ${wordCount}, isJunk: ${isJunk})`);
+
+      const fallbackText = cleanExtractedText(input.snippet || input.rawContent || '');
+      if (fallbackText.length >= 20) {
+        return {
+          id,
+          type: 'url',
+          url: rawUrl,
+          domain,
+          title: finalTitle,
+          rawText: fallbackText,
+          cleanedText: fallbackText,
+          wordCount: fallbackText.split(/\s+/).filter(Boolean).length,
+          textCharacterCount: fallbackText.length,
+          claimsExtracted: 0,
+          claimsDiscarded: 0,
+          usefulnessStatus: 'NEEDS_ATTENTION',
+          credibilityHint,
+          detectedDate: null,
+          detectedCycle: null,
+          isStale: false,
+          isUndated: true,
+          status: 'ready',
+          isLimited: true,
+          sourceType: 'limited',
+          errorMessage: 'Page content was empty or JS-rendered; using supporting provider text.',
+          fetchedAt: nowIso
+        };
+      }
+
+      return {
+        id,
+        type: 'url',
+        url: rawUrl,
+        domain,
+        title: finalTitle,
+        rawText: bodyText,
+        cleanedText: cleaned,
+        wordCount,
+        textCharacterCount,
+        claimsExtracted: 0,
+        claimsDiscarded: 0,
+        usefulnessStatus: 'FAILED',
+        credibilityHint,
+        detectedDate: null,
+        detectedCycle: null,
+        isStale: false,
+        isUndated: true,
+        status: 'error',
+        isUnavailable: true,
+        errorMessage: 'empty or JavaScript-only page',
+        fetchedAt: nowIso,
+        sourceType: 'unavailable'
+      };
+    }
+
+    // Mark source Limited if usable text is under ~1,500 characters or junk page detected
+    const isLimited = textCharacterCount < 1500 || isJunk;
+    const usefulnessStatus: UsefulnessStatus = isLimited
+      ? 'NEEDS_ATTENTION'
+      : (textCharacterCount < 50 ? 'NEEDS_ATTENTION' : 'READY');
 
     // Detect temporal metadata
     const temporal = detectTemporalMetadata(cleaned, finalTitle);
@@ -222,11 +464,42 @@ export async function processSource(input: SourceInput, index: number): Promise<
       isStale: temporal.isStale,
       isUndated: temporal.isUndated,
       status: 'ready',
-      fetchedAt: nowIso,
-      sourceType: input.sourceType || 'real'
+      isLimited,
+      sourceType: input.sourceType || (isLimited ? 'limited' : 'real'),
+      fetchedAt: nowIso
     };
   } catch (fetchErr: any) {
-    const isTimeout = fetchErr.name === 'AbortError' || fetchErr.message?.includes('aborted');
+    // Server-side logging only
+    console.error(`[Ingest Failure] Network fetch exception for "${rawUrl}":`, fetchErr);
+
+    const fallbackText = cleanExtractedText(input.snippet || input.rawContent || '');
+    if (fallbackText.length >= 20) {
+      return {
+        id,
+        type: 'url',
+        url: rawUrl,
+        domain,
+        title: input.title || domain,
+        rawText: fallbackText,
+        cleanedText: fallbackText,
+        wordCount: fallbackText.split(/\s+/).filter(Boolean).length,
+        textCharacterCount: fallbackText.length,
+        claimsExtracted: 0,
+        claimsDiscarded: 0,
+        usefulnessStatus: 'NEEDS_ATTENTION',
+        credibilityHint,
+        detectedDate: null,
+        detectedCycle: null,
+        isStale: false,
+        isUndated: true,
+        status: 'ready',
+        isLimited: true,
+        sourceType: 'limited',
+        errorMessage: 'Network retrieval failed; using supporting provider text.',
+        fetchedAt: nowIso
+      };
+    }
+
     return {
       id,
       type: 'url',
@@ -246,11 +519,10 @@ export async function processSource(input: SourceInput, index: number): Promise<
       isStale: false,
       isUndated: true,
       status: 'error',
-      errorMessage: isTimeout
-        ? 'Request timed out (12s limit exceeded). Page may be blocking automated retrieval.'
-        : `Network error: ${fetchErr.message || 'Failed to connect'}`,
+      isUnavailable: true,
+      errorMessage: 'blocked or timed out',
       fetchedAt: nowIso,
-      sourceType: input.sourceType || 'user_url'
+      sourceType: 'unavailable'
     };
   } finally {
     clearTimeout(timeoutId);

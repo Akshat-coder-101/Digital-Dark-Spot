@@ -20,8 +20,8 @@ export interface DetectedTemporalInfo {
   dateKind?: 'publication' | 'deadline' | 'validity' | 'unknown';
 }
 
-const EXPLICIT_PUB_PREFIX = /\b(?:published|updated|posted(?:\s+on)?|dated|last\s+modified|as\s+of|issue\s+date|circular\s+date|release\s+date|notice\s+dated?|gazette(?:\s+date)?)\s*[:#\-]?\s*/i;
-const EXPLICIT_DEADLINE_PREFIX = /\b(?:deadline|last\s+date|closing\s+date|due\s+date|valid\s+(?:until|through)|expires(?:\s+on)?|application\s+window\s+closes)\s*[:#\-]?\s*/i;
+const EXPLICIT_PUB_PREFIX = /\b(?:published|updated|posted(?:\s+on)?|dated|last\s+modified|as\s+of|issue\s+date|circular\s+date|release\s+date|notice\s+dated?|gazette(?:\s+date)?|issued|circular\s+issued)\s*[:#\-]?\s*/i;
+const EXPLICIT_DEADLINE_PREFIX = /\b(?:deadline|last\s+date|closing\s+date|due\s+date|valid\s+(?:until|through)|expires(?:\s+on)?|application\s+window\s+closes|submit\s+before)\s*[:#\-]?\s*/i;
 
 export function detectTemporalMetadata(
   text: string,
@@ -33,15 +33,15 @@ export function detectTemporalMetadata(
   let detectedDate: string | null = null;
   let parsedDate: Date | undefined = undefined;
   let detectedCycle: string | null = null;
+  let dateKind: 'publication' | 'deadline' | 'validity' | 'unknown' = 'unknown';
 
-  // 1. Detect Cycle (e.g. AY 2025-26, FY 24-25, 2024-25, v1.2, 2024 edition)
-  const cyclePrefixedRegex = /\b(?:AY|FY|Session|Academic\s+Year|Financial\s+Year|Cycle|Cohort)\s*[:#]?\s*(20\d{2}|\d{2})\s*[-–/]\s*(\d{2,4})\b/i;
-  const cycleGenericRegex = /\b(202[0-9])\s*[-–/]\s*([0-9]{2,4})\b/i;
-  const editionRegex = /\b(202[0-9])\s+(?:edition|guide|guidelines|bulletin|cycle)\b/i;
+  // 1. Detect Cycle
+  const cyclePrefixedRegex = /\b(?:AY|FY|Session|Academic\s+Year|Financial\s+Year|Cycle|Cohort|Batch|Phase)?\s*[:#]?\s*(20\d{2}|\d{2})\s*[-–/]\s*(\d{2,4})\s*(?:cycle|cohort|applicants|admissions|edition|grant\s+cycle)?\b/i;
+  const editionRegex = /\b(202[0-9])\s+(?:edition|cycle|cohort)\b/i;
   const versionCycleRegex = /\b(?:cycle|cohort|phase)\s+v?(\d+(?:\.\d+)?)\b/i;
 
   const prefMatch = combined.match(cyclePrefixedRegex);
-  if (prefMatch) {
+  if (prefMatch && (prefMatch[0].includes('-') || prefMatch[0].includes('/') || prefMatch[0].includes('–'))) {
     const rawStart = prefMatch[1];
     const startYear = rawStart.length === 2 ? parseInt(`20${rawStart}`, 10) : parseInt(rawStart, 10);
     const rawEnd = prefMatch[2];
@@ -50,23 +50,13 @@ export function detectTemporalMetadata(
       detectedCycle = `${startYear}-${rawEnd.length === 4 ? rawEnd.slice(2) : rawEnd}`;
     }
   } else {
-    const cycleMatch = combined.match(cycleGenericRegex);
-    if (cycleMatch) {
-      const startYear = parseInt(cycleMatch[1], 10);
-      const rawEnd = cycleMatch[2];
-      const endYear = rawEnd.length === 2 ? parseInt(`20${rawEnd}`, 10) : parseInt(rawEnd, 10);
-      if (endYear === startYear + 1 || endYear === startYear) {
-        detectedCycle = `${startYear}-${rawEnd.length === 4 ? rawEnd.slice(2) : rawEnd}`;
-      }
+    const edMatch = combined.match(editionRegex);
+    if (edMatch) {
+      detectedCycle = `${edMatch[1]} edition`;
     } else {
-      const edMatch = combined.match(editionRegex);
-      if (edMatch) {
-        detectedCycle = `${edMatch[1]} edition`;
-      } else {
-        const verMatch = combined.match(versionCycleRegex);
-        if (verMatch) {
-          detectedCycle = `Cycle ${verMatch[1]}`;
-        }
+      const verMatch = combined.match(versionCycleRegex);
+      if (verMatch) {
+        detectedCycle = `Cycle ${verMatch[1]}`;
       }
     }
   }
@@ -88,6 +78,8 @@ export function detectTemporalMetadata(
     if (!hasPubMarker && !isTitleLine) {
       continue;
     }
+
+    dateKind = 'publication';
 
     // Pattern A: "12 January 2026" or "15th March 2026"
     const datePatternA = /\b([0-3]?[0-9])(?:st|nd|rd|th)?\s+([A-Za-z]{3,9})[.,]?\s+(202[0-9])\b/i;

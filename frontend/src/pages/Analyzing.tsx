@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { getJobStatus, fetchSampleData } from '@/lib/api';
-import { AlertCircle, CheckCircle2, ArrowLeft, ArrowRight, ShieldCheck, XCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, ArrowLeft, ArrowRight, ShieldCheck, XCircle, RefreshCw } from 'lucide-react';
 import { SeedIcon } from '@/components/common/Icons';
 
 interface SourceChip {
@@ -10,6 +10,7 @@ interface SourceChip {
   title: string;
   status: 'pending' | 'ready' | 'error';
   errorMessage?: string;
+  reason?: string;
 }
 
 interface TimelineStage {
@@ -27,6 +28,24 @@ export const Analyzing: React.FC = () => {
   const [sourceChips, setSourceChips] = useState<SourceChip[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [reportId, setReportId] = useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
+
+  const handleRetry = async () => {
+    if (!id) return;
+    setIsRetrying(true);
+    setError(null);
+    setCurrentAction('Retrying analysis with discovered sources...');
+    try {
+      const res = await fetch(`/api/analyze/${id}/retry`, { method: 'POST' });
+      if (!res.ok) {
+        throw new Error('Retry failed');
+      }
+    } catch {
+      setError('The AI service is busy. Retry in a minute.');
+    } finally {
+      setIsRetrying(false);
+    }
+  };
 
   const stages: TimelineStage[] = [
     { id: 'search', name: 'Discovery & Intake', detail: 'Formulating investigative queries and identifying source URLs.' },
@@ -52,14 +71,16 @@ export const Analyzing: React.FC = () => {
       ]);
 
       const stageDelays = [
-        { stage: 0, text: '3 reference sources loaded into investigative workspace...', action: () => {} },
-        { stage: 1, text: 'Fetching and cleaning 3 documents (HTML sanitized, SSRF verified)...', action: () => {
-          setSourceChips(prev => prev.map(s => ({ ...s, status: 'ready' })));
-        }},
-        { stage: 2, text: 'Extracting 8 expected attributes & verifying verbatim quotes...', action: () => {} },
-        { stage: 3, text: 'Cross-examining attributes: identifying potential gaps and parameter conflicts...', action: () => {} },
-        { stage: 4, text: 'Checking temporal markers: 2024-25 cycle marked stale, forum post marked undated...', action: () => {} },
-        { stage: 5, text: 'Compiling coverage matrix and prioritized verification checklist...', action: () => {} },
+        { stage: 0, text: '3 reference sources loaded into investigative workspace...', action: () => { } },
+        {
+          stage: 1, text: 'Fetching and cleaning 3 documents (HTML sanitized, SSRF verified)...', action: () => {
+            setSourceChips(prev => prev.map(s => ({ ...s, status: 'ready' })));
+          }
+        },
+        { stage: 2, text: 'Extracting 8 expected attributes & verifying verbatim quotes...', action: () => { } },
+        { stage: 3, text: 'Cross-examining attributes: identifying potential gaps and parameter conflicts...', action: () => { } },
+        { stage: 4, text: 'Checking temporal markers: 2024-25 cycle marked stale, forum post marked undated...', action: () => { } },
+        { stage: 5, text: 'Compiling coverage matrix and prioritized verification checklist...', action: () => { } },
       ];
 
       let currentStep = 0;
@@ -90,7 +111,28 @@ export const Analyzing: React.FC = () => {
 
         const progress = data.progress;
         if (progress.error) {
-          setError(progress.error);
+          setError(
+            progress.error.includes('SSRF') || progress.error.includes('blocked by')
+              ? 'This site blocked automated access or took too long. Paste the page text instead.'
+              : progress.error
+          );
+          if (Array.isArray(progress.sourcesStatus)) {
+            setSourceChips(
+              progress.sourcesStatus.map((c: any) => ({
+                ...c,
+                status: c.status === 'pending' ? 'error' : c.status,
+                reason: c.reason || (c.status === 'pending' || c.status === 'error' ? 'blocked or timed out' : undefined)
+              }))
+            );
+          } else {
+            setSourceChips(prev =>
+              prev.map(c => ({
+                ...c,
+                status: c.status === 'pending' ? 'error' : c.status,
+                reason: c.reason || 'blocked or timed out'
+              }))
+            );
+          }
           clearInterval(pollInterval);
           return;
         }
@@ -128,7 +170,19 @@ export const Analyzing: React.FC = () => {
   const shortSessionId = id ? (id.length > 16 ? `${id.slice(0, 8)}…${id.slice(-4)}` : id) : '';
 
   return (
-    <div className="max-w-[800px] mx-auto px-4 sm:px-6 py-10 space-y-8 pb-16">
+    <div className="max-w-200 mx-auto px-4 sm:px-6 py-8 space-y-6 pb-16">
+      {/* Back Navigation */}
+      <div>
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-text transition-colors cursor-pointer group"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
+          <span>Back to query & sources</span>
+        </button>
+      </div>
+
       {/* Calm Header */}
       <div className="border-b border-border pb-6 space-y-2">
         <div className="flex items-center justify-between">
@@ -170,7 +224,7 @@ export const Analyzing: React.FC = () => {
           Pipeline audit stages
         </h3>
 
-        <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[1px] before:bg-border">
+        <div className="relative pl-6 space-y-6 before:absolute before:left-2.75 before:top-2 before:bottom-2 before:w-px before:bg-border">
           {stages.map((st, idx) => {
             const isDone = idx < activeStage;
             const isRunning = idx === activeStage;
@@ -179,13 +233,12 @@ export const Analyzing: React.FC = () => {
               <div key={st.id} className="relative group">
                 {/* Node icon */}
                 <div
-                  className={`absolute -left-6 top-0.5 w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10px] font-mono transition-colors ${
-                    isDone
+                  className={`absolute -left-6 top-0.5 w-5.5 h-5.5 rounded-full flex items-center justify-center text-[10px] font-mono transition-colors ${isDone
                       ? 'bg-signal text-signal-ink font-bold'
                       : isRunning
-                      ? 'border-2 border-structure-text bg-surface text-structure-text font-bold animate-pulse'
-                      : 'border border-border bg-surface text-text-muted/60'
-                  }`}
+                        ? 'border-2 border-structure-text bg-surface text-structure-text font-bold animate-pulse'
+                        : 'border border-border bg-surface text-text-muted/60'
+                    }`}
                 >
                   {isDone ? (
                     <CheckCircle2 className="w-3.5 h-3.5" />
@@ -198,9 +251,8 @@ export const Analyzing: React.FC = () => {
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
                     <h4
-                      className={`font-heading text-sm font-bold tracking-tight ${
-                        isDone || isRunning ? 'text-text' : 'text-text-muted/60'
-                      }`}
+                      className={`font-heading text-sm font-bold tracking-tight ${isDone || isRunning ? 'text-text' : 'text-text-muted/60'
+                        }`}
                     >
                       {st.name}
                     </h4>
@@ -264,7 +316,7 @@ export const Analyzing: React.FC = () => {
                   {chip.status === 'error' && (
                     <span className="text-flesh font-semibold inline-flex items-center gap-1">
                       <XCircle className="w-3.5 h-3.5" />
-                      Blocked
+                      Failed{chip.reason || chip.errorMessage ? ` (${chip.reason || chip.errorMessage})` : ''}
                     </span>
                   )}
                 </div>
@@ -276,16 +328,33 @@ export const Analyzing: React.FC = () => {
 
       {/* Actionable Error Card */}
       {error && (
-        <div className="p-4 rounded-sm bg-flesh/10 border border-flesh/30 text-flesh space-y-2 text-xs" role="alert">
+        <div className="p-5 rounded-sm bg-flesh/10 border border-flesh/30 text-flesh space-y-3 text-xs" role="alert">
           <div className="flex items-center gap-2 font-bold text-sm">
             <AlertCircle className="w-4 h-4" />
             <span>Analysis Issue Encountered</span>
           </div>
-          <p className="leading-relaxed">{error}</p>
-          <div className="pt-2 text-seed font-medium">
-            <p><strong>Suggested Next Step:</strong> If a URL was blocked by SSRF or timeout, try copying its text content and pasting it directly instead.</p>
-          </div>
-          <div className="pt-2">
+          <p className="leading-relaxed font-sans text-xs sm:text-sm">
+            {error.toLowerCase().includes('busy') || error.toLowerCase().includes('retry in a minute')
+              ? 'The AI service is busy. Retry in a minute.'
+              : (error.includes('SSRF') || error.includes('blocked by')
+                ? 'This site blocked automated access or took too long. Paste the page text instead.'
+                : error)}
+          </p>
+
+          <div className="pt-2 flex items-center gap-3">
+            {(error.toLowerCase().includes('busy') || error.toLowerCase().includes('retry in a minute')) ? (
+              <Button
+                variant="rind"
+                size="sm"
+                onClick={handleRetry}
+                disabled={isRetrying}
+                className="text-xs cursor-pointer inline-flex items-center gap-1.5"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isRetrying ? 'animate-spin' : ''}`} />
+                <span>Retry Analysis</span>
+              </Button>
+            ) : null}
+
             <Button variant="outline" size="sm" onClick={() => navigate('/')}>
               <ArrowLeft className="w-3.5 h-3.5 mr-1" />
               Return & Paste Text

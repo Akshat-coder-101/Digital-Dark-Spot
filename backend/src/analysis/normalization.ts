@@ -33,6 +33,40 @@ const MONTH_NAMES: Record<string, string> = {
   december: '12', dec: '12'
 };
 
+export interface NumericRange {
+  min: number;
+  max: number;
+}
+
+export function extractNumericRange(val: string): NumericRange | null {
+  if (!val) return null;
+  const s = val.replace(/,/g, '').toLowerCase();
+
+  // Range pattern with optional unit symbols (e.g. "80W - 115W", "$1,000 - $1,500", "10-15%")
+  const rangeMatch = s.match(/(\d+(?:\.\d+)?)\s*(?:[a-z%$₹€£]+)?\s*(?:-|–|—|to)\s*(?:[a-z%$₹€£]+)?\s*(\d+(?:\.\d+)?)/i);
+  if (rangeMatch) {
+    const n1 = parseFloat(rangeMatch[1]);
+    const n2 = parseFloat(rangeMatch[2]);
+    return {
+      min: Math.min(n1, n2),
+      max: Math.max(n1, n2)
+    };
+  }
+
+  // Single number
+  const singleMatch = s.match(/(\d+(?:\.\d+)?)/);
+  if (singleMatch) {
+    const n = parseFloat(singleMatch[1]);
+    return { min: n, max: n };
+  }
+
+  return null;
+}
+
+export function doRangesOverlap(r1: NumericRange, r2: NumericRange): boolean {
+  return r1.min <= r2.max && r2.min <= r1.max;
+}
+
 export function normalizeNumber(val: string): number | null {
   if (!val) return null;
   const s = val.trim().replace(/,/g, '');

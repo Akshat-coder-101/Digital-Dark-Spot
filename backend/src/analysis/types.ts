@@ -1,6 +1,6 @@
 import { IngestedSource } from '../ingestion/types.js';
 
-export type ValueType = 'number' | 'money' | 'percent' | 'date' | 'list' | 'boolean' | 'text';
+export type ValueType = 'number' | 'money' | 'percent' | 'date' | 'list' | 'boolean' | 'text' | 'url';
 export type DateKind = 'publication' | 'deadline' | 'validity' | 'unknown';
 
 export interface TypedClaim {
@@ -34,6 +34,8 @@ export interface ExtractedClaim {
   subject?: string;
   valueType?: ValueType;
   normalizedValue?: any;
+  isDeadlinePassed?: boolean;
+  isOutdated?: boolean;
 }
 
 export interface RawLLMExtraction {
@@ -52,6 +54,9 @@ export interface RawLLMExtraction {
 
 export interface ExtractionResult {
   expected_attributes: string[];
+  question_derived_needs?: string[];
+  extra_parameters?: string[];
+  other_details_count?: number;
   verified_claims: ExtractedClaim[];
   discarded_claims_count: number;
   open_questions: string[];
@@ -79,6 +84,9 @@ export interface PossibleConflict {
   qualifier?: string;
   title: string;
   description: string;
+  whyFlagged?: string;
+  isWeak?: boolean;
+  authorityDiscrepancy?: string;
   mayBeExplainedByEarlierCycle?: string;
   sourceA: {
     source_id: string;
@@ -107,11 +115,11 @@ export interface FreshnessWarning {
   source_id: string;
   source_title: string;
   source_domain: string;
-  warningType: 'undated' | 'stale_date' | 'earlier_cycle';
+  warningType: 'undated' | 'stale_date' | 'earlier_cycle' | 'deadline_passed';
   reason: string;
   detectedDate: string | null;
   detectedCycle: string | null;
-  statusLabel: 'Potentially stale';
+  statusLabel: 'Potentially stale' | 'Potentially outdated' | 'No date found in the source text';
   signalTag: 'Sourced';
 }
 
@@ -154,10 +162,16 @@ export interface FullAnalysisReport {
     gapsCount: number;
     conflictsCount: number;
     staleCount: number;
+    outdatedCount?: number;
+    undatedCount?: number;
     claimsCount: number;
     discardedClaimsCount: number;
   };
   expectedAttributes: string[];
+  questionDerivedNeeds?: string[];
+  extraParameters?: string[];
+  otherDetailsCount?: number;
+  cycleNotice?: string;
   sources: IngestedSource[];
   claims: ExtractedClaim[];
   gaps: PotentialGap[];
@@ -185,7 +199,7 @@ export interface JobProgress {
   totalStages: number;
   progressPercent: number;
   currentAction: string;
-  sourcesStatus: Array<{ id: string; title: string; status: 'pending' | 'ready' | 'error' }>;
+  sourcesStatus: Array<{ id: string; title: string; status: 'pending' | 'ready' | 'error'; reason?: string }>;
   error?: string;
   reportId?: string;
 }

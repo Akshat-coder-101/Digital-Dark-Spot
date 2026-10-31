@@ -79,3 +79,4 @@
 - **Source Code**: [`backend/src/analysis/freshness.ts:50-80`](file:///c:/Users/LENOVO/OneDrive/Desktop/deven2/backend/src/analysis/freshness.ts#L50-L80)
 - **Mechanism**:
   Only 2 explicit claims contained attributes matching `/deadline|closing/` with dates before today (e.g. 22 June 2025). The remaining sources discussed the previous 2025-26 cycle while the user's current date is October 31, 2026 (2026-27 academic session). Because the pipeline lacked question cycle extraction and cross-cycle comparison, historical cycle claims were marked as fresh.
+

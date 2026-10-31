@@ -51,7 +51,7 @@ export const CoverageMatrixTable: React.FC<CoverageMatrixTableProps> = ({
       <div className="w-full overflow-x-auto rounded-xs border border-seed/10">
         <table className="w-full text-left text-xs border-collapse" role="table" aria-label="Coverage matrix">
           <thead>
-            <tr className="border-b border-seed/10 bg-seed/[0.02]">
+            <tr className="border-b border-seed/10 bg-seed/2">
               <th scope="col" className="py-2.5 px-3 font-heading font-bold text-xs text-seed">
                 Expected parameter
               </th>
@@ -62,18 +62,29 @@ export const CoverageMatrixTable: React.FC<CoverageMatrixTableProps> = ({
                 <th
                   key={source.id}
                   scope="col"
-                  className="py-2.5 px-3 font-heading font-semibold text-seed truncate max-w-[160px]"
+                  className="py-2.5 px-3 font-heading font-semibold text-seed truncate max-w-40"
                   title={source.title}
                 >
                   <div className="flex flex-col gap-0.5">
                     <span className="truncate">S{idx + 1}: {source.title}</span>
                     <span className="text-[10px] text-seed-muted font-mono font-normal flex items-center gap-1 truncate">
-                      {source.detectedDate || source.detectedCycle ? (
-                        <Calendar className="w-3 h-3 text-rind shrink-0" />
+                      {source.isStale ? (
+                        <>
+                          <WiltIcon className="w-3 h-3 text-wilt shrink-0" />
+                          <span className="text-wilt font-medium">Outdated</span>
+                        </>
+                      ) : source.isUndated || (!source.detectedDate && !source.detectedCycle) ? (
+                        <>
+                          <AlertCircle className="w-3 h-3 text-wilt shrink-0" />
+                          <span>Undated</span>
+                        </>
                       ) : (
-                        <AlertCircle className="w-3 h-3 text-wilt shrink-0" />
+                        <>
+                          <Calendar className="w-3 h-3 text-rind shrink-0" />
+                          <span>{source.detectedDate || source.detectedCycle}</span>
+                        </>
                       )}
-                      {source.domain}
+                      <span>• {source.domain}</span>
                     </span>
                   </div>
                 </th>
@@ -100,7 +111,7 @@ export const CoverageMatrixTable: React.FC<CoverageMatrixTableProps> = ({
                     }
                   }}
                   className={cn(
-                    "hover:bg-seed/[0.02] transition-colors cursor-pointer focus:outline-none focus:bg-rind/5",
+                    "hover:bg-seed/2 transition-colors cursor-pointer focus:outline-none focus:bg-rind/5",
                     isSelected && "bg-rind/5"
                   )}
                 >
@@ -108,7 +119,6 @@ export const CoverageMatrixTable: React.FC<CoverageMatrixTableProps> = ({
                   <td className="py-2.5 px-3 font-medium text-seed">
                     <div className="flex items-center gap-2">
                       <span className="font-heading font-bold text-xs">{row.attributeLabel}</span>
-                      <span className="text-[10px] font-mono text-seed-muted hidden sm:inline-block">({row.attribute})</span>
                     </div>
                   </td>
 
@@ -172,7 +182,7 @@ export const CoverageMatrixTable: React.FC<CoverageMatrixTableProps> = ({
                         {cell.status === 'found' && (
                           <div className="flex items-center gap-1.5 text-rind font-medium">
                             <VerifiedCheckIcon className="w-3 h-3 shrink-0" />
-                            <span className="truncate max-w-[130px]" title={cell.value}>
+                            <span className="truncate max-w-32.5" title={cell.value}>
                               {cell.value || 'Found'}
                             </span>
                           </div>
@@ -180,7 +190,7 @@ export const CoverageMatrixTable: React.FC<CoverageMatrixTableProps> = ({
                         {cell.status === 'conflict' && (
                           <div className="flex items-center gap-1.5 text-crack font-bold">
                             <CrackIcon className="w-3 h-3 shrink-0" />
-                            <span className="truncate max-w-[130px]" title={cell.value}>
+                            <span className="truncate max-w-32.5" title={cell.value}>
                               {cell.value || 'Conflict'}
                             </span>
                           </div>
@@ -188,7 +198,7 @@ export const CoverageMatrixTable: React.FC<CoverageMatrixTableProps> = ({
                         {cell.status === 'stale' && (
                           <div className="flex items-center gap-1.5 text-wilt">
                             <WiltIcon className="w-3 h-3 shrink-0" />
-                            <span className="truncate max-w-[130px]" title={cell.value}>
+                            <span className="truncate max-w-32.5" title={cell.value}>
                               {cell.value || 'Stale'}
                             </span>
                           </div>

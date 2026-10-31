@@ -33,7 +33,7 @@ export class LLMManager {
   private keyStates: Map<ProviderName, KeyState[]> = new Map();
   private keyIndex: Map<ProviderName, number> = new Map();
   private models: Map<ProviderName, string> = new Map();
-  private geminiFallbackModel: string = 'gemini-2.5-flash';
+  private geminiFallbackModel: string = 'gemini-3.8-flash';
   private providerOrder: ProviderName[] = ['gemini', 'groq', 'openai', 'anthropic'];
   private consecutiveJsonFailures: Map<ProviderName, number> = new Map();
 
@@ -49,7 +49,7 @@ export class LLMManager {
   public reloadEnvironment(): void {
     // Models
     this.models.set('gemini', process.env.GEMINI_MODEL || 'gemini-3-flash-preview');
-    this.geminiFallbackModel = process.env.GEMINI_FALLBACK_MODEL || 'gemini-2.5-flash';
+    this.geminiFallbackModel = process.env.GEMINI_FALLBACK_MODEL || 'gemini-3.8-flash';
     this.models.set('groq', process.env.GROQ_MODEL || 'qwen/qwen3.8-27b');
     this.models.set('openai', process.env.OPENAI_MODEL || 'gpt-4o-mini');
     this.models.set('anthropic', process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022');

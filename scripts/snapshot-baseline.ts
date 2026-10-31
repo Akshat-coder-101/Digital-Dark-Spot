@@ -227,3 +227,4 @@ run().catch(err => {
   console.error('Failed to snapshot baseline:', err);
   process.exit(1);
 });
+

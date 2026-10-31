@@ -13,7 +13,7 @@ export const EvidenceDrawerMotion: React.FC<EvidenceDrawerMotionProps> = ({
   open,
   onClose,
   children,
-  width = "max-w-[440px]",
+  width = "max-w-110",
   className = "",
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -92,7 +92,7 @@ export const EvidenceDrawerMotion: React.FC<EvidenceDrawerMotionProps> = ({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 350, duration: 0.25 }}
-            className={`fixed right-0 top-0 bottom-0 z-50 w-full ${width} bg-surface border-l border-border shadow-xl overflow-y-auto outline-none ${className}`}
+            className={`fixed right-0 top-0 bottom-0 z-50 w-full max-w-full ${width} bg-surface border-l border-border shadow-xl overflow-y-auto outline-none ${className}`}
           >
             {children}
           </motion.div>

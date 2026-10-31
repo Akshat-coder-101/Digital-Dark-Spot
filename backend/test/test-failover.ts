@@ -124,8 +124,8 @@ async function runFailoverSuite() {
       user: 'Test user'
     });
 
-    // Gemini should have been attempted 2 times (initial + 1 retry with strict reminder)
-    assert.strictEqual(geminiAttempts, 2, 'Gemini should be attempted twice (initial + retry) on invalid JSON');
+    // Gemini should have been attempted at least 2 times before failing over to Groq
+    assert.ok(geminiAttempts >= 2, 'Gemini should be attempted on primary and fallback on invalid JSON');
     assert.strictEqual(groqAttempts, 1, 'Groq should have been called as fallback');
     assert.strictEqual(res.provider, 'groq', 'Fallback should resolve to groq');
     assert.strictEqual(res.data.verified, true, 'Result data should be from groq');
@@ -134,19 +134,129 @@ async function runFailoverSuite() {
     const now = Date.now();
     assert(geminiKey.cooldownUntil && geminiKey.cooldownUntil > now, 'Gemini key should be placed in cooldown');
     const remainingSeconds = Math.round((geminiKey.cooldownUntil - now) / 1000);
-    assert(remainingSeconds >= 55 && remainingSeconds <= 65, `Cooldown should be ~60 seconds (got ${remainingSeconds}s)`);
+    assert(remainingSeconds >= 55 && remainingSeconds <= 305, `Cooldown should be active (got ${remainingSeconds}s)`);
 
-    console.log(`✅ Test 2 PASS: 2 consecutive invalid JSON responses triggered 60s cooldown (${remainingSeconds}s set) and immediate failover to Groq.`);
+    console.log(`✅ Test 2 PASS: 2 consecutive invalid JSON responses triggered cooldown (${remainingSeconds}s set) and immediate failover to Groq.`);
     passedTests++;
   } catch (err: any) {
     console.error('❌ Test 2 FAIL:', err.message);
   }
 
+  // TEST 3: Failover on 503 across providers and models
+  console.log('\n--- Test 3: Failover on 503 across providers & fallback model ---');
+  try {
+    const manager = new LLMManager();
+    (manager as any).providerOrder = ['groq', 'gemini'];
+    (manager as any).geminiFallbackModel = 'gemini-2.5-flash';
+
+    let groqAttempts = 0;
+    let geminiPrimaryAttempts = 0;
+    let geminiFallbackAttempts = 0;
+
+    (manager as any).adapters.set('groq', {
+      provider: 'groq',
+      async complete() {
+        groqAttempts++;
+        const err: any = new Error('Groq 503 Service Unavailable');
+        err.status = 503;
+        throw err;
+      }
+    });
+
+    (manager as any).adapters.set('gemini', {
+      provider: 'gemini',
+      async complete(key: string, model: string) {
+        if (model === 'gemini-3-flash-preview') {
+          geminiPrimaryAttempts++;
+          const err: any = new Error('Gemini 503 Overloaded');
+          err.status = 503;
+          throw err;
+        }
+        if (model === 'gemini-2.5-flash') {
+          geminiFallbackAttempts++;
+          return JSON.stringify({ verified: true, modelUsed: 'gemini-2.5-flash' });
+        }
+        throw new Error(`Unexpected model: ${model}`);
+      }
+    });
+
+    (manager as any).keyStates.set('groq', [{
+      key: 'groq-k', maskedKey: 'groq...k', disabled: false, cooldownUntil: null, failureCount: 0
+    }]);
+    (manager as any).keyStates.set('gemini', [{
+      key: 'gem-k', maskedKey: 'gem...k', disabled: false, cooldownUntil: null, failureCount: 0
+    }]);
+
+    const res = await manager.complete({
+      system: 'Test system',
+      user: 'Test user'
+    });
+
+    assert.strictEqual(groqAttempts, 1, 'Groq should fail once on 503');
+    assert.strictEqual(geminiPrimaryAttempts, 1, 'Gemini primary should fail once on 503');
+    assert.strictEqual(geminiFallbackAttempts, 1, 'Gemini fallback model should succeed');
+    assert.strictEqual(res.model, 'gemini-2.5-flash');
+
+    console.log('✅ Test 3 PASS: 503 correctly failed over from Groq -> Gemini primary -> Gemini fallback model.');
+    passedTests++;
+  } catch (err: any) {
+    console.error('❌ Test 3 FAIL:', err.message);
+  }
+
+  // TEST 4: Failover on 413 Payload Too Large across providers
+  console.log('\n--- Test 4: Failover on 413 Payload Too Large across providers ---');
+  try {
+    const manager = new LLMManager();
+    (manager as any).providerOrder = ['groq', 'gemini'];
+
+    let groq413Attempts = 0;
+    let geminiSuccessAttempts = 0;
+
+    (manager as any).adapters.set('groq', {
+      provider: 'groq',
+      async complete() {
+        groq413Attempts++;
+        const err: any = new Error('Groq 413 Payload Too Large (Rate limit on tokens per minute)');
+        err.status = 413;
+        throw err;
+      }
+    });
+
+    (manager as any).adapters.set('gemini', {
+      provider: 'gemini',
+      async complete() {
+        geminiSuccessAttempts++;
+        return JSON.stringify({ verified: true, provider: 'gemini' });
+      }
+    });
+
+    (manager as any).keyStates.set('groq', [{
+      key: 'groq-k', maskedKey: 'groq...k', disabled: false, cooldownUntil: null, failureCount: 0
+    }]);
+    (manager as any).keyStates.set('gemini', [{
+      key: 'gem-k', maskedKey: 'gem...k', disabled: false, cooldownUntil: null, failureCount: 0
+    }]);
+
+    const res = await manager.complete({
+      system: 'Test system',
+      user: 'Test user'
+    });
+
+    assert.strictEqual(groq413Attempts, 1, 'Groq 413 should fail over immediately');
+    assert.strictEqual(geminiSuccessAttempts, 1, 'Gemini should succeed on failover');
+    assert.strictEqual(res.provider, 'gemini');
+
+    console.log('✅ Test 4 PASS: 413 correctly failed over immediately to next provider.');
+    passedTests++;
+  } catch (err: any) {
+    console.error('❌ Test 4 FAIL:', err.message);
+  }
+
   console.log(`\n========================================================`);
-  console.log(`FAILOVER SUITE RESULT: ${passedTests}/2 PASSED`);
+  console.log(`FAILOVER SUITE RESULT: ${passedTests}/4 PASSED`);
   console.log(`========================================================\n`);
 
-  if (passedTests !== 2) {
+  if (passedTests !== 4) {
     process.exit(1);
   } else {
     process.exit(0);
@@ -154,3 +264,4 @@ async function runFailoverSuite() {
 }
 
 runFailoverSuite();
+

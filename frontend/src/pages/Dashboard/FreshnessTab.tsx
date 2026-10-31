@@ -41,7 +41,7 @@ export const FreshnessTab: React.FC = () => {
       </div>
 
       {/* Why Temporal Signals Matter Box */}
-      <div className="p-4 rounded-sm border border-seed/10 bg-seed/[0.02] space-y-2">
+      <div className="p-4 rounded-sm border border-seed/10 bg-seed/2 space-y-2">
         <div className="flex items-center gap-2 text-xs font-heading font-bold text-seed">
           <Clock className="w-3.5 h-3.5 text-crack" />
           <span>Why Temporal Verification is Critical</span>
@@ -65,7 +65,17 @@ export const FreshnessTab: React.FC = () => {
               className="p-4 sm:p-5 rounded-sm border border-seed/10 border-l-2 border-l-wilt bg-pith space-y-3 shadow-2xs"
             >
               <div className="flex items-center justify-between text-xs">
-                <StatusTag status="stale" />
+                {warning.warningType === 'deadline_passed' ? (
+                  <span className="px-2 py-0.5 rounded-xs bg-crack/15 text-crack border border-crack/30 text-[10px] font-mono font-bold">
+                    DEADLINE PASSED
+                  </span>
+                ) : warning.warningType === 'undated' ? (
+                  <span className="px-2 py-0.5 rounded-xs bg-seed/10 text-seed-muted border border-seed/20 text-[10px] font-mono font-semibold">
+                    UNDATED
+                  </span>
+                ) : (
+                  <StatusTag status="stale" />
+                )}
                 <span className="font-mono text-[10px] px-1.5 py-0.5 rounded-xs bg-wilt/15 text-wilt border border-wilt/30 font-semibold">
                   {warning.warningType.replace('_', ' ').toUpperCase()}
                 </span>
@@ -80,7 +90,7 @@ export const FreshnessTab: React.FC = () => {
                 </p>
               </div>
 
-              <div className="p-2.5 rounded-xs bg-seed/[0.025] border border-seed/10 text-xs text-seed-muted space-y-1">
+              <div className="p-2.5 rounded-xs bg-seed/2.5 border border-seed/10 text-xs text-seed-muted space-y-1">
                 <span className="font-semibold text-seed block">Risk Factor:</span>
                 <p className="leading-relaxed">{warning.reason}</p>
               </div>
@@ -111,7 +121,7 @@ export const FreshnessTab: React.FC = () => {
             {freshSources.map((source) => (
               <div
                 key={source.id}
-                className="p-3.5 rounded-xs border border-seed/10 bg-seed/[0.015] flex items-center justify-between gap-3"
+                className="p-3.5 rounded-xs border border-seed/10 bg-seed/1.5 flex items-center justify-between gap-3"
               >
                 <div className="min-w-0">
                   <h5 className="font-heading font-bold text-xs text-seed truncate">

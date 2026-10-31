@@ -43,3 +43,4 @@ for (const file of clientFiles) {
 }
 
 console.log(JSON.stringify(counts, null, 2));
+

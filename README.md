@@ -11,6 +11,46 @@
 
 ---
 
+## 🚀 Quick Running Guide
+
+Clone and run the complete application locally in under 2 minutes:
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/Akshat-coder-101/Digital-Dark-Spot.git
+cd Digital-Dark-Spot
+```
+
+### 2. Install Dependencies
+```bash
+npm install
+```
+
+### 3. Environment Configuration
+Copy the provided environment template:
+```bash
+cp .env.example .env
+cp .env.example backend/.env
+```
+> **Note:** Digital Dark Spot operates fully in **Zero-Key Offline Demo Mode** right out of the box using verified sample scenarios. For live web search and custom LLM extraction, add your API keys (e.g. `GEMINI_API_KEYS`, `TAVILY_API_KEYS`, or `GROQ_API_KEYS`) in `.env` and `backend/.env`.
+
+### 4. Run the Verification Suite
+Ensure all engine components, security checks, and deterministic evaluations pass:
+```bash
+npm run verify
+```
+
+### 5. Start the Development Server
+Starts both the Express backend API (`http://localhost:3001`) and Vite frontend (`http://localhost:5173`) concurrently:
+```bash
+npm run dev
+```
+
+Open your browser to:
+👉 **[http://localhost:5173](http://localhost:5173)**
+
+---
+
 ## 1. Overview & Core Philosophy
 
 Digital Dark Spot is an AI-assisted research and verification platform that cross-examines multi-source documents to detect hidden information gaps, conflicting requirements, and outdated claims. Instead of generating ungrounded summaries, it validates every finding with verbatim source quotes and delivers a prioritized checklist to guide reliable decision-making.

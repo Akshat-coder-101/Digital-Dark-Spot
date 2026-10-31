@@ -1,4 +1,4 @@
-export type SourceOriginType = 'real' | 'user_url' | 'user_text' | 'sample';
+export type SourceOriginType = 'real' | 'user_url' | 'user_text' | 'sample' | 'limited' | 'unavailable';
 
 export type UsefulnessStatus = 'READY' | 'NEEDS_ATTENTION' | 'FAILED';
 export type CredibilityHint = 'institutional' | 'general';
@@ -11,6 +11,7 @@ export interface SourceInput {
   domain?: string;
   detectedDate?: string;
   rawContent?: string;
+  snippet?: string;
   sourceType?: SourceOriginType;
 }
 
@@ -33,6 +34,8 @@ export interface IngestedSource {
   isStale: boolean; // older than 18 months or earlier cycle
   isUndated: boolean;
   status: 'ready' | 'error';
+  isLimited?: boolean;
+  isUnavailable?: boolean;
   errorMessage?: string;
   fetchedAt: string;
   sourceType?: SourceOriginType;

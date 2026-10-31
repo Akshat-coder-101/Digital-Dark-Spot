@@ -37,6 +37,7 @@ import { GapsTab } from '@/pages/Dashboard/GapsTab';
 import { ConflictsTab } from '@/pages/Dashboard/ConflictsTab';
 import { FreshnessTab } from '@/pages/Dashboard/FreshnessTab';
 import { ChecklistTab } from '@/pages/Dashboard/ChecklistTab';
+import { AllClaimsTab } from '@/pages/Dashboard/AllClaimsTab';
 import { SourcesTab } from '@/pages/Dashboard/SourcesTab';
 import { EvidenceDrawerSubRoute } from '@/pages/Dashboard/EvidenceDrawerSubRoute';
 
@@ -107,6 +108,7 @@ export const App: React.FC = () => {
               <Route path="conflicts" element={<ConflictsTab />} />
               <Route path="freshness" element={<FreshnessTab />} />
               <Route path="checklist" element={<ChecklistTab />} />
+              <Route path="claims" element={<AllClaimsTab />} />
               <Route path="sources" element={<SourcesTab />} />
               <Route path="evidence/:claimId" element={<EvidenceDrawerSubRoute />} />
             </Route>

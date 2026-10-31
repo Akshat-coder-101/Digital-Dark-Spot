@@ -91,7 +91,8 @@ export function verifyClaimsVerbatim(
         value: claim.value.trim(),
         quote: quote,
         verified: true,
-        charOffset: matchIndex
+        charOffset: matchIndex,
+        subject: (claim as any).subject
       });
     } else {
       discardedQuotes.push({

@@ -1,0 +1,360 @@
+{
+  "id": "mock-rooftop-6-source",
+  "question": "What should a homeowner verify before applying for PM Surya Ghar rooftop solar subsidy?",
+  "summary": "Summary synthesized from 6 reviewed sources.",
+  "cycleNotice": "The reviewed sources refer to the \"2024-25\" cycle, which precedes the current decision period. Treat dates and values as potentially outdated.",
+  "analyzedWith": {
+    "provider": "MockEngine",
+    "model": "mock-v1",
+    "cached": false
+  },
+  "metrics": {
+    "sourcesCount": 6,
+    "gapsCount": 1,
+    "conflictsCount": 1,
+    "staleCount": 2,
+    "outdatedCount": 2,
+    "undatedCount": 0,
+    "claimsCount": 14,
+    "discardedClaimsCount": 0
+  },
+  "expectedAttributes": [
+    "subsidy_amount_per_kw",
+    "application_portal",
+    "metering_type",
+    "application_deadline",
+    "required_roof_area",
+    "eligible_discom_approval",
+    "battery_storage_subsidy"
+  ],
+  "questionDerivedNeeds": [
+    "subsidy_amount_per_kw",
+    "application_portal",
+    "metering_type",
+    "application_deadline",
+    "battery_storage_subsidy"
+  ],
+  "sources": [
+    {
+      "id": "src-solar-1",
+      "type": "url",
+      "url": "https://pmsuryaghar.gov.in/guidelines",
+      "domain": "pmsuryaghar.gov.in",
+      "title": "PM Surya Ghar Official Scheme Portal",
+      "rawText": "Central Financial Assistance provides Rs 30,000 per kW up to 2 kW capacity. Apply at https://pmsuryaghar.gov.in. Installations require net metering approval from regional discom.",
+      "cleanedText": "Central Financial Assistance provides Rs 30,000 per kW up to 2 kW capacity. Apply at https://pmsuryaghar.gov.in. Installations require net metering approval from regional discom.",
+      "wordCount": 120,
+      "detectedDate": "2026-02-01",
+      "detectedCycle": "2026-27",
+      "isStale": false,
+      "isUndated": false,
+      "status": "ready",
+      "fetchedAt": "2026-10-31T10:00:00.000Z"
+    },
+    {
+      "id": "src-solar-2",
+      "type": "url",
+      "url": "https://mnre.gov.in/solar-rooftop-spec",
+      "domain": "mnre.gov.in",
+      "title": "Ministry of New and Renewable Energy Specifications",
+      "rawText": "Subsidy rate is fixed at Rs 30,000 per kW up to 2 kW. Technical specifications mandate 100 sq ft shadow-free roof area per kilowatt installed.",
+      "cleanedText": "Subsidy rate is fixed at Rs 30,000 per kW up to 2 kW. Technical specifications mandate 100 sq ft shadow-free roof area per kilowatt installed.",
+      "wordCount": 95,
+      "detectedDate": "2026-01-15",
+      "detectedCycle": "2026-27",
+      "isStale": false,
+      "isUndated": false,
+      "status": "ready",
+      "fetchedAt": "2026-10-31T10:00:00.000Z"
+    },
+    {
+      "id": "src-solar-3",
+      "type": "url",
+      "url": "https://discom.state.gov.in/rooftop-procedure",
+      "domain": "discom.state.gov.in",
+      "title": "State Electricity Distribution Regulatory Procedure",
+      "rawText": "Grid interconnection rules state installations above 3 kW are subject to gross metering only. CFA subsidy benchmark of Rs 30,000 per kW applies.",
+      "cleanedText": "Grid interconnection rules state installations above 3 kW are subject to gross metering only. CFA subsidy benchmark of Rs 30,000 per kW applies.",
+      "wordCount": 85,
+      "detectedDate": "2026-01-20",
+      "detectedCycle": "2026-27",
+      "isStale": false,
+      "isUndated": false,
+      "status": "ready",
+      "fetchedAt": "2026-10-31T10:00:00.000Z"
+    },
+    {
+      "id": "src-solar-4",
+      "type": "url",
+      "url": "https://solar-forum-india.org/thread-102",
+      "domain": "solar-forum-india.org",
+      "title": "Indian Solar Consumer Forum Discussion",
+      "rawText": "Discom technical feasibility inspection must be completed before net meter installation.",
+      "cleanedText": "Discom technical feasibility inspection must be completed before net meter installation.",
+      "wordCount": 45,
+      "detectedDate": null,
+      "detectedCycle": null,
+      "isStale": false,
+      "isUndated": true,
+      "isLimited": true,
+      "status": "ready",
+      "fetchedAt": "2026-10-31T10:00:00.000Z"
+    },
+    {
+      "id": "src-solar-5",
+      "type": "url",
+      "url": "https://renewables-blog.com/surya-ghar-2024",
+      "domain": "renewables-blog.com",
+      "title": "Clean Energy Weekly Blog (2024 Edition)",
+      "rawText": "The 2024-25 phase allocated rooftop subsidies with earlier vendor registration lists.",
+      "cleanedText": "The 2024-25 phase allocated rooftop subsidies with earlier vendor registration lists.",
+      "wordCount": 60,
+      "detectedDate": "2024-05-10",
+      "detectedCycle": "2024-25",
+      "isStale": true,
+      "isUndated": false,
+      "isLimited": true,
+      "status": "ready",
+      "fetchedAt": "2026-10-31T10:00:00.000Z"
+    },
+    {
+      "id": "src-solar-6",
+      "type": "url",
+      "url": "https://energy-times.example/surya-ghar-timeline",
+      "domain": "energy-times.example",
+      "title": "Energy Times Consumer Bulletin",
+      "rawText": "The special early-bird window application deadline was 22 June 2025 across participating states.",
+      "cleanedText": "The special early-bird window application deadline was 22 June 2025 across participating states.",
+      "wordCount": 75,
+      "detectedDate": "2025-06-22",
+      "detectedCycle": null,
+      "isStale": true,
+      "isUndated": false,
+      "status": "ready",
+      "fetchedAt": "2026-10-31T10:00:00.000Z"
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim-solar-1",
+      "source_id": "src-solar-1",
+      "source_title": "PM Surya Ghar Official Scheme Portal",
+      "source_domain": "pmsuryaghar.gov.in",
+      "attribute": "subsidy_amount_per_kw",
+      "value": "Rs 30,000 per kW up to 2 kW",
+      "quote": "Central Financial Assistance provides Rs 30,000 per kW up to 2 kW capacity.",
+      "verified": true
+    },
+    {
+      "id": "claim-solar-2",
+      "source_id": "src-solar-2",
+      "source_title": "Ministry of New and Renewable Energy Specifications",
+      "source_domain": "mnre.gov.in",
+      "attribute": "subsidy_amount_per_kw",
+      "value": "Rs 30,000 per kW",
+      "quote": "Subsidy rate is fixed at Rs 30,000 per kW up to 2 kW.",
+      "verified": true
+    },
+    {
+      "id": "claim-solar-3",
+      "source_id": "src-solar-3",
+      "source_title": "State Electricity Distribution Regulatory Procedure",
+      "source_domain": "discom.state.gov.in",
+      "attribute": "subsidy_amount_per_kw",
+      "value": "Rs 30,000 per kW",
+      "quote": "CFA subsidy benchmark of Rs 30,000 per kW applies.",
+      "verified": true
+    },
+    {
+      "id": "claim-solar-4",
+      "source_id": "src-solar-1",
+      "source_title": "PM Surya Ghar Official Scheme Portal",
+      "source_domain": "pmsuryaghar.gov.in",
+      "attribute": "application_portal",
+      "value": "https://pmsuryaghar.gov.in",
+      "quote": "Apply at https://pmsuryaghar.gov.in.",
+      "verified": true
+    },
+    {
+      "id": "claim-solar-5",
+      "source_id": "src-solar-1",
+      "source_title": "PM Surya Ghar Official Scheme Portal",
+      "source_domain": "pmsuryaghar.gov.in",
+      "attribute": "metering_type",
+      "value": "Net metering",
+      "quote": "Installations require net metering approval from regional discom.",
+      "verified": true
+    },
+    {
+      "id": "claim-solar-6",
+      "source_id": "src-solar-3",
+      "source_title": "State Electricity Distribution Regulatory Procedure",
+      "source_domain": "discom.state.gov.in",
+      "attribute": "metering_type",
+      "value": "Gross metering",
+      "quote": "Grid interconnection rules state installations above 3 kW are subject to gross metering only.",
+      "verified": true
+    },
+    {
+      "id": "claim-solar-7",
+      "source_id": "src-solar-6",
+      "source_title": "Energy Times Consumer Bulletin",
+      "source_domain": "energy-times.example",
+      "attribute": "application_deadline",
+      "value": "22 June 2025",
+      "quote": "The special early-bird window application deadline was 22 June 2025 across participating states.",
+      "verified": true,
+      "isDeadlinePassed": true,
+      "isOutdated": true,
+      "dateKind": "deadline"
+    },
+    {
+      "id": "claim-solar-8",
+      "source_id": "src-solar-2",
+      "source_title": "Ministry of New and Renewable Energy Specifications",
+      "source_domain": "mnre.gov.in",
+      "attribute": "required_roof_area",
+      "value": "100 sq ft shadow-free roof area per kW",
+      "quote": "Technical specifications mandate 100 sq ft shadow-free roof area per kilowatt installed.",
+      "verified": true
+    },
+    {
+      "id": "claim-solar-9",
+      "source_id": "src-solar-4",
+      "source_title": "Indian Solar Consumer Forum Discussion",
+      "source_domain": "solar-forum-india.org",
+      "attribute": "eligible_discom_approval",
+      "value": "Discom technical feasibility inspection required",
+      "quote": "Discom technical feasibility inspection must be completed before net meter installation.",
+      "verified": true
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "conflict-metering",
+      "attribute": "metering_type",
+      "title": "Possible conflict on metering type",
+      "description": "pmsuryaghar.gov.in states Net metering, whereas discom.state.gov.in states Gross metering.",
+      "sourceA": {
+        "source_id": "src-solar-1",
+        "source_title": "PM Surya Ghar Official Scheme Portal",
+        "source_domain": "pmsuryaghar.gov.in",
+        "value": "Net metering",
+        "quote": "Installations require net metering approval from regional discom."
+      },
+      "sourceB": {
+        "source_id": "src-solar-3",
+        "source_title": "State Electricity Distribution Regulatory Procedure",
+        "source_domain": "discom.state.gov.in",
+        "value": "Gross metering",
+        "quote": "Grid interconnection rules state installations above 3 kW are subject to gross metering only."
+      },
+      "statusLabel": "Possible conflict",
+      "signalTag": "Sourced"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "gap-battery_storage_subsidy",
+      "attribute": "battery_storage_subsidy",
+      "title": "Potential gap: Battery Storage Subsidy not found in the sources reviewed",
+      "description": "None of the reviewed sources contain verified evidence for battery storage subsidy.",
+      "type": "total_gap",
+      "sourceCount": 0,
+      "supportingSourceIds": [],
+      "suggestedAction": "Check official MNRE circulars for battery storage provisions.",
+      "statusLabel": "Potential gap",
+      "signalTag": "AI-suggested"
+    }
+  ],
+  "freshnessWarnings": [
+    {
+      "id": "freshness-1",
+      "source_id": "src-solar-5",
+      "source_title": "Clean Energy Weekly Blog (2024 Edition)",
+      "source_domain": "renewables-blog.com",
+      "warningType": "earlier_cycle",
+      "reason": "This document refers to the \"2024-25\" cycle, which precedes the current decision period.",
+      "detectedDate": "2024-05-10",
+      "detectedCycle": "2024-25",
+      "statusLabel": "Potentially outdated",
+      "signalTag": "Sourced"
+    },
+    {
+      "id": "freshness-2",
+      "source_id": "src-solar-6",
+      "source_title": "Energy Times Consumer Bulletin",
+      "source_domain": "energy-times.example",
+      "warningType": "deadline_passed",
+      "reason": "Extracted deadline \"22 June 2025\" has passed. This requirement is no longer active.",
+      "detectedDate": "2025-06-22",
+      "detectedCycle": null,
+      "statusLabel": "Potentially outdated",
+      "signalTag": "Sourced"
+    }
+  ],
+  "coverageMatrix": [
+    {
+      "attribute": "subsidy_amount_per_kw",
+      "attributeLabel": "Subsidy Amount Per Kw",
+      "overallStatus": "covered",
+      "cells": {
+        "src-solar-1": { "sourceId": "src-solar-1", "status": "found", "claimId": "claim-solar-1", "value": "Rs 30,000 per kW" },
+        "src-solar-2": { "sourceId": "src-solar-2", "status": "found", "claimId": "claim-solar-2", "value": "Rs 30,000 per kW" },
+        "src-solar-3": { "sourceId": "src-solar-3", "status": "found", "claimId": "claim-solar-3", "value": "Rs 30,000 per kW" }
+      }
+    },
+    {
+      "attribute": "metering_type",
+      "attributeLabel": "Metering Type",
+      "overallStatus": "conflict",
+      "cells": {
+        "src-solar-1": { "sourceId": "src-solar-1", "status": "conflict", "claimId": "claim-solar-5", "value": "Net metering" },
+        "src-solar-3": { "sourceId": "src-solar-3", "status": "conflict", "claimId": "claim-solar-6", "value": "Gross metering" }
+      }
+    },
+    {
+      "attribute": "application_deadline",
+      "attributeLabel": "Application Deadline",
+      "overallStatus": "stale",
+      "cells": {
+        "src-solar-6": { "sourceId": "src-solar-6", "status": "stale", "claimId": "claim-solar-7", "value": "22 June 2025" }
+      }
+    },
+    {
+      "attribute": "required_roof_area",
+      "attributeLabel": "Required Roof Area",
+      "overallStatus": "thin",
+      "cells": {
+        "src-solar-2": { "sourceId": "src-solar-2", "status": "found", "claimId": "claim-solar-8", "value": "100 sq ft" }
+      }
+    },
+    {
+      "attribute": "battery_storage_subsidy",
+      "attributeLabel": "Battery Storage Subsidy",
+      "overallStatus": "gap",
+      "cells": {}
+    }
+  ],
+  "checklist": [
+    {
+      "id": "check-1",
+      "priority": "High",
+      "title": "Verify metering policy contradiction",
+      "description": "Sources disagree on whether net metering or gross metering applies.",
+      "suggestedOfficialSource": "discom.state.gov.in",
+      "signalTag": "Sourced"
+    },
+    {
+      "id": "check-2",
+      "priority": "High",
+      "title": "Check current subsidy deadline",
+      "description": "The 22 June 2025 deadline has passed. Confirm active cycle window.",
+      "suggestedOfficialSource": "pmsuryaghar.gov.in",
+      "signalTag": "Sourced"
+    }
+  ],
+  "openQuestions": [],
+  "createdAt": "2026-10-31T10:00:00.000Z"
+}
+

@@ -150,3 +150,4 @@ if (contrastFailures > 0 || literalViolations.length > 0) {
   console.log('\n✅ All contrast ratios and token literal checks PASSED cleanly!');
   process.exit(0);
 }
+

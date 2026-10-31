@@ -31,7 +31,7 @@ function formatSentenceCase(str: string): string {
 function VerbatimContextViewer({ fullText, quote }: { fullText?: string; quote: string }) {
   if (!fullText || !quote) {
     return (
-      <blockquote className="p-4 rounded-xs bg-seed/[0.03] border-l-3 border-rind text-xs italic text-seed leading-relaxed">
+      <blockquote className="p-4 rounded-xs bg-seed/3 border-l-3 border-rind text-xs italic text-seed leading-relaxed">
         &ldquo;{quote}&rdquo;
       </blockquote>
     );
@@ -40,7 +40,7 @@ function VerbatimContextViewer({ fullText, quote }: { fullText?: string; quote: 
   const idx = fullText.indexOf(quote);
   if (idx === -1) {
     return (
-      <blockquote className="p-4 rounded-xs bg-seed/[0.03] border-l-3 border-rind text-xs italic text-seed leading-relaxed">
+      <blockquote className="p-4 rounded-xs bg-seed/3 border-l-3 border-rind text-xs italic text-seed leading-relaxed">
         &ldquo;{quote}&rdquo;
       </blockquote>
     );
@@ -53,7 +53,7 @@ function VerbatimContextViewer({ fullText, quote }: { fullText?: string; quote: 
   const after = fullText.slice(idx + quote.length, end) + (end < fullText.length ? ' …' : '');
 
   return (
-    <div className="p-4 rounded-xs bg-seed/[0.03] border border-seed/12 text-xs leading-relaxed text-seed-muted font-sans space-y-2">
+    <div className="p-4 rounded-xs bg-seed/3 border border-seed/12 text-xs leading-relaxed text-seed-muted font-sans space-y-2">
       <div className="text-[11px] font-mono text-seed-muted/80 pb-1 border-b border-seed/10 flex items-center justify-between">
         <span>Raw Document Excerpt (120 chars context)</span>
         <span className="text-[10px] text-rind font-semibold inline-flex items-center gap-1">
@@ -191,7 +191,7 @@ export const EvidenceDrawerSubRoute: React.FC = () => {
             </div>
 
             {/* 2. Extracted Finding Box */}
-            <div className="p-4 rounded-sm border border-seed/15 bg-seed/[0.02] space-y-1.5">
+            <div className="p-4 rounded-sm border border-seed/15 bg-seed/2 space-y-1.5">
               <span className="font-mono text-[10px] uppercase tracking-wider text-seed-muted font-bold block">
                 Extracted Requirement / Value
               </span>
@@ -201,7 +201,7 @@ export const EvidenceDrawerSubRoute: React.FC = () => {
             </div>
 
             {/* 3. Why this was flagged */}
-            <div className="p-3.5 rounded-xs border border-seed/12 bg-seed/[0.02] space-y-1.5">
+            <div className="p-3.5 rounded-xs border border-seed/12 bg-seed/2 space-y-1.5">
               <div className="flex items-center gap-1.5 text-xs font-heading font-bold text-seed">
                 {whyFlaggedIcon}
                 <span>Why this was flagged</span>
@@ -278,7 +278,7 @@ export const EvidenceDrawerSubRoute: React.FC = () => {
                     return (
                       <div
                         key={s.id}
-                        className="p-2.5 rounded-xs border border-seed/10 bg-seed/[0.015] flex items-center justify-between text-xs"
+                        className="p-2.5 rounded-xs border border-seed/10 bg-seed/1.5 flex items-center justify-between text-xs"
                       >
                         <div className="min-w-0 pr-2">
                           <p className="font-medium text-seed truncate">{s.title}</p>
@@ -342,7 +342,7 @@ export const EvidenceDrawerSubRoute: React.FC = () => {
             </div>
 
             {/* 2. Finding */}
-            <div className="p-4 rounded-sm border border-seed/15 bg-seed/[0.02] space-y-1">
+            <div className="p-4 rounded-sm border border-seed/15 bg-seed/2 space-y-1">
               <span className="font-mono text-[10px] uppercase tracking-wider text-seed-muted font-bold block">
                 Total Information Dark Spot
               </span>
@@ -352,7 +352,7 @@ export const EvidenceDrawerSubRoute: React.FC = () => {
             </div>
 
             {/* 3. Why this was flagged */}
-            <div className="p-3.5 rounded-xs border border-seed/12 bg-seed/[0.02] space-y-1.5">
+            <div className="p-3.5 rounded-xs border border-seed/12 bg-seed/2 space-y-1.5">
               <div className="flex items-center gap-1.5 text-xs font-heading font-bold text-seed">
                 <SeedIcon className="w-3.5 h-3.5 fill-current text-seed" />
                 <span>Why this was flagged</span>

@@ -47,7 +47,7 @@ export const HowItWorks: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-12">
+    <div className="max-w-275 mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-12">
       {/* Editorial Header */}
       <div className="space-y-3 border-b border-border pb-7">
         <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-structure/10 text-structure-text text-xs font-sans font-medium">
@@ -74,7 +74,7 @@ export const HowItWorks: React.FC = () => {
             By layering multiple primary sources—from official notices to public forums—the deterministic engine compares corresponding provisions row by row to detect unstated qualifying conditions and contradictory rules.
           </p>
         </div>
-        <div className="w-full max-w-[440px] shrink-0 flex justify-center">
+        <div className="w-full max-w-110 shrink-0 flex justify-center">
           <EvidenceStack />
         </div>
       </div>

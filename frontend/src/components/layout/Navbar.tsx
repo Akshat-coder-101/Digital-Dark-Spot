@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { SeedIcon } from '../common/Icons';
-import { Sun, Moon, Sparkles, HelpCircle, Search } from 'lucide-react';
-import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
+import { Sparkles, HelpCircle, Search } from 'lucide-react';
+import { motion, useReducedMotion } from 'motion/react';
 import { cn } from '@/lib/utils';
 
 export const Navbar: React.FC = () => {
@@ -10,25 +10,13 @@ export const Navbar: React.FC = () => {
   const shouldReduceMotion = useReducedMotion();
   const [isScrolled, setIsScrolled] = useState(false);
 
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem('theme');
-      if (saved) return saved === 'dark';
-    } catch {}
-    return false; // Light mode is the default canvas
-  });
-
+  // Permanently enforce dark theme across the application
   useEffect(() => {
     try {
-      if (isDark) {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-      }
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
     } catch {}
-  }, [isDark]);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -59,7 +47,7 @@ export const Navbar: React.FC = () => {
           : "border-border/60 bg-bg/80 backdrop-blur-sm py-0"
       )}
     >
-      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 h-13 sm:h-14 flex items-center justify-between">
+      <div className="max-w-275 mx-auto px-4 sm:px-6 h-13 sm:h-14 flex items-center justify-between">
         {/* Brand Wordmark with small seed mark & tiny glow on logo hover */}
         <Link
           to="/"
@@ -105,7 +93,7 @@ export const Navbar: React.FC = () => {
                   {isActive && (
                     <motion.div
                       layoutId="navbar-active-indicator"
-                      className="absolute bottom-0 left-1 right-1 h-[2px] bg-structure-text rounded-full"
+                      className="absolute bottom-0 left-1 right-1 h-0.5 bg-structure-text rounded-full"
                       transition={{ duration: 0.2, ease: 'easeOut' }}
                     />
                   )}
@@ -113,30 +101,6 @@ export const Navbar: React.FC = () => {
               );
             })}
           </nav>
-
-          {/* Sun / Moon crossfade on the theme toggle */}
-          <button
-            onClick={() => setIsDark(!isDark)}
-            className="p-1.5 rounded-xs text-text-muted hover:text-text hover:bg-surface-2 transition-colors cursor-pointer ml-1 relative w-8 h-8 flex items-center justify-center"
-            aria-label="Toggle dark and light theme"
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.span
-                key={isDark ? 'dark' : 'light'}
-                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, rotate: -40, scale: 0.8 }}
-                animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, rotate: 40, scale: 0.8 }}
-                transition={{ duration: 0.18, ease: 'easeOut' }}
-                className="flex items-center justify-center"
-              >
-                {isDark ? (
-                  <Sun className="w-4 h-4 text-conflict" />
-                ) : (
-                  <Moon className="w-4 h-4 text-text" />
-                )}
-              </motion.span>
-            </AnimatePresence>
-          </button>
         </div>
       </div>
     </header>

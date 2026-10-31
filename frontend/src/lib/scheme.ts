@@ -51,11 +51,18 @@ export function extractSchemeInfo(report: {
     }
   }
 
-  // 2. Fallback to searching official or first source title
+  // 2. Genuine official / institutional source check
   const officialSource = report.sources.find(s =>
     s.isOfficialDomain ||
-    (s.domain && (s.domain.endsWith('.gov') || s.domain.endsWith('.gov.in') || s.domain.includes('.gov.')))
-  ) || report.sources[0];
+    (s.domain && (
+      s.domain.endsWith('.gov') ||
+      s.domain.endsWith('.gov.in') ||
+      s.domain.includes('.gov.') ||
+      s.domain.endsWith('.edu') ||
+      s.domain.endsWith('.ac.in') ||
+      s.domain.endsWith('.nic.in')
+    ))
+  );
 
   const detectedCycle = report.sources.find(s => s.detectedCycle)?.detectedCycle || null;
 
@@ -76,7 +83,7 @@ export function extractSchemeInfo(report: {
     cycle: detectedCycle,
     officialDomain: officialSource?.domain || null,
     officialTitle: officialSource?.title || null,
-    hasOfficialSource: Boolean(report.sources.some(s => s.isOfficialDomain || (s.domain && (s.domain.endsWith('.gov') || s.domain.endsWith('.gov.in'))))),
+    hasOfficialSource: Boolean(officialSource),
     isSpecific
   };
 }

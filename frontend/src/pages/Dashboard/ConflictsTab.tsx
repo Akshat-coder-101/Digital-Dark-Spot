@@ -70,18 +70,31 @@ export const ConflictsTab: React.FC = () => {
               className="border border-seed/10 rounded-sm bg-pith overflow-hidden shadow-xs space-y-0"
             >
               {/* Conflict Header */}
-              <div className="px-5 py-3.5 border-b border-seed/10 bg-seed/[0.02] flex flex-wrap items-center justify-between gap-3">
+              <div className="px-5 py-3.5 border-b border-seed/10 bg-seed/2 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
                   <StatusTag status="conflict" />
                   <span className="font-heading text-sm text-seed font-extrabold">
                     {formatSentenceCase(conflict.attribute)}
                   </span>
+                  {conflict.isWeak && (
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-2xs bg-seed/10 text-seed-muted border border-seed/20">
+                      Weak signal (wording difference)
+                    </span>
+                  )}
                 </div>
                 <span className="text-xs font-mono text-crack font-bold inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-xs bg-crack/10 border border-crack/20">
                   <AlertTriangle className="w-3.5 h-3.5" />
                   Possible conflict across 2 sources
                 </span>
               </div>
+
+              {/* Why Flagged Explanation Line */}
+              {conflict.whyFlagged && (
+                <div className="px-5 py-2.5 bg-seed/1.5 border-b border-seed/10 text-xs flex items-center gap-2">
+                  <span className="font-mono font-bold text-crack uppercase text-[10px] tracking-wider shrink-0">Why flagged:</span>
+                  <span className="text-seed font-medium">{conflict.whyFlagged}</span>
+                </div>
+              )}
 
               {/* Side-by-Side Comparison Grid */}
               <div className="relative p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
@@ -91,7 +104,7 @@ export const ConflictsTab: React.FC = () => {
                 </div>
 
                 {/* Left Side: Source A */}
-                <div className="flex flex-col justify-between space-y-4 p-4.5 rounded-sm border border-seed/10 border-l-3 border-l-crack bg-seed/[0.01]">
+                <div className="flex flex-col justify-between space-y-4 p-4.5 rounded-sm border border-seed/10 border-l-3 border-l-crack bg-seed/1">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between gap-2 text-xs">
                       <div className="flex items-center gap-1.5">
@@ -122,7 +135,7 @@ export const ConflictsTab: React.FC = () => {
                     </h4>
 
                     {/* Reported Value Box */}
-                    <div className="p-3 rounded-xs bg-crack/[0.06] border border-crack/30 space-y-1">
+                    <div className="p-3 rounded-xs bg-crack/6 border border-crack/30 space-y-1">
                       <span className="text-[10px] font-mono uppercase tracking-wider text-crack font-bold block">
                         Reported Requirement:
                       </span>
@@ -132,7 +145,7 @@ export const ConflictsTab: React.FC = () => {
                     </div>
 
                     {/* Verbatim Excerpt */}
-                    <blockquote className="p-3 rounded-xs bg-seed/[0.025] border-l-2 border-seed/20 text-xs italic text-seed leading-relaxed font-sans">
+                    <blockquote className="p-3 rounded-xs bg-seed/2.5 border-l-2 border-seed/20 text-xs italic text-seed leading-relaxed font-sans">
                       &ldquo;{conflict.sourceA.quote}&rdquo;
                     </blockquote>
                   </div>
@@ -150,7 +163,7 @@ export const ConflictsTab: React.FC = () => {
                 </div>
 
                 {/* Right Side: Source B */}
-                <div className="flex flex-col justify-between space-y-4 p-4.5 rounded-sm border border-seed/10 border-l-3 border-l-crack bg-seed/[0.01]">
+                <div className="flex flex-col justify-between space-y-4 p-4.5 rounded-sm border border-seed/10 border-l-3 border-l-crack bg-seed/1">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between gap-2 text-xs">
                       <div className="flex items-center gap-1.5">
@@ -181,7 +194,7 @@ export const ConflictsTab: React.FC = () => {
                     </h4>
 
                     {/* Reported Value Box */}
-                    <div className="p-3 rounded-xs bg-crack/[0.06] border border-crack/30 space-y-1">
+                    <div className="p-3 rounded-xs bg-crack/6 border border-crack/30 space-y-1">
                       <span className="text-[10px] font-mono uppercase tracking-wider text-crack font-bold block">
                         Reported Requirement:
                       </span>
@@ -191,7 +204,7 @@ export const ConflictsTab: React.FC = () => {
                     </div>
 
                     {/* Verbatim Excerpt */}
-                    <blockquote className="p-3 rounded-xs bg-seed/[0.025] border-l-2 border-seed/20 text-xs italic text-seed leading-relaxed font-sans">
+                    <blockquote className="p-3 rounded-xs bg-seed/2.5 border-l-2 border-seed/20 text-xs italic text-seed leading-relaxed font-sans">
                       &ldquo;{conflict.sourceB.quote}&rdquo;
                     </blockquote>
                   </div>
@@ -210,12 +223,16 @@ export const ConflictsTab: React.FC = () => {
               </div>
 
               {/* Actionable Resolution Banner */}
-              <div className="px-5 py-3 border-t border-seed/10 bg-seed/[0.02] flex items-center justify-between flex-wrap gap-2 text-xs">
+              <div className="px-5 py-3 border-t border-seed/10 bg-seed/2 flex items-center justify-between flex-wrap gap-2 text-xs">
                 <div className="flex items-center gap-2 text-seed">
                   <span className="w-2 h-2 rounded-full bg-crack" />
                   <span className="font-heading font-bold text-seed">Resolution Guidance:</span>
                   <span className="text-seed-muted">
-                    Conflicting requirements for <strong className="text-seed">{formatSentenceCase(conflict.attribute)}</strong> detected. Always prioritize the official portal (<span className="font-mono text-rind font-semibold">{conflict.sourceA.source_domain}</span>) before applying.
+                    {conflict.authorityDiscrepancy ? (
+                      <strong className="text-seed">{conflict.authorityDiscrepancy}</strong>
+                    ) : (
+                      <>Conflicting requirements for <strong className="text-seed">{formatSentenceCase(conflict.attribute)}</strong> detected. Always prioritize the official portal (<span className="font-mono text-rind font-semibold">{conflict.sourceA.source_domain}</span>) before applying.</>
+                    )}
                   </span>
                 </div>
               </div>

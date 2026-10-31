@@ -1,4 +1,5 @@
 import { SearchAdapter, SearchResult } from '../types.js';
+import { stripTrackingParams } from './gemini.js';
 
 export function isOfficialDomain(domain: string): boolean {
   const d = domain.toLowerCase();
@@ -33,6 +34,7 @@ export const tavilyAdapter: SearchAdapter = {
           query,
           search_depth: 'basic',
           max_results: limit,
+          include_raw_content: true,
           include_domains: [],
           exclude_domains: []
         }),
@@ -50,15 +52,17 @@ export const tavilyAdapter: SearchAdapter = {
       const results: any[] = data?.results || [];
 
       return results.map(r => {
+        const cleanUrl = stripTrackingParams(r.url || '');
         let domain = 'unknown';
         try {
-          domain = new URL(r.url).hostname;
+          domain = new URL(cleanUrl).hostname;
         } catch {}
 
         return {
           title: r.title || domain,
-          url: r.url,
+          url: cleanUrl,
           snippet: r.content || '',
+          rawContent: r.raw_content || r.content || '',
           date: r.published_date || undefined,
           domain,
           isOfficial: isOfficialDomain(domain),

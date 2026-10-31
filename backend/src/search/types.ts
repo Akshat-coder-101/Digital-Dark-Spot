@@ -1,15 +1,19 @@
-export type SearchProviderName = 'tavily' | 'brave';
+export type SearchProviderName = 'gemini' | 'tavily' | 'brave';
 
 export interface SearchResult {
   title: string;
   url: string;
+  originalUrl?: string;
   snippet: string;
   date?: string;
   domain: string;
   isOfficial: boolean;
   score?: number;
   limited?: boolean; // true if page fetch failed and snippet fallback used
+  unavailable?: boolean; // true if retrieval completely failed
   rawContent?: string;
+  sourceType?: string;
+  relevanceHint?: string;
 }
 
 export interface SearchKeyState {
@@ -43,6 +47,7 @@ export interface DiscoveryJob {
   message: string;
   queriesGenerated: string[];
   sourcesFound: SearchResult[];
+  suggestedAttributes?: string[];
   error?: string;
   createdAt: string;
 }

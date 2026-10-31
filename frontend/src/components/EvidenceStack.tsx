@@ -17,7 +17,7 @@ export const EvidenceStack: React.FC<EvidenceStackProps> = ({ className }) => {
   return (
     <div
       className={cn(
-        "relative w-full max-w-[520px] aspect-[520/380] select-none flex items-center justify-center",
+        "relative w-full max-w-130 aspect-[520/380] select-none flex items-center justify-center",
         className
       )}
       role="img"

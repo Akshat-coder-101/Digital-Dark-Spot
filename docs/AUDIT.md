@@ -41,3 +41,4 @@
    - Create `docs/demo-snapshots/` and wire saved snapshots viewer into `Home.tsx` (auto-hiding when empty).
    - Wire checks into `scripts/verify.ts`.
 4. **Part E & F**: Execute UI gate, screenshot captures, live smoke check, and acceptance matrix update.
+

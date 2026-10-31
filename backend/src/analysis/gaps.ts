@@ -11,11 +11,13 @@ export function formatAttributeLabel(attr: string): string {
 export function detectGaps(
   expectedAttributes: string[],
   verifiedClaims: ExtractedClaim[],
-  totalSourceCount: number
+  totalSourceCount: number,
+  questionNeeds?: string[]
 ): PotentialGap[] {
   const gaps: PotentialGap[] = [];
+  const needsToAudit = questionNeeds && questionNeeds.length > 0 ? questionNeeds : expectedAttributes;
 
-  for (const attr of expectedAttributes) {
+  for (const attr of needsToAudit) {
     const matchingClaims = verifiedClaims.filter(c => areAttributesMatching(c.attribute, attr));
     const label = formatAttributeLabel(attr);
 

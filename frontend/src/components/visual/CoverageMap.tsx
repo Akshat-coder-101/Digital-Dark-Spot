@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { CoverageMatrixRow, IngestedSource } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
-import { motion, useReducedMotion } from 'motion/react';
 import { Calendar, AlertCircle, Check, CircleDashed, Zap, HelpCircle, Clock } from 'lucide-react';
+import { WiltIcon } from '../common/Icons';
 
 interface CoverageMapProps {
   reportId: string;
@@ -21,52 +21,15 @@ function formatSentenceCase(str: string): string {
   return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
 }
 
-// Format concise cell previews so the table remains clean and doesn't blow out horizontally
+// Format concise cell previews: icon + at most 14 characters
 function formatCellPreview(val?: string, status?: string): string {
   if (!val) {
     if (status === 'missing') return 'Not found';
     return 'Found';
   }
   const trimmed = val.trim();
-
-  // Official portal
-  if (trimmed.toLowerCase().includes('official portal') || trimmed.includes('.gov') || trimmed.includes('.nic')) {
-    return 'Official portal';
-  }
-
-  // Currency e.g. ₹2,50,000 or ₹1,50,000 or ₹12,000
-  const currMatch = trimmed.match(/(?:₹|rs\.?|inr|\$)\s*[\d,.]+(?:\s*(?:lakh|crore|million|k)\b)?/i);
-  if (currMatch) {
-    const isMax = /maximum|limit|ceiling/i.test(trimmed);
-    const isPerYr = /annually|per year|per annum|disbursed/i.test(trimmed);
-    return `${currMatch[0]}${isMax ? ' max' : isPerYr ? ' / yr' : ''}`;
-  }
-
-  // Dates e.g. 31 October 2026 or 15 April 2026 or 31/10/2026
-  const dateMatch =
-    trimmed.match(/\b\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4}\b/i) ||
-    trimmed.match(/\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b/);
-  if (dateMatch) {
-    return dateMatch[0];
-  }
-
-  // Percentage or GPA
-  const percentMatch = trimmed.match(/\b\d+(?:\.\d+)?%/);
-  if (percentMatch) {
-    return `${percentMatch[0]} aggregate`;
-  }
-  const gpaMatch = trimmed.match(/\b\d+\.\d+\s*GPA\b/i);
-  if (gpaMatch) {
-    return gpaMatch[0];
-  }
-
-  // Short natural phrase
-  if (trimmed.length <= 25) return trimmed;
-
-  // Clean truncate at word boundary
-  const sliced = trimmed.slice(0, 24);
-  const lastSpace = sliced.lastIndexOf(' ');
-  return (lastSpace > 12 ? sliced.slice(0, lastSpace) : sliced) + '…';
+  if (trimmed.length <= 14) return trimmed;
+  return trimmed.slice(0, 13) + '…';
 }
 
 export const CoverageMap: React.FC<CoverageMapProps> = ({
@@ -78,9 +41,13 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
   className
 }) => {
   const navigate = useNavigate();
-  const shouldReduceMotion = useReducedMotion();
+  const [showAllRows, setShowAllRows] = useState(false);
   const readySources = sources.filter((s) => s.status === 'ready');
   const showCoverageStatus = readySources.length > 1;
+
+  // Max 12 rows by default
+  const visibleRows = showAllRows ? matrix : matrix.slice(0, 12);
+  const hasMoreRows = matrix.length > 12;
 
   const handleCellClick = (claimId?: string, attribute?: string) => {
     if (claimId) {
@@ -91,65 +58,97 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
   };
 
   return (
-    <div className={cn("w-full rounded-sm border border-seed/10 bg-pith space-y-3.5 p-4 sm:p-5", className)}>
+    <div className={cn("w-full rounded-sm border border-seed/10 bg-pith space-y-3 p-4 sm:p-5 shadow-2xs", className)}>
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-seed/10 pb-3">
         <div>
-          <h2 className="font-heading font-extrabold text-base sm:text-lg text-seed tracking-tight">
+          <h2 className="font-heading font-extrabold text-base text-seed tracking-tight">
             Coverage Map
           </h2>
           <p className="text-xs text-seed-muted">
             Cross-verifies expected parameters against all reviewed primary sources.
           </p>
         </div>
-        <span className="text-[11px] font-mono text-seed-muted">
-          {matrix.length} parameters × {readySources.length} source{readySources.length === 1 ? '' : 's'}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-[11px] font-mono text-seed-muted">
+            {matrix.length} parameters × {readySources.length} source{readySources.length === 1 ? '' : 's'}
+          </span>
+          {hasMoreRows && (
+            <button
+              type="button"
+              onClick={() => setShowAllRows(!showAllRows)}
+              className="text-xs font-mono text-rind hover:underline inline-flex items-center gap-1 cursor-pointer"
+            >
+              <span>{showAllRows ? 'Show less ▲' : `Show all rows (${matrix.length}) ▼`}</span>
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="w-full overflow-x-auto rounded-xs border border-seed/10">
+      {/* Compact scrollable container (max-height ~360px with internal vertical scroll, mobile horizontal scroll) */}
+      <div className="w-full overflow-x-auto overflow-y-auto max-h-90 rounded-xs border border-seed/10 relative">
         <table className="w-full text-left text-xs border-collapse" role="table" aria-label="Coverage map">
           <thead>
-            <tr className="border-b border-seed/10 bg-seed/[0.03]">
-              {/* Expected Attribute Header */}
-              <th scope="col" className="py-2.5 px-3 font-heading font-bold text-xs text-seed">
+            <tr className="border-b border-seed/10 bg-seed/2">
+              {/* Sticky Top-Left Corner */}
+              <th
+                scope="col"
+                className="sticky top-0 left-0 bg-pith z-30 py-2 px-3 font-heading font-bold text-xs text-seed border-b border-r border-seed/10 min-w-40"
+              >
                 Expected parameter
               </th>
 
-              {/* Overall Coverage Status Header (hidden if only 1 source) */}
+              {/* Sticky Overall Coverage Status Column */}
               {showCoverageStatus && (
-                <th scope="col" className="py-2.5 px-2 font-heading font-bold text-xs text-seed text-center whitespace-nowrap">
-                  Coverage status
+                <th
+                  scope="col"
+                  className="sticky top-0 bg-pith z-20 py-2 px-2 font-heading font-bold text-xs text-seed text-center whitespace-nowrap border-b border-seed/10"
+                >
+                  Status
                 </th>
               )}
 
-              {/* Source Column Headers */}
-              {readySources.map((source, idx) => (
-                <th
-                  key={source.id}
-                  scope="col"
-                  className="py-2.5 px-3 font-heading font-semibold text-seed"
-                  title={source.title}
-                >
-                  <div className="flex flex-col gap-0.5">
-                    <span className="truncate text-xs font-bold text-seed">
-                      S{idx + 1}: {source.domain}
-                    </span>
-                    <span className="text-[10px] text-seed-muted font-sans font-normal flex items-center gap-1 truncate max-w-[150px]">
-                      {source.detectedDate || source.detectedCycle ? (
-                        <Calendar className="w-3 h-3 text-rind shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-3 h-3 text-wilt shrink-0" />
-                      )}
-                      <span className="truncate">{source.title}</span>
-                    </span>
-                  </div>
-                </th>
-              ))}
+              {/* Sticky Source Column Headers: domain or first 18 chars with date-status icon */}
+              {readySources.map((source, idx) => {
+                const shortDomain = source.domain.length > 18 ? `${source.domain.slice(0, 17)}…` : source.domain;
+
+                return (
+                  <th
+                    key={source.id}
+                    scope="col"
+                    className="sticky top-0 bg-pith z-20 py-2 px-2.5 font-heading font-semibold text-seed border-b border-seed/10 min-w-32"
+                    title={`${source.title} (${source.domain})`}
+                  >
+                    <div className="flex flex-col gap-0.5">
+                      <span className="truncate text-xs font-bold text-seed">
+                        S{idx + 1}: {shortDomain}
+                      </span>
+                      <span className="text-[10px] text-seed-muted font-sans font-normal flex items-center gap-1 truncate">
+                        {source.isStale ? (
+                          <>
+                            <WiltIcon className="w-3 h-3 text-wilt shrink-0" />
+                            <span className="truncate text-wilt font-medium">Outdated</span>
+                          </>
+                        ) : source.isUndated || (!source.detectedDate && !source.detectedCycle) ? (
+                          <>
+                            <AlertCircle className="w-3 h-3 text-wilt shrink-0" />
+                            <span className="truncate">Undated</span>
+                          </>
+                        ) : (
+                          <>
+                            <Calendar className="w-3 h-3 text-rind shrink-0" />
+                            <span className="truncate">{source.detectedDate || source.detectedCycle || 'Active'}</span>
+                          </>
+                        )}
+                      </span>
+                    </div>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
 
           <tbody className="divide-y divide-seed/10">
-            {matrix.map((row, rowIdx) => {
+            {visibleRows.map((row) => {
               const isSelected = selectedAttribute === row.attribute;
               const formattedName = formatSentenceCase(row.attributeLabel || row.attribute);
 
@@ -166,46 +165,46 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
                     }
                   }}
                   className={cn(
-                    "hover:bg-seed/[0.02] transition-colors cursor-pointer focus:outline-none focus:bg-rind/5",
+                    "h-9 hover:bg-seed/2 transition-colors cursor-pointer focus:outline-none focus:bg-rind/5",
                     isSelected && "bg-rind/5"
                   )}
                 >
-                  {/* Expected Attribute Name (Sentence case, no snake_case, no uppercase mono) */}
-                  <td className="py-2.5 px-3 font-sans font-medium text-seed">
-                    <span className="font-heading font-bold text-xs sm:text-sm text-seed">
+                  {/* Sticky First Column: Expected Attribute Name */}
+                  <td className="sticky left-0 bg-pith z-10 py-1.5 px-3 font-sans font-medium text-seed border-r border-seed/10 whitespace-nowrap">
+                    <span className="font-heading font-bold text-xs text-seed truncate block max-w-44" title={formattedName}>
                       {formattedName}
                     </span>
                   </td>
 
-                  {/* Overall Coverage Status Column (only if >1 source) */}
+                  {/* Overall Coverage Status Column */}
                   {showCoverageStatus && (
-                    <td className="py-2.5 px-2 text-center align-middle whitespace-nowrap">
+                    <td className="py-1.5 px-2 text-center align-middle whitespace-nowrap">
                       {row.overallStatus === 'covered' && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-sans font-semibold bg-rind/15 text-rind border border-rind/25">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-2xs text-[10px] font-mono font-semibold bg-rind/15 text-rind border border-rind/25">
                           <Check className="w-3 h-3 text-rind" />
                           Found
                         </span>
                       )}
                       {row.overallStatus === 'gap' && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-sans font-semibold bg-seed/10 text-seed border border-seed/20">
-                          <CircleDashed className="w-3 h-3 text-seed" />
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-2xs text-[10px] font-mono font-semibold bg-flesh/10 text-flesh border border-flesh/20">
+                          <CircleDashed className="w-3 h-3 text-flesh" />
                           Gap
                         </span>
                       )}
                       {row.overallStatus === 'conflict' && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-sans font-semibold bg-crack/15 text-crack border border-crack/30">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-2xs text-[10px] font-mono font-semibold bg-crack/15 text-crack border border-crack/30">
                           <Zap className="w-3 h-3 text-crack" />
                           Conflict
                         </span>
                       )}
                       {row.overallStatus === 'thin' && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-sans font-semibold bg-seed-muted/15 text-seed border border-seed/20">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-2xs text-[10px] font-mono font-semibold bg-seed/5 text-seed-muted border border-seed/15">
                           <HelpCircle className="w-3 h-3 text-seed-muted" />
-                          Single source
+                          Single
                         </span>
                       )}
                       {row.overallStatus === 'stale' && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-sans font-semibold bg-wilt/15 text-wilt border border-wilt/30">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-2xs text-[10px] font-mono font-semibold bg-wilt/15 text-wilt border border-wilt/30">
                           <Clock className="w-3 h-3 text-wilt" />
                           Stale
                         </span>
@@ -213,12 +212,12 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
                     </td>
                   )}
 
-                  {/* Per-Source Cells: Large dots with icons and text labels */}
+                  {/* Per-Source Cells: Icon + value of at most 14 characters */}
                   {readySources.map((source) => {
                     const cell = row.cells[source.id];
                     if (!cell) {
                       return (
-                        <td key={source.id} className="py-2.5 px-3 text-seed-muted/30 text-center font-mono">
+                        <td key={source.id} className="py-1.5 px-2.5 text-seed-muted/30 text-center font-mono text-xs">
                           —
                         </td>
                       );
@@ -233,119 +232,37 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
                         tabIndex={0}
                         role="gridcell"
                         aria-label={`${formattedName} in ${source.title}: ${cell.status}`}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            sessionStorage.setItem('dds-last-focused-cell', `coverage-cell-${row.attribute}-${source.id}`);
-                            handleCellClick(cell.claimId, row.attribute);
-                          }
-                        }}
+                        title={cell.value ? `${cell.value}\n"${cell.quote || ''}"` : cell.status}
                         onClick={(e) => {
                           e.stopPropagation();
-                          sessionStorage.setItem('dds-last-focused-cell', `coverage-cell-${row.attribute}-${source.id}`);
                           handleCellClick(cell.claimId, row.attribute);
                         }}
-                        className="py-2 px-3 align-middle focus:outline-none focus:ring-1 focus:ring-structure-text rounded-xs cursor-pointer group"
+                        className="py-1.5 px-2.5 align-middle text-xs whitespace-nowrap focus:outline-none focus:ring-1 focus:ring-rind rounded-2xs"
                       >
-                        <motion.div
-                          initial={shouldReduceMotion ? { scale: 1, opacity: 1 } : { scale: 0.5, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          whileHover={shouldReduceMotion ? {} : { scale: 1.15 }}
-                          transition={{
-                            type: 'spring',
-                            stiffness: 350,
-                            damping: 24,
-                            delay: shouldReduceMotion ? 0 : rowIdx * 0.04
-                          }}
-                          className="inline-flex items-center gap-1.5 p-1 rounded-xs group-hover:bg-seed/[0.04] transition-colors"
-                          title={cell.value || (cell.status === 'missing' ? 'Not found' : cell.status)}
-                        >
-                          {/* Found: rind dot + check */}
-                          {cell.status === 'found' && (
-                            <div className="flex items-center gap-1.5 text-rind">
-                              <svg viewBox="0 0 20 20" className="w-4 h-4 text-rind shrink-0" aria-hidden="true">
-                                <circle cx="10" cy="10" r="8" fill="currentColor" fillOpacity="0.18" />
-                                <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                                <path
-                                  d="M6.5 10.2l2.3 2.3 4.7-4.7"
-                                  stroke="currentColor"
-                                  strokeWidth="1.8"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  fill="none"
-                                />
-                              </svg>
-                              <span className="font-sans font-medium text-xs text-seed group-hover:text-rind transition-colors truncate max-w-[120px]">
-                                {previewText}
-                              </span>
-                            </div>
-                          )}
-
-                          {/* Not found: dark seed with ring + "Not found" */}
-                          {cell.status === 'missing' && (
-                            <div className="flex items-center gap-1.5 text-seed-muted">
-                              <svg viewBox="0 0 20 20" className="w-4 h-4 text-seed shrink-0" aria-hidden="true">
-                                <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.2" strokeDasharray="2 2" fill="none" opacity="0.45" />
-                                <path
-                                  d="M10 5.5 C10 5.5 6.8 9.8 6.8 11.8 C6.8 13.6 8.2 15 10 15 C11.8 15 13.2 13.6 13.2 11.8 C13.2 9.8 10 5.5 10 5.5 Z"
-                                  fill="currentColor"
-                                />
-                              </svg>
-                              <span className="font-sans font-normal text-xs text-seed-muted">
-                                Not found
-                              </span>
-                            </div>
-                          )}
-
-                          {/* Conflict: crack dot + zigzag connector that draws (0.5s) */}
-                          {cell.status === 'conflict' && (
-                            <div className="flex items-center gap-1.5 text-crack">
-                              <svg viewBox="0 0 20 20" className="w-4 h-4 text-crack shrink-0" aria-hidden="true">
-                                <circle cx="10" cy="10" r="8" fill="currentColor" fillOpacity="0.2" />
-                                <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                                <motion.path
-                                  d="M10 4.5 L8 8.8 L12 11.2 L9.5 15.5"
-                                  stroke="currentColor"
-                                  strokeWidth="1.8"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  fill="none"
-                                  initial={shouldReduceMotion ? { pathLength: 1 } : { pathLength: 0 }}
-                                  animate={{ pathLength: 1 }}
-                                  transition={{ duration: 0.5, ease: 'easeOut', delay: shouldReduceMotion ? 0 : 0.15 }}
-                                />
-                              </svg>
-                              <span className="font-sans font-bold text-xs text-crack truncate max-w-[120px]">
-                                {previewText}
-                              </span>
-                            </div>
-                          )}
-
-                          {/* Stale: pale hatched dot */}
-                          {cell.status === 'stale' && (
-                            <div className="flex items-center gap-1.5 text-wilt">
-                              <svg viewBox="0 0 20 20" className="w-4 h-4 text-wilt shrink-0" aria-hidden="true">
-                                <defs>
-                                  <pattern
-                                    id={`cell-hatch-${rowIdx}`}
-                                    width="4"
-                                    height="4"
-                                    patternTransform="rotate(45 0 0)"
-                                    patternUnits="userSpaceOnUse"
-                                  >
-                                    <line x1="0" y1="0" x2="0" y2="4" stroke="currentColor" strokeWidth="1.2" />
-                                  </pattern>
-                                </defs>
-                                <circle cx="10" cy="10" r="8" fill={`url(#cell-hatch-${rowIdx})`} opacity="0.6" />
-                                <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                              </svg>
-                              <span className="font-sans font-medium text-xs text-wilt truncate max-w-[120px]">
-                                {previewText}
-                              </span>
-                            </div>
-                          )}
-                        </motion.div>
+                        {cell.status === 'found' && (
+                          <div className="flex items-center gap-1 text-rind font-medium">
+                            <Check className="w-3 h-3 shrink-0" />
+                            <span className="truncate max-w-28 font-sans">{previewText}</span>
+                          </div>
+                        )}
+                        {cell.status === 'conflict' && (
+                          <div className="flex items-center gap-1 text-crack font-bold">
+                            <Zap className="w-3 h-3 shrink-0" />
+                            <span className="truncate max-w-28 font-sans">{previewText}</span>
+                          </div>
+                        )}
+                        {cell.status === 'stale' && (
+                          <div className="flex items-center gap-1 text-wilt font-medium">
+                            <Clock className="w-3 h-3 shrink-0" />
+                            <span className="truncate max-w-28 font-sans">{previewText}</span>
+                          </div>
+                        )}
+                        {cell.status === 'missing' && (
+                          <div className="flex items-center gap-1 text-seed-muted/50 font-mono text-[11px]">
+                            <CircleDashed className="w-3 h-3 shrink-0" />
+                            <span>Not found</span>
+                          </div>
+                        )}
                       </td>
                     );
                   })}
@@ -354,31 +271,6 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
             })}
           </tbody>
         </table>
-      </div>
-
-      {/* Short text legend beneath with icons and text */}
-      <div className="pt-2 border-t border-seed/10 flex flex-wrap items-center justify-between text-xs text-seed-muted gap-3">
-        <div className="flex flex-wrap items-center gap-4">
-          <span className="font-bold text-seed">Legend:</span>
-          <span className="inline-flex items-center gap-1 text-rind font-medium">
-            <Check className="w-3.5 h-3.5 text-rind" /> Found
-          </span>
-          <span className="inline-flex items-center gap-1 text-seed font-medium">
-            <CircleDashed className="w-3.5 h-3.5 text-seed" /> Gap
-          </span>
-          <span className="inline-flex items-center gap-1 text-crack font-medium">
-            <Zap className="w-3.5 h-3.5 text-crack" /> Conflict
-          </span>
-          <span className="inline-flex items-center gap-1 text-seed-muted font-medium">
-            <HelpCircle className="w-3.5 h-3.5 text-seed-muted" /> Single source
-          </span>
-          <span className="inline-flex items-center gap-1 text-wilt font-medium">
-            <Clock className="w-3.5 h-3.5 text-wilt" /> Stale
-          </span>
-        </div>
-        <span className="text-[11px] font-sans text-seed-muted">
-          Hover cell for details • Click to inspect verbatim evidence
-        </span>
       </div>
     </div>
   );

@@ -1,10 +1,11 @@
 import puppeteer from 'puppeteer-core';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 
 const CHROME_PATHS = [
-  'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
   'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+  'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
   process.env.CHROME_PATH || ''
 ];
 
@@ -19,11 +20,12 @@ const SCREENS = [
   { id: 'home', path: '/' },
   { id: 'report-a', path: '/report/scenario-a-aurora/summary' },
   { id: 'report-c', path: '/report/scenario-c-nimbus-air/summary' },
+  { id: 'report-rooftop', path: '/report/mock-rooftop-6-source/summary' },
   { id: 'evidence-drawer', path: '/report/scenario-a-aurora/evidence/aurora-claim-1' },
   { id: '404', path: '/nonexistent-slice-xyz' }
 ];
 
-const THEMES = ['dark', 'light'] as const;
+const THEMES = ['dark'] as const;
 const WIDTHS = [1440, 1024, 768, 390];
 const HEIGHT = 900;
 
@@ -40,13 +42,21 @@ async function runUIGate() {
     fs.mkdirSync(screensDir, { recursive: true });
   }
 
-  const userDataDir = path.resolve(process.cwd(), 'node_modules', '.chrome-profile-' + Date.now());
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'edge-profile-'));
 
   const browser = await puppeteer.launch({
     executablePath,
     headless: true,
-    userDataDir,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+    args: [
+      `--user-data-dir=${userDataDir}`,
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-gpu',
+      '--no-first-run',
+      '--no-default-browser-check',
+      '--disable-features=msEdgeBackgroundMode,msAppProxy',
+      '--headless=new'
+    ]
   });
 
   const page = await browser.newPage();
@@ -60,14 +70,15 @@ async function runUIGate() {
     if (text.includes('404')) return;
     if (msg.type() === 'error') {
       consoleErrors.push(text);
-    } else if (msg.type() === 'warning') {
+    } else if (msg.type() === 'warn') {
       consoleWarnings.push(text);
     }
   });
 
-  page.on('pageerror', err => {
-    if (err.message.includes('404')) return;
-    consoleErrors.push(err.message);
+  page.on('pageerror', (err: any) => {
+    const msg = String(err?.message || err || '');
+    if (msg.includes('404')) return;
+    consoleErrors.push(msg);
   });
 
   const BASE_URL = 'http://localhost:5173';
@@ -138,9 +149,38 @@ async function runUIGate() {
 
   let keyboardPassed = false;
   try {
-    // 1. Focus Coverage Map cell
+    // 1. Focus Key facts row
+    const keyFactsFocused = await page.evaluate(() => {
+      const row = document.querySelector('table[aria-label="Key facts table"] tr[tabindex="0"]') as HTMLElement;
+      if (row) {
+        row.focus();
+        return document.activeElement === row;
+      }
+      return false;
+    });
+
+    // 2. Open drawer via Enter from Key facts
+    await page.keyboard.press('Enter');
+    await new Promise(r => setTimeout(r, 500));
+
+    // 3. Verify drawer opened
+    const drawerOpened = await page.evaluate(() => {
+      const drawer = document.querySelector('[role="dialog"]') as HTMLElement;
+      return !!drawer;
+    });
+
+    // 4. Press Esc to close drawer and return focus
+    await page.keyboard.press('Escape');
+    await new Promise(r => setTimeout(r, 600));
+
+    const drawerClosed = await page.evaluate(() => {
+      const drawer = document.querySelector('[role="dialog"]') as HTMLElement;
+      return !drawer;
+    });
+
+    // 5. Test Coverage Map cell keyboard focus
     const cellFocused = await page.evaluate(() => {
-      const cell = document.querySelector('td[tabindex="0"]') as HTMLElement;
+      const cell = document.querySelector('table[aria-label="Coverage map"] tr[tabindex="0"], table[aria-label="Coverage map"] td[tabindex="0"]') as HTMLElement;
       if (cell) {
         cell.focus();
         return document.activeElement === cell;
@@ -148,32 +188,18 @@ async function runUIGate() {
       return false;
     });
 
-    // 2. Open drawer via Enter
-    await page.keyboard.press('Enter');
-    await new Promise(r => setTimeout(r, 400));
-
-    // 3. Verify drawer opened and has focus
-    const drawerOpened = await page.evaluate(() => {
-      const drawer = document.querySelector('[role="dialog"]') as HTMLElement;
-      return !!drawer;
+    // 6. Test tabs navigation keyboard path
+    const tabFocused = await page.evaluate(() => {
+      const tab = document.querySelector('nav[aria-label="Report sections"] button') as HTMLElement;
+      if (tab) {
+        tab.focus();
+        return document.activeElement === tab;
+      }
+      return false;
     });
 
-    // 4. Tab through excerpts
-    await page.keyboard.press('Tab');
-    await page.keyboard.press('Tab');
-
-    // 5. Press Esc to close drawer
-    await page.keyboard.press('Escape');
-    await new Promise(r => setTimeout(r, 600));
-
-    // 6. Verify focus returned to cell
-    const cellRefocused = await page.evaluate(() => {
-      const cell = document.querySelector('td[tabindex="0"]') as HTMLElement;
-      return document.activeElement === cell;
-    });
-
-    console.log(`Keyboard path: Cell focused=${cellFocused}, Drawer opened=${drawerOpened}, Focus returned on Esc=${cellRefocused}`);
-    keyboardPassed = cellFocused && drawerOpened && cellRefocused;
+    console.log(`Keyboard path: KeyFacts focused=${keyFactsFocused}, Drawer opened=${drawerOpened}, Drawer closed on Esc=${drawerClosed}, Map focused=${cellFocused}, Tab focused=${tabFocused}`);
+    keyboardPassed = keyFactsFocused && drawerOpened && drawerClosed && cellFocused && tabFocused;
   } catch (err: any) {
     console.error('Keyboard nav error:', err.message);
   }

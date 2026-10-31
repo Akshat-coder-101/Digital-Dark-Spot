@@ -12,6 +12,16 @@ interface ProviderStatus {
   cooldownSecondsRemaining?: number;
 }
 
+interface SearchProviderStatus {
+  name: string;
+  provider: string;
+  enabled: boolean;
+  keyCount: number;
+  activeKeyCount: number;
+  inCooldown: boolean;
+  cooldownSecondsRemaining?: number;
+}
+
 export const SettingsAi: React.FC = () => {
   const shouldReduceMotion = useReducedMotion();
   const [providers, setProviders] = useState<ProviderStatus[]>([
@@ -19,6 +29,7 @@ export const SettingsAi: React.FC = () => {
     { name: 'Groq (Ultra-Fast Failover)', enabled: true, model: 'qwen/qwen3.8-27b', keyCount: 1, inCooldown: false },
     { name: 'OpenAI (Fallback)', enabled: false, model: 'gpt-4o-mini', keyCount: 0, inCooldown: false }
   ]);
+  const [searchProviders, setSearchProviders] = useState<SearchProviderStatus[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchStatus = async () => {
@@ -29,6 +40,9 @@ export const SettingsAi: React.FC = () => {
         const data = await res.json();
         if (data.providers) {
           setProviders(data.providers);
+        }
+        if (data.searchProviders) {
+          setSearchProviders(data.searchProviders);
         }
       }
     } catch {
@@ -43,7 +57,7 @@ export const SettingsAi: React.FC = () => {
   }, []);
 
   return (
-    <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-8">
+    <div className="max-w-275 mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-seed/10 pb-6">
         <div>
@@ -82,7 +96,7 @@ export const SettingsAi: React.FC = () => {
               delay: shouldReduceMotion ? 0 : idx * 0.08,
               ease: 'easeOut'
             }}
-            className="p-5 rounded-xs border border-seed/10 bg-pith hover:border-seed/25 hover:bg-seed/[0.015] transition-all duration-200 space-y-4 shadow-xs"
+            className="p-5 rounded-xs border border-seed/10 bg-pith hover:border-seed/25 hover:bg-seed/1.5 transition-all duration-200 space-y-4 shadow-xs"
           >
             {/* Provider Title & Active/Disabled Badge */}
             <div className="flex items-center justify-between pb-3 border-b border-seed/10">
@@ -116,7 +130,7 @@ export const SettingsAi: React.FC = () => {
             <div className="space-y-2 text-xs text-seed-muted font-sans">
               <div className="flex justify-between items-center">
                 <span>Model</span>
-                <span className="font-mono text-seed font-medium truncate max-w-[150px]">{p.model}</span>
+                <span className="font-mono text-seed font-medium truncate max-w-37.5">{p.model}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>Configured Keys</span>
@@ -137,13 +151,68 @@ export const SettingsAi: React.FC = () => {
         ))}
       </div>
 
+      {/* Search Providers Status Area */}
+      {searchProviders.length > 0 && (
+        <div className="space-y-4 pt-4 border-t border-seed/10">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-heading font-bold text-base text-seed">
+                Search Discovery Providers
+              </h2>
+              <p className="text-xs text-seed-muted">
+                Status of web search providers (quota reached or ok) and failover order.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {searchProviders.map((sp) => (
+              <div
+                key={sp.provider}
+                className="p-4 rounded-xs border border-seed/10 bg-pith space-y-3"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-heading font-bold text-xs text-seed">
+                    {sp.name}
+                  </span>
+                  <span
+                    className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-xs border ${
+                      sp.inCooldown
+                        ? 'bg-crack/10 text-crack border-crack/20'
+                        : sp.enabled
+                        ? 'bg-rind/10 text-rind border-rind/20'
+                        : 'bg-seed/5 text-seed-muted border-seed/10'
+                    }`}
+                  >
+                    {sp.inCooldown ? 'Quota Reached' : (sp.enabled ? 'OK' : 'Not configured')}
+                  </span>
+                </div>
+
+                <div className="space-y-1.5 text-xs text-seed-muted font-sans">
+                  <div className="flex justify-between items-center">
+                    <span>Active Keys</span>
+                    <span className="font-mono text-seed font-medium">{sp.activeKeyCount} / {sp.keyCount}</span>
+                  </div>
+                  {sp.inCooldown && sp.cooldownSecondsRemaining && sp.cooldownSecondsRemaining > 0 && (
+                    <div className="flex justify-between items-center text-crack font-mono text-[11px]">
+                      <span>Cooldown Remaining</span>
+                      <span>{sp.cooldownSecondsRemaining}s</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Key Security Guarantee */}
       <motion.div
         initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.35, delay: 0.25 }}
-        className="p-5 rounded-xs border border-seed/10 border-l-2 border-l-rind bg-seed/[0.01]"
+        className="p-5 rounded-xs border border-seed/10 border-l-2 border-l-rind bg-seed/1"
       >
         <div className="flex items-start gap-3">
           <ShieldAlert className="w-5 h-5 text-rind shrink-0 mt-0.5" />

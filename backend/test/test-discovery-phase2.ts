@@ -89,7 +89,13 @@ async function main() {
     assert.strictEqual(job.status, 'ready');
     assert.strictEqual(job.sourcesFound.length, 0, 'Must NOT fabricate fake sources when API keys are absent');
     assert(job.queriesGenerated.length >= 3, 'Must formulate investigative queries for user guidance');
-    assert(job.message.toLowerCase().includes('not configured') || job.message.toLowerCase().includes('queries'), 'Friendly fallback message');
+    assert(
+      job.message.toLowerCase().includes('not configured') ||
+      job.message.toLowerCase().includes('queries') ||
+      job.message.toLowerCase().includes('no sources reviewed') ||
+      job.message.toLowerCase().includes('ai-suggested'),
+      'Friendly fallback message'
+    );
   });
 
   // TEST 4: Second pass targeted search for gaps

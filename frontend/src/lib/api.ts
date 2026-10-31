@@ -7,6 +7,7 @@ export interface SourcePayload {
   date?: string;
   rawContent?: string;
   sourceType?: string;
+  relevanceHint?: string;
 }
 
 export interface DiscoveredSource {
@@ -17,8 +18,10 @@ export interface DiscoveredSource {
   domain: string;
   isOfficial: boolean;
   limited?: boolean;
+  unavailable?: boolean;
   rawContent?: string;
   sourceType?: string;
+  relevanceHint?: string;
 }
 
 export async function getSnapshots(): Promise<{ available: boolean; count: number; snapshots: string[] }> {
@@ -95,8 +98,9 @@ export async function startDiscovery(question: string) {
   return res.json() as Promise<{ discoveryId: string; status: string; message: string }>;
 }
 
-export async function getDiscoveryJob(discoveryId: string) {
-  const res = await fetch(`/api/discover/${encodeURIComponent(discoveryId)}`);
+export async function getDiscoveryJob(discoveryId: string, question?: string) {
+  const queryStr = question ? `?q=${encodeURIComponent(question)}` : '';
+  const res = await fetch(`/api/discover/${encodeURIComponent(discoveryId)}${queryStr}`);
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || 'Failed to fetch discovery job status.');

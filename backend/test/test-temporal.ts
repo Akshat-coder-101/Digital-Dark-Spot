@@ -43,8 +43,8 @@ testCycle('Schedule for 2025-2026 grant cycle.', '2025-26', '2025-2026 generic 4
 testDate('Last updated on 15th March 2026 by administration.', '15 March 2026', 'Ordinal natural date "15th March 2026"');
 testDate('Notice published on March 15, 2026 for all students.', '15 March 2026', 'Month-first date "March 15, 2026"');
 testDate('Circular issued 2026-03-15 in New Delhi.', '2026-03-15', 'ISO format "2026-03-15"');
-testDate('Deadline is 15/03/2026 at 5:00 PM IST.', '15/03/2026', 'Slash format DD/MM/YYYY');
-testDate('Please submit before 03/15/2026.', '15/03/2026', 'Slash format MM/DD/YYYY');
+testDate('Notice dated 15/03/2026 at 5:00 PM IST.', '15/03/2026', 'Slash format DD/MM/YYYY');
+testDate('Circular issued on 03/15/2026.', '15/03/2026', 'Slash format MM/DD/YYYY');
 
 // 3. Undated & Stale Checks
 const staleRes = detectTemporalMetadata('Circular issued for FY 23-24 on 10 January 2024.');

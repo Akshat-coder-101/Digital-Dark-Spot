@@ -24,7 +24,12 @@ ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     {/* Global Motion accessibility wrapper: respects user preference for reduced motion */}
     <MotionConfig reducedMotion="user">
-      <BrowserRouter>
+      <BrowserRouter
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
         <App />
       </BrowserRouter>
     </MotionConfig>

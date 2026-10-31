@@ -7,8 +7,22 @@ const V = (() => {
   return g.map(v => v / l);
 })();
 
-export function DotField({ className = "" }: { className?: string }) {
+export function DotField({
+  className = "",
+  isFocused = false,
+  charCount = 0
+}: {
+  className?: string;
+  isFocused?: boolean;
+  charCount?: number;
+}) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const focusedRef = useRef(isFocused);
+  focusedRef.current = isFocused;
+
+  const charCountRef = useRef(charCount);
+  charCountRef.current = charCount;
+  const prevCharCountRef = useRef(charCount);
 
   useEffect(() => {
     const canvas = ref.current;
@@ -167,8 +181,16 @@ export function DotField({ className = "" }: { className?: string }) {
       ctx.clearRect(0, 0, size, size);
 
       if (!reduce) {
-        ang += 0.0012 + angVel;
+        const baseSpeed = focusedRef.current ? 0.0022 : 0.0012;
+        ang += baseSpeed + angVel;
         angVel *= 0.92;
+
+        // Subtle gentle impulse on user typing
+        if (charCountRef.current !== prevCharCountRef.current) {
+          prevCharCountRef.current = charCountRef.current;
+          angVel += 0.0006;
+        }
+
         tiltX += (targetTiltX - tiltX) * 0.08;
         tiltY += (targetTiltY - tiltY) * 0.08;
       }
@@ -195,20 +217,21 @@ export function DotField({ className = "" }: { className?: string }) {
         }
 
         const rim = 1 - Math.abs(t.z), back = t.z < 0 ? 0.45 : 1;
+        const focusBoost = focusedRef.current ? 0.12 : 0;
 
         if (p.edge) {
           ctx.fillStyle = cEdge;
-          ctx.globalAlpha = 0.95 * back;
+          ctx.globalAlpha = Math.min(1, 0.95 * back + focusBoost);
         } else if (p.belt && Math.random() > 0.28) {
           // Equatorial amber belt matching motion.dev
           ctx.fillStyle = cEdge;
-          ctx.globalAlpha = (0.35 + 0.6 * rim) * back;
+          ctx.globalAlpha = Math.min(1, (0.35 + 0.6 * rim + focusBoost) * back);
         } else if (rim > 0.82) {
           ctx.fillStyle = cRim;
-          ctx.globalAlpha = (0.3 + 0.7 * rim * rim) * back;
+          ctx.globalAlpha = Math.min(1, (0.3 + 0.7 * rim * rim + focusBoost) * back);
         } else {
           ctx.fillStyle = cBody;
-          ctx.globalAlpha = (0.12 + 0.35 * rim) * back;
+          ctx.globalAlpha = Math.min(1, (0.12 + 0.35 * rim) * back);
         }
 
         const isSpecial = p.edge || p.belt;

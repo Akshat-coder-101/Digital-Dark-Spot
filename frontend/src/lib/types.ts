@@ -12,9 +12,10 @@ export interface IngestedSource {
   isStale: boolean;
   isUndated: boolean;
   status: 'ready' | 'error';
+  isLimited?: boolean;
   errorMessage?: string;
   fetchedAt: string;
-  sourceType?: 'real' | 'user_url' | 'user_text' | 'sample';
+  sourceType?: 'real' | 'user_url' | 'user_text' | 'sample' | 'limited' | 'unavailable';
 }
 
 export interface ExtractedClaim {
@@ -28,6 +29,9 @@ export interface ExtractedClaim {
   quote: string;
   verified: boolean;
   charOffset?: number;
+  isDeadlinePassed?: boolean;
+  isOutdated?: boolean;
+  dateKind?: 'deadline' | 'validity' | 'publication' | 'opening' | 'event' | 'unknown';
 }
 
 export interface PotentialGap {
@@ -48,6 +52,9 @@ export interface PossibleConflict {
   attribute: string;
   title: string;
   description: string;
+  whyFlagged?: string;
+  isWeak?: boolean;
+  authorityDiscrepancy?: string;
   sourceA: {
     source_id: string;
     source_title: string;
@@ -75,11 +82,11 @@ export interface FreshnessWarning {
   source_id: string;
   source_title: string;
   source_domain: string;
-  warningType: 'undated' | 'stale_date' | 'earlier_cycle';
+  warningType: 'undated' | 'stale_date' | 'earlier_cycle' | 'deadline_passed';
   reason: string;
   detectedDate: string | null;
   detectedCycle: string | null;
-  statusLabel: 'Potentially stale';
+  statusLabel: 'Potentially stale' | 'Potentially outdated' | 'No date found in the source text';
   signalTag: 'Sourced';
 }
 
@@ -94,6 +101,7 @@ export interface CoverageMatrixRow {
     status: MatrixCellStatus;
     claimId?: string;
     value?: string;
+    quote?: string;
   }>;
 }
 
@@ -122,10 +130,16 @@ export interface FullAnalysisReport {
     gapsCount: number;
     conflictsCount: number;
     staleCount: number;
+    outdatedCount?: number;
+    undatedCount?: number;
     claimsCount: number;
     discardedClaimsCount: number;
   };
   expectedAttributes: string[];
+  questionDerivedNeeds?: string[];
+  extraParameters?: string[];
+  otherDetailsCount?: number;
+  cycleNotice?: string;
   sources: IngestedSource[];
   claims: ExtractedClaim[];
   gaps: PotentialGap[];

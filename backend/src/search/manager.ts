@@ -5,34 +5,38 @@ import {
   SearchKeyState,
   SearchProviderDiagnostic
 } from './types.js';
+import { geminiSearchAdapter } from './adapters/gemini.js';
 import { tavilyAdapter } from './adapters/tavily.js';
 import { braveAdapter } from './adapters/brave.js';
 import { maskKey } from '../llm/manager.js';
+import { persistentStore } from '../store/persistentStore.js';
 
 export class SearchManager {
   private adapters: Map<SearchProviderName, SearchAdapter> = new Map();
   private keyStates: Map<SearchProviderName, SearchKeyState[]> = new Map();
   private keyIndex: Map<SearchProviderName, number> = new Map();
-  private providerOrder: SearchProviderName[] = ['tavily', 'brave'];
+  private providerOrder: SearchProviderName[] = ['gemini', 'tavily', 'brave'];
   private cache: Map<string, { results: SearchResult[]; timestamp: number }> = new Map();
 
   constructor() {
+    this.adapters.set('gemini', geminiSearchAdapter);
     this.adapters.set('tavily', tavilyAdapter);
     this.adapters.set('brave', braveAdapter);
     this.reloadEnvironment();
   }
 
   public reloadEnvironment(): void {
-    const orderEnv = process.env.SEARCH_PROVIDER_ORDER || 'tavily,brave';
+    const orderEnv = process.env.SEARCH_PROVIDER_ORDER || 'gemini,tavily,brave';
     this.providerOrder = orderEnv
       .split(',')
       .map(p => p.trim().toLowerCase())
-      .filter((p): p is SearchProviderName => ['tavily', 'brave'].includes(p));
+      .filter((p): p is SearchProviderName => ['gemini', 'tavily', 'brave'].includes(p));
 
     if (this.providerOrder.length === 0) {
-      this.providerOrder = ['tavily', 'brave'];
+      this.providerOrder = ['gemini', 'tavily', 'brave'];
     }
 
+    this.initKeys('gemini', process.env.GEMINI_API_KEYS);
     this.initKeys('tavily', process.env.TAVILY_API_KEYS);
     this.initKeys('brave', process.env.BRAVE_API_KEYS);
   }
@@ -109,7 +113,12 @@ export class SearchManager {
       }
 
       return {
-        name: provider === 'tavily' ? 'Tavily Search' : 'Brave Search',
+        name:
+          provider === 'gemini'
+            ? 'Google Search (Gemini Grounding)'
+            : provider === 'tavily'
+            ? 'Tavily Search'
+            : 'Brave Search',
         provider,
         enabled: states.length > 0 && states.some(s => !s.disabled),
         keyCount: states.length,
@@ -128,9 +137,16 @@ export class SearchManager {
       return cached.results;
     }
 
+    // Check persistent session-level cache
+    const persisted = persistentStore.getSearchCache(query);
+    if (persisted && Array.isArray(persisted) && persisted.length > 0) {
+      this.cache.set(cacheKey, { results: persisted, timestamp: Date.now() });
+      return persisted;
+    }
+
     if (!this.hasAnyKeys()) {
       throw new Error(
-        'NO_SEARCH_KEYS_AVAILABLE: No active Tavily or Brave search API keys are configured. You can provide URLs manually or explore using sample data.'
+        'NO_SEARCH_KEYS_AVAILABLE: No active search API keys (Gemini, Tavily, or Brave) are configured. You can provide URLs manually or explore using sample data.'
       );
     }
 
@@ -148,6 +164,7 @@ export class SearchManager {
         try {
           const results = await adapter.search(keyState.key, query, limit);
           this.cache.set(cacheKey, { results, timestamp: Date.now() });
+          persistentStore.saveSearchCache(query, results);
           return results;
         } catch (err: any) {
           lastError = err;
