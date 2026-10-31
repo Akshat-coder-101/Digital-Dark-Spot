@@ -235,10 +235,10 @@ export const DashboardLayout: React.FC = () => {
     >
       <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-5 sm:py-6 space-y-6 sm:space-y-7 pb-16">
         {/* 1. HEADER (question, session ID, date, "Analyzed with" or "Sample data", Re-run, Copy checklist) */}
-        <div className="space-y-3 border-b border-seed/10 pb-5">
+        <div className="radial-structure-glow space-y-3 border-b border-seed/10 pb-5 p-4 rounded-xl">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-sans text-xs font-semibold px-2 py-0.5 rounded-xs bg-rind/10 text-rind border border-rind/20">
+              <span className="font-sans text-xs font-semibold px-2 py-0.5 rounded-xs bg-structure/10 text-structure-text border border-structure-text/20">
                 Research report
               </span>
               <span className="text-xs text-seed-muted font-mono">
@@ -250,7 +250,7 @@ export const DashboardLayout: React.FC = () => {
               </span>
               <span className="text-seed-muted/40">•</span>
               <span className="text-xs text-seed-muted flex items-center gap-1 font-sans">
-                <Sparkles className="w-3 h-3 text-rind" />
+                <Sparkles className="w-3 h-3 text-structure-text" />
                 {report.analyzedWith.provider ? (
                   <>Analyzed with: <strong className="text-seed font-mono">{report.analyzedWith.provider}</strong></>
                 ) : (
@@ -352,7 +352,7 @@ export const DashboardLayout: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleTabChange('checklist')}
-                className="text-xs text-rind hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
+                className="text-xs text-structure-text hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
               >
                 <span>View full checklist ({report.checklist.length})</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -567,7 +567,7 @@ export const DashboardLayout: React.FC = () => {
                   {isActive && (
                     <motion.div
                       layoutId="dashboard-tab-indicator"
-                      className="absolute bottom-0 left-0 right-0 h-[2px] bg-rind rounded-full"
+                      className="absolute bottom-0 left-0 right-0 h-[2px] bg-structure-text rounded-full"
                       transition={{ duration: 0.2, ease: 'easeOut' }}
                     />
                   )}

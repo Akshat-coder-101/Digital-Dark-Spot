@@ -55,8 +55,8 @@ export const Navbar: React.FC = () => {
       className={cn(
         "sticky top-0 z-40 w-full transition-all duration-200 border-b",
         isScrolled
-          ? "border-seed/15 bg-pith/95 backdrop-blur-md shadow-xs py-0"
-          : "border-seed/10 bg-pith/80 backdrop-blur-sm py-0"
+          ? "border-border bg-bg/95 backdrop-blur-md shadow-xs py-0"
+          : "border-border/60 bg-bg/80 backdrop-blur-sm py-0"
       )}
     >
       <div className="max-w-[1100px] mx-auto px-4 sm:px-6 h-13 sm:h-14 flex items-center justify-between">
@@ -68,7 +68,7 @@ export const Navbar: React.FC = () => {
           <div className="w-5 h-5 rounded-xs bg-structure flex items-center justify-center text-white transition-all duration-200 group-hover:scale-105 shrink-0">
             <SeedIcon className="w-3 h-3 fill-white" />
           </div>
-          <span className="font-heading font-bold text-sm sm:text-base tracking-tight text-seed whitespace-nowrap">
+          <span className="font-heading font-bold text-sm sm:text-base tracking-tight text-text whitespace-nowrap">
             Digital Dark Spot
           </span>
         </Link>
@@ -85,8 +85,8 @@ export const Navbar: React.FC = () => {
                   className={cn(
                     'relative px-2.5 py-1.5 rounded-xs text-xs font-medium transition-colors inline-flex items-center gap-1.5 group',
                     isActive
-                      ? 'text-seed font-semibold'
-                      : 'text-seed-muted hover:text-seed hover:bg-seed/5'
+                      ? 'text-text font-semibold'
+                      : 'text-text-muted hover:text-text hover:bg-surface-2'
                   )}
                   title={link.label}
                 >
@@ -117,7 +117,7 @@ export const Navbar: React.FC = () => {
           {/* Sun / Moon crossfade on the theme toggle */}
           <button
             onClick={() => setIsDark(!isDark)}
-            className="p-1.5 rounded-xs text-seed-muted hover:text-seed hover:bg-seed/5 transition-colors cursor-pointer ml-1 relative w-8 h-8 flex items-center justify-center"
+            className="p-1.5 rounded-xs text-text-muted hover:text-text hover:bg-surface-2 transition-colors cursor-pointer ml-1 relative w-8 h-8 flex items-center justify-center"
             aria-label="Toggle dark and light theme"
           >
             <AnimatePresence mode="wait" initial={false}>
@@ -130,9 +130,9 @@ export const Navbar: React.FC = () => {
                 className="flex items-center justify-center"
               >
                 {isDark ? (
-                  <Sun className="w-4 h-4 text-crack" />
+                  <Sun className="w-4 h-4 text-conflict" />
                 ) : (
-                  <Moon className="w-4 h-4 text-seed" />
+                  <Moon className="w-4 h-4 text-text" />
                 )}
               </motion.span>
             </AnimatePresence>

@@ -223,7 +223,7 @@ export const Home: React.FC = () => {
       <RedactedDocumentBackground />
 
       {/* Hero Section Container */}
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="radial-structure-glow relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start p-3 sm:p-5 rounded-xl">
         {/* Left Column: Staggered Headline and Form (visible without scrolling at 1440x900 and 390px) */}
         <div className="lg:col-span-7 space-y-5">
           {/* Staggered Load: Small label, Headline, Description */}
@@ -232,7 +232,7 @@ export const Home: React.FC = () => {
               initial={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: 'easeOut' }}
-              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-rind/10 text-rind text-xs font-sans font-medium"
+              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-structure/10 text-structure-text text-xs font-sans font-medium"
             >
               <span>Information gap & conflict detection</span>
             </motion.div>
@@ -297,9 +297,9 @@ export const Home: React.FC = () => {
                   className="w-full resize-none bg-transparent font-heading text-base sm:text-lg font-bold text-seed placeholder:text-seed-muted/40 outline-none leading-snug"
                 />
 
-                {/* Animated thin green signal line along the bottom */}
+                {/* Animated thin signal line along the bottom */}
                 <motion.div
-                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-rind origin-left pointer-events-none"
+                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-structure-text origin-left pointer-events-none"
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: isQuestionFocused ? 1 : 0 }}
                   transition={{ duration: 0.22, ease: 'easeOut' }}
@@ -441,7 +441,7 @@ export const Home: React.FC = () => {
                         <button
                           type="button"
                           onClick={addUrlRow}
-                          className="text-[11px] text-rind hover:underline inline-flex items-center gap-1 font-semibold cursor-pointer"
+                          className="text-[11px] text-structure-text hover:underline inline-flex items-center gap-1 font-semibold cursor-pointer"
                         >
                           <Plus className="w-3 h-3" />
                           <span>Add URL {urlList.length + 1}</span>
@@ -449,7 +449,7 @@ export const Home: React.FC = () => {
 
                         <div className="flex gap-2">
                           <Button size="sm" variant="outline" onClick={() => setActiveModal(null)}>Cancel</Button>
-                          <Button size="sm" variant="rind" onClick={handleAddUrl}>
+                          <Button size="sm" variant="signal" onClick={handleAddUrl}>
                             Add {urlList.filter(u => u.trim()).length > 1 ? `All ${urlList.filter(u => u.trim()).length} URLs` : 'URLs'}
                           </Button>
                         </div>
@@ -475,18 +475,18 @@ export const Home: React.FC = () => {
                         placeholder="Optional title (e.g. Community Discussion Post)"
                         value={textTitle}
                         onChange={(e) => setTextTitle(e.target.value)}
-                        className="w-full text-xs p-2 rounded-xs border border-seed/15 bg-pith text-seed outline-none focus:border-rind"
+                        className="w-full text-xs p-2 rounded-xs border border-seed/15 bg-pith text-seed outline-none focus:border-structure-text"
                       />
                       <textarea
                         rows={3}
                         placeholder="Paste excerpt, circular text, or scheme rules here..."
                         value={textInput}
                         onChange={(e) => setTextInput(e.target.value)}
-                        className="w-full text-xs p-2 rounded-xs border border-seed/15 bg-pith text-seed outline-none focus:border-rind resize-none"
+                        className="w-full text-xs p-2 rounded-xs border border-seed/15 bg-pith text-seed outline-none focus:border-structure-text resize-none"
                       />
                       <div className="flex justify-end gap-2 pt-1">
                         <Button size="sm" variant="outline" onClick={() => setActiveModal(null)}>Cancel</Button>
-                        <Button size="sm" variant="rind" onClick={handleAddText}>Add Text</Button>
+                        <Button size="sm" variant="signal" onClick={handleAddText}>Add Text</Button>
                       </div>
                     </motion.div>
                   )}
@@ -586,7 +586,7 @@ export const Home: React.FC = () => {
                 whileTap={shouldReduceMotion ? {} : { scale: 0.98 }}
                 onClick={handleSliceOpen}
                 disabled={isSubmitting}
-                className="group relative overflow-hidden inline-flex items-center justify-center gap-2 px-7 py-2.5 rounded-xs bg-rind text-white font-heading font-bold text-sm tracking-wide shadow-xs hover:bg-rind/90 transition-all cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+                className="group relative overflow-hidden inline-flex items-center justify-center gap-2 px-7 py-2.5 rounded-xs bg-signal text-signal-ink font-heading font-bold text-sm tracking-wide shadow-xs hover:bg-signal/90 transition-all cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
               >
                 {/* Short subtle scan line animation while loading */}
                 {isSubmitting && !shouldReduceMotion && (
@@ -599,7 +599,7 @@ export const Home: React.FC = () => {
 
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
-                    <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span className="w-3.5 h-3.5 border-2 border-signal-ink/30 border-t-signal-ink rounded-full animate-spin" />
                     Slicing open...
                   </span>
                 ) : sources.length === 0 ? (

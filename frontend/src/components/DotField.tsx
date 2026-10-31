@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-const N = 2400;
+const N = 2000;
 const V = (() => {
   const g = [0.35, 0.12, 0.93];
   const l = Math.hypot(...g);

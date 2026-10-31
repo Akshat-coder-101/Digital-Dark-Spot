@@ -130,47 +130,47 @@ export const Analyzing: React.FC = () => {
   return (
     <div className="max-w-[800px] mx-auto px-4 sm:px-6 py-10 space-y-8 pb-16">
       {/* Calm Header */}
-      <div className="border-b border-seed/10 pb-6 space-y-2">
+      <div className="border-b border-border pb-6 space-y-2">
         <div className="flex items-center justify-between">
-          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-rind/10 text-rind text-xs font-sans font-medium">
+          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-structure/10 text-structure-text text-xs font-sans font-medium">
             <SeedIcon className="w-3 h-3 fill-current" />
             <span>Forensic investigation</span>
           </div>
-          <span className="font-mono text-xs text-seed-muted">
-            Session: <span className="text-seed font-semibold">{shortSessionId}</span>
+          <span className="font-mono text-xs text-text-muted">
+            Session: <span className="text-text font-semibold">{shortSessionId}</span>
           </span>
         </div>
 
-        <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-seed tracking-tight">
+        <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-text tracking-tight">
           Auditing Information Integrity
         </h1>
-        <p className="text-xs sm:text-sm text-seed-muted">
+        <p className="text-xs sm:text-sm text-text-muted">
           Cross-examining evidence with deterministic attribute verification and strict verbatim quote validation.
         </p>
       </div>
 
       {/* Current Status Callout */}
-      <div className="p-4 rounded-sm bg-seed/[0.02] border border-seed/10 flex items-center justify-between text-xs">
+      <div className="p-4 rounded-sm bg-surface border border-border flex items-center justify-between text-xs">
         <div className="space-y-0.5">
-          <span className="font-sans text-xs text-seed-muted font-medium block">
+          <span className="font-sans text-xs text-text-muted font-medium block">
             Current operation
           </span>
-          <p className="font-medium text-seed">
+          <p className="font-medium text-text">
             {currentAction}
           </p>
         </div>
-        <div className="text-right font-mono text-[11px] text-rind font-semibold shrink-0">
+        <div className="text-right font-mono text-[11px] text-structure-text font-semibold shrink-0">
           Stage {activeStage + 1} of 6
         </div>
       </div>
 
       {/* Forensic Vertical Timeline */}
       <div className="space-y-6">
-        <h3 className="font-heading font-bold text-sm text-seed">
+        <h3 className="font-heading font-bold text-sm text-text">
           Pipeline audit stages
         </h3>
 
-        <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[1px] before:bg-seed/10">
+        <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[1px] before:bg-border">
           {stages.map((st, idx) => {
             const isDone = idx < activeStage;
             const isRunning = idx === activeStage;
@@ -181,10 +181,10 @@ export const Analyzing: React.FC = () => {
                 <div
                   className={`absolute -left-6 top-0.5 w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10px] font-mono transition-colors ${
                     isDone
-                      ? 'bg-rind text-white'
+                      ? 'bg-signal text-signal-ink font-bold'
                       : isRunning
-                      ? 'border-2 border-rind bg-pith text-rind font-bold'
-                      : 'border border-seed/20 bg-pith text-seed-muted/60'
+                      ? 'border-2 border-structure-text bg-surface text-structure-text font-bold animate-pulse'
+                      : 'border border-border bg-surface text-text-muted/60'
                   }`}
                 >
                   {isDone ? (
@@ -199,23 +199,23 @@ export const Analyzing: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <h4
                       className={`font-heading text-sm font-bold tracking-tight ${
-                        isDone || isRunning ? 'text-seed' : 'text-seed-muted/60'
+                        isDone || isRunning ? 'text-text' : 'text-text-muted/60'
                       }`}
                     >
                       {st.name}
                     </h4>
                     {isRunning && (
-                      <span className="text-[10px] font-mono uppercase px-1.5 py-0.2 rounded-xs bg-rind/10 text-rind font-semibold">
+                      <span className="text-[10px] font-mono uppercase px-1.5 py-0.2 rounded-xs bg-structure/15 text-structure-text font-semibold">
                         In Progress
                       </span>
                     )}
                     {isDone && (
-                      <span className="text-[10px] font-mono uppercase text-seed-muted">
+                      <span className="text-[10px] font-mono uppercase text-text-muted">
                         Verified
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-seed-muted leading-relaxed">
+                  <p className="text-xs text-text-muted leading-relaxed">
                     {st.detail}
                   </p>
                 </div>
