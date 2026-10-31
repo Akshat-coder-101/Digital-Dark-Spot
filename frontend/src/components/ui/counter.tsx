@@ -6,7 +6,7 @@ export interface CounterProps {
   value: number;
   label: string;
   icon: React.ReactNode;
-  variant?: 'rind' | 'seed' | 'crack' | 'wilt';
+  variant?: 'signal' | 'conflict' | 'stale' | 'gap' | 'structure' | 'rind' | 'seed' | 'crack' | 'wilt';
   subtext?: string;
   className?: string;
   onClick?: () => void;
@@ -50,18 +50,28 @@ export const Counter: React.FC<CounterProps> = ({
     requestAnimationFrame(updateCounter);
   }, [value, shouldReduceMotion]);
 
-  const variantStyles = {
-    rind: "border-rind/30 hover:border-rind/60 bg-rind/5 text-rind",
-    seed: "border-seed/20 hover:border-seed/50 bg-pith-card text-seed",
-    crack: "border-crack/30 hover:border-crack/60 bg-crack-subtle/50 text-crack",
-    wilt: "border-wilt/30 hover:border-wilt/60 bg-wilt-subtle/50 text-wilt"
+  const variantStyles: Record<string, string> = {
+    signal: "border-signal/40 hover:border-signal/70 bg-signal/10 text-signal-ink dark:text-signal",
+    structure: "border-structure/40 hover:border-structure/70 bg-structure/10 text-structure-text",
+    conflict: "border-conflict/40 hover:border-conflict/70 bg-conflict/10 text-conflict",
+    stale: "border-stale/40 hover:border-stale/70 bg-stale/10 text-stale",
+    gap: "border-gap/40 hover:border-gap/70 bg-gap/10 text-gap",
+    rind: "border-signal/40 hover:border-signal/70 bg-signal/10 text-signal-ink dark:text-signal",
+    seed: "border-border hover:border-border/80 bg-surface text-text",
+    crack: "border-conflict/40 hover:border-conflict/70 bg-conflict/10 text-conflict",
+    wilt: "border-stale/40 hover:border-stale/70 bg-stale/10 text-stale"
   };
 
-  const badgeStyles = {
-    rind: "bg-rind/15 text-rind",
-    seed: "bg-seed/10 text-seed",
-    crack: "bg-crack/15 text-crack",
-    wilt: "bg-wilt/20 text-wilt"
+  const badgeStyles: Record<string, string> = {
+    signal: "bg-signal text-signal-ink dark:bg-signal/20 dark:text-signal",
+    structure: "bg-structure/20 text-structure-text",
+    conflict: "bg-conflict/20 text-conflict",
+    stale: "bg-stale/20 text-stale",
+    gap: "bg-gap/20 text-gap",
+    rind: "bg-signal text-signal-ink dark:bg-signal/20 dark:text-signal",
+    seed: "bg-surface-2 text-text",
+    crack: "bg-conflict/20 text-conflict",
+    wilt: "bg-stale/20 text-stale"
   };
 
   return (
@@ -73,7 +83,7 @@ export const Counter: React.FC<CounterProps> = ({
       disabled={!onClick}
       className={cn(
         "flex flex-col p-4 rounded-2xl border text-left transition-colors duration-200",
-        onClick ? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rind" : "cursor-default",
+        onClick ? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-structure-text" : "cursor-default",
         variantStyles[variant],
         className
       )}

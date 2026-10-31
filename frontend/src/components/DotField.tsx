@@ -17,20 +17,20 @@ export function DotField({ className = "" }: { className?: string }) {
     if (!ctx) return;
 
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const tok = (n: string, f: string) => {
+    const tok = (n: string) => {
       const css = getComputedStyle(document.documentElement);
-      return css.getPropertyValue(n).trim() || f;
+      return css.getPropertyValue(n).trim();
     };
 
-    let cBody = tok("--color-seed-muted", tok("--color-foreground", "#9aa59d"));
-    let cRim = tok("--color-rind", "#4FBF7A");
-    let cEdge = tok("--color-crack", "#F2B84B");
+    let cBody = tok("--text-muted") || tok("--color-text-muted") || "currentColor";
+    let cRim = tok("--signal") || tok("--color-signal") || "currentColor";
+    let cEdge = tok("--conflict") || tok("--color-conflict") || "currentColor";
 
     // Mutation observer to update colors if dark/light theme is toggled
     const themeObserver = new MutationObserver(() => {
-      cBody = tok("--color-seed-muted", tok("--color-foreground", "#9aa59d"));
-      cRim = tok("--color-rind", "#4FBF7A");
-      cEdge = tok("--color-crack", "#F2B84B");
+      cBody = tok("--text-muted") || tok("--color-text-muted") || "currentColor";
+      cRim = tok("--signal") || tok("--color-signal") || "currentColor";
+      cEdge = tok("--conflict") || tok("--color-conflict") || "currentColor";
       if (reduce) {
         frame();
       }

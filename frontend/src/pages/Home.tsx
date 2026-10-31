@@ -283,7 +283,7 @@ export const Home: React.FC = () => {
                 className={cn(
                   "relative border-b transition-all duration-200 pb-1 rounded-xs",
                   isQuestionFocused
-                    ? "border-rind shadow-[0_4px_16px_rgba(31,107,58,0.08)] dark:shadow-[0_4px_16px_rgba(79,191,122,0.12)]"
+                    ? "border-structure-text shadow-xs"
                     : "border-seed/20"
                 )}
               >

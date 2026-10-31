@@ -9,18 +9,18 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-rind text-white hover:bg-rind-hover shadow-sm",
-        rind: "bg-rind text-white hover:bg-rind-hover shadow-sm",
-        flesh: "bg-flesh text-white hover:bg-flesh/90 shadow-sm",
-        subtle: "bg-pith-card hover:bg-pith text-seed border border-pith-border shadow-xs",
-        destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline:
-          "border border-pith-border bg-pith-card hover:bg-pith text-seed",
-        secondary:
-          "bg-pith-muted text-seed hover:bg-pith-muted/80",
-        ghost: "hover:bg-pith-card hover:text-seed",
-        link: "text-rind underline-offset-4 hover:underline",
+        default: "bg-signal text-signal-ink hover:bg-signal/90 font-medium shadow-xs",
+        signal: "bg-signal text-signal-ink hover:bg-signal/90 font-medium shadow-xs",
+        structure: "bg-structure text-white hover:bg-structure/90 shadow-sm",
+        rind: "bg-signal text-signal-ink hover:bg-signal/90 font-medium shadow-xs",
+        flesh: "bg-gap text-white hover:bg-gap/90 shadow-sm",
+        gap: "bg-gap text-white hover:bg-gap/90 shadow-sm",
+        subtle: "bg-surface hover:bg-surface-2 text-text border border-border shadow-xs",
+        destructive: "bg-gap text-white hover:bg-gap/90",
+        outline: "border border-border bg-surface hover:bg-surface-2 text-text",
+        secondary: "bg-surface-2 text-text hover:bg-surface-2/80",
+        ghost: "hover:bg-surface hover:text-text",
+        link: "text-structure-text underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 px-4 py-2",

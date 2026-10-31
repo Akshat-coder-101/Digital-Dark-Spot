@@ -30,42 +30,42 @@ export const StatusTag: React.FC<StatusTagProps> = ({
     sourced: {
       label: 'Sourced',
       icon: <VerifiedCheckIcon className={size === 'sm' ? "w-3 h-3" : "w-3.5 h-3.5"} />,
-      styles: 'bg-rind/15 text-rind border-rind/30 dark:bg-rind/20 dark:text-rind'
+      styles: 'bg-signal text-signal-ink border-signal/40 dark:bg-signal/20 dark:text-signal dark:border-signal/40'
     },
     ai_suggested: {
       label: 'AI-suggested',
       icon: <Sparkles className={size === 'sm' ? "w-3 h-3" : "w-3.5 h-3.5"} />,
-      styles: 'bg-pith-muted text-seed-muted border-border dark:text-seed-muted'
+      styles: 'bg-structure/10 text-structure-text border-structure-text/30 dark:bg-structure/20 dark:text-structure-text'
     },
     uncertain: {
       label: 'Uncertain',
       icon: <HelpCircle className={size === 'sm' ? "w-3 h-3" : "w-3.5 h-3.5"} />,
-      styles: 'bg-wilt-subtle text-wilt border-wilt/40 dark:bg-wilt/20 dark:text-wilt'
+      styles: 'bg-stale/15 text-stale border-stale/30 dark:bg-stale/20 dark:text-stale'
     },
     found: {
       label: 'Found',
       icon: <VerifiedCheckIcon className={size === 'sm' ? "w-3 h-3" : "w-3.5 h-3.5"} />,
-      styles: 'bg-rind/15 text-rind border-rind/30 dark:bg-rind/20 dark:text-rind'
+      styles: 'bg-signal text-signal-ink border-signal/40 dark:bg-signal/20 dark:text-signal dark:border-signal/40'
     },
     single_source: {
       label: 'Single source',
       icon: <HelpCircle className={size === 'sm' ? "w-3 h-3" : "w-3.5 h-3.5"} />,
-      styles: 'bg-seed-muted/15 text-seed border-seed/20 dark:bg-seed-muted/20 dark:text-seed'
+      styles: 'bg-surface-2 text-text-muted border-border'
     },
     gap: {
       label: 'Gap',
       icon: <SeedIcon className={size === 'sm' ? "w-3 h-3" : "w-3.5 h-3.5"} />,
-      styles: 'bg-seed/10 text-seed border-seed/20 dark:bg-seed/20 dark:text-seed'
+      styles: 'bg-gap/15 text-gap border-gap/30 dark:bg-gap/20 dark:text-gap'
     },
     conflict: {
       label: 'Conflict',
       icon: <CrackIcon className={size === 'sm' ? "w-3 h-3" : "w-3.5 h-3.5"} />,
-      styles: 'bg-crack-subtle text-crack border-crack/40 dark:bg-crack/20 dark:text-crack'
+      styles: 'bg-conflict text-text border-conflict/40 dark:bg-conflict/20 dark:text-conflict dark:border-conflict/40'
     },
     stale: {
       label: 'Stale',
       icon: <WiltIcon className={size === 'sm' ? "w-3 h-3" : "w-3.5 h-3.5"} />,
-      styles: 'bg-wilt-subtle text-wilt border-wilt/30 dark:bg-wilt/20 dark:text-wilt'
+      styles: 'bg-stale/15 text-stale border-stale/30 dark:bg-stale/20 dark:text-stale'
     }
   };
 

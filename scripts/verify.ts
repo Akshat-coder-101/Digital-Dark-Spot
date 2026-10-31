@@ -67,6 +67,9 @@ runCommand('secrets_scan', 'Phase 0/8', 'npx tsx backend/scripts/check-secrets.t
 // 4. Frontend Typecheck and Build
 runCommand('frontend_typecheck_and_build', 'Phase 0/4', 'npm --prefix frontend run build');
 
+// Palette and Contrast Tokens Test (Part B)
+runCommand('palette_token_tests', 'Part B', 'npx tsx backend/test/test-palette-tokens.ts');
+
 // 5. Ban-List Scan (Phase 1)
 const banListScript = path.join(process.cwd(), 'scripts', 'ban-list-scan.ts');
 if (fs.existsSync(banListScript)) {

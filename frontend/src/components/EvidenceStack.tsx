@@ -52,11 +52,11 @@ export const EvidenceStack: React.FC<EvidenceStackProps> = ({ className }) => {
 
           {/* Paper Drop Shadows */}
           <filter id="evidence-shadow-base" x="-20%" y="-20%" width="140%" height="145%" filterUnits="userSpaceOnUse">
-            <feDropShadow dx="0" dy="6" stdDeviation="10" floodColor="#0F1512" floodOpacity="0.12" />
+            <feDropShadow dx="0" dy="6" stdDeviation="10" floodColor="currentColor" floodOpacity="0.12" />
           </filter>
 
           <filter id="evidence-shadow-top" x="-20%" y="-20%" width="140%" height="145%" filterUnits="userSpaceOnUse">
-            <feDropShadow dx="0" dy="10" stdDeviation="16" floodColor="#0F1512" floodOpacity="0.18" />
+            <feDropShadow dx="0" dy="10" stdDeviation="16" floodColor="currentColor" floodOpacity="0.18" />
           </filter>
         </defs>
 

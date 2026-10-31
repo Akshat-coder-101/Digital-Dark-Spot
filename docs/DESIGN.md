@@ -27,23 +27,44 @@ The "Watermelon Seed" metaphor is a **semantic signal system and subtle geometry
 
 ---
 
-## 2. Semantic Token System
+## 2. Semantic Token System — "Black, Cobalt and Acid lime"
 
-Tokens adapt between Light Mode (default) and Dark Mode while preserving their forensic meaning:
+The design system uses a strict token palette across Dark (default forensic mode) and Light themes:
 
-| Token Name | Light Hex | Dark Hex | Role & Constraint |
+| Token Name | Dark Hex | Light Hex | Semantic Role & Constraints |
 | :--- | :--- | :--- | :--- |
-| **Pith** (Background) | `#F4F8EE` | `#0F1512` | Clean, airy editorial canvas; paper feel. |
-| **Seed** (Text & Ink) | `#15110F` | `#F2F1ED` | High-contrast editorial ink; black seed icon for unmentioned dark spots. |
-| **Rind** (Primary / Verified) | `#1F6B3A` | `#4FBF7A` | Used sparingly: primary action CTA, verified coverage wedge/dot, text link. |
-| **Flesh** (AI-Suggested) | `#F2506E` | `#FF6B86` | Strictly for AI signals; never small text on pith; fills/borders/dots with seed text. |
-| **Crack** (Conflict) | `#E8A317` | `#F2B84B` | Cross-source contradictions, fracture lines, warning badges. |
-| **Wilt** (Stale) | `#B9C2AE` | `#75806D` | Temporal staleness (>18 months), earlier cycles, undated documents. |
+| `--bg` | `#0A0B0F` | `#F6F7FB` | Canvas background |
+| `--surface` | `#11131A` | `#FFFFFF` | Primary surface / card base |
+| `--surface-2` | `#171A24` | `#EEF0F7` | Secondary surface / subtle inset |
+| `--border` | `#232838` | `#DDE1EC` | Hairline border |
+| `--text` | `#ECEEF4` | `#0A0B0F` | Primary text (16.96:1 dark, 18.37:1 light) |
+| `--text-muted` | `#9AA1B5` | `#4A5168` | Muted editorial text (7.62:1 dark, 7.35:1 light) |
+| `--structure` | `#2F5BFF` | `#1F46E5` | Structural accents, deep cobalt (6.40:1 light) |
+| `--structure-text` | `#7C9BFF` | `#1F46E5` | Links, active nav/tabs, focus rings (7.48:1 dark, 6.40:1 light) |
+| `--signal` | `#C6F432` | `#C6F432` | Acid lime. Primary button fill, Found/Sourced. Fill only on light. Max 10% screen area. |
+| `--signal-ink` | `#0A0B0F` | `#0A0B0F` | High-contrast ink on signal (15.35:1) |
+| `--conflict` | `#FFB020` | `#FFB020` | Cross-source contradictions (10.76:1). Fill with dark text on light. |
+| `--gap` | `#FF5C8A` | `#D6246E` | Potential information gaps & errors (6.70:1 dark, 4.52:1 light) |
+| `--stale` | `#8A92AD` | `#5F6785` | Potentially outdated / uncertain signals (6.36:1 dark, 5.21:1 light) |
 
-### Color Usage & Contrast Rules:
-- **Rind Sparingly:** Do not paint buttons and cards all green. Keep rind for the main CTA button and positive verified markers.
-- **WCAG AA Compliance:** Flesh (`#F2506E`), Crack (`#E8A317`), and Wilt (`#B9C2AE`) must **never** be used as standalone body text on pith. Always use them as fills, borders, dots, or icons accompanied by dark seed text (`#15110F`).
-- **Never Color Alone:** Every finding status must present an **explicit text label + icon shape** (e.g. `[● Sourced]`, `[▲ AI-suggested]`, `[◆ Potential gap]`, `[⚡ Possible conflict]`, `[⏱ Potentially stale]`).
+### Contrast & WCAG AA Verification
+Every token pair was tested via `backend/test/test-palette-tokens.ts`:
+- Text on BG: 16.96:1 (Dark), 18.37:1 (Light) — exceeds 4.5:1
+- Muted on BG: 7.62:1 (Dark), 7.35:1 (Light) — exceeds 4.5:1
+- Structure-text on BG: 7.48:1 (Dark), 6.40:1 (Light) — exceeds 4.5:1
+- Signal-ink on Signal: 15.35:1 — exceeds 4.5:1
+- Gap on BG: 6.70:1 (Dark), 4.52:1 (Light) — exceeds 4.5:1
+- Stale on BG: 6.36:1 (Dark), 5.21:1 (Light) — exceeds 4.5:1
+- Conflict on BG / with text: 10.76:1 (Dark), 10.76:1 (Light) — exceeds 4.5:1
+- Focus Ring (structure-text on BG): 7.48:1 (Dark), 6.40:1 (Light) — exceeds 3.0:1
+
+### Palette Constraints:
+- **Primary Buttons:** Signal fill with signal-ink text (`bg-signal text-signal-ink`).
+- **Links, Nav & Focus:** `structure-text` with 2px outline and 2px offset for `:focus-visible`.
+- **Lime Coverage:** Capped at $\le 10\%$ of any screen viewport.
+- **Radial Glow:** Exactly one faint radial glow of `structure` at ~12% opacity behind hero and report header (`.radial-structure-glow`). No other gradients or heavy glows.
+- **Errors:** Styled with `--gap` (`#FF5C8A` / `#D6246E`), never generic saturated red.
+- **Status Representation:** Always icon plus explicit text (never color alone).
 
 ---
 

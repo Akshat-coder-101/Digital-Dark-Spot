@@ -15,7 +15,7 @@ export const Navbar: React.FC = () => {
       const saved = localStorage.getItem('theme');
       if (saved) return saved === 'dark';
     } catch {}
-    return false; // Light mode (#F4F8EE pith) is the default canvas
+    return false; // Light mode is the default canvas
   });
 
   useEffect(() => {
@@ -63,9 +63,9 @@ export const Navbar: React.FC = () => {
         {/* Brand Wordmark with small seed mark & tiny glow on logo hover */}
         <Link
           to="/"
-          className="flex items-center gap-2 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rind rounded-xs shrink-0"
+          className="flex items-center gap-2 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-structure-text rounded-xs shrink-0"
         >
-          <div className="w-5 h-5 rounded-xs bg-rind flex items-center justify-center text-white transition-all duration-200 group-hover:scale-105 group-hover:shadow-[0_0_10px_rgba(79,191,122,0.4)] dark:group-hover:shadow-[0_0_12px_rgba(79,191,122,0.5)] shrink-0">
+          <div className="w-5 h-5 rounded-xs bg-structure flex items-center justify-center text-white transition-all duration-200 group-hover:scale-105 shrink-0">
             <SeedIcon className="w-3 h-3 fill-white" />
           </div>
           <span className="font-heading font-bold text-sm sm:text-base tracking-tight text-seed whitespace-nowrap">
@@ -105,7 +105,7 @@ export const Navbar: React.FC = () => {
                   {isActive && (
                     <motion.div
                       layoutId="navbar-active-indicator"
-                      className="absolute bottom-0 left-1 right-1 h-[2px] bg-rind rounded-full"
+                      className="absolute bottom-0 left-1 right-1 h-[2px] bg-structure-text rounded-full"
                       transition={{ duration: 0.2, ease: 'easeOut' }}
                     />
                   )}
