@@ -47,9 +47,9 @@ app.get('/api/health', (_req, res) => {
 });
 
 const isDev = process.env.NODE_ENV !== 'production';
-const showAiStatus = process.env.SHOW_AI_STATUS === 'true' || isDev;
+const showAiStatus = process.env.SHOW_AI_STATUS === 'true';
 
-// Diagnostic LLM status endpoint (keys masked, never returned; gated in production)
+// Diagnostic LLM status endpoint (keys masked, never returned; gated by SHOW_AI_STATUS=true)
 app.get('/api/llm/status', (_req, res) => {
   if (!showAiStatus) {
     res.status(404).json({ error: 'Endpoint not found or disabled in production.' });
@@ -67,6 +67,10 @@ app.get('/api/llm/status', (_req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`🍉 Digital Dark Spot server listening on http://localhost:${PORT}`);
-});
+export { app };
+
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`🍉 Digital Dark Spot server listening on http://localhost:${PORT}`);
+  });
+}

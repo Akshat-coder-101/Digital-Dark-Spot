@@ -28,3 +28,7 @@
 ## Decision 7: Multi-Scenario Fictional Fixtures & Validation Protocol
 - **Context**: Offline exploration must demonstrate that the gap and conflict detection engine is domain-independent across varied sectors (Education, Clean Energy, Hardware Benchmarks). All sample sources must use `.example` domains and avoid deceptive naming or `.fictional` TLDs.
 - **Decision**: Created `fixtures/scenario-a-aurora`, `fixtures/scenario-b-solarbridge`, and `fixtures/scenario-c-nimbus-air` containing `scenario.json` and `expected.json`. Created `scripts/validate-fixtures.ts` to assert that every claim is an exact verbatim quote, all domains use `.example`, and deterministic analysis produces expected conflicts and gaps. Added a three-scenario switcher on the Home intake screen.
+
+## Decision 8: Gated AI Diagnostic Status & In-Memory HTTP Route Testing
+- **Context**: The user brief specifically requests removing AI Status from the main navigation (keeping `/settings/ai` only if `SHOW_AI_STATUS=true`). Furthermore, route integration tests must be immune to sandbox port restrictions on Windows.
+- **Decision**: In `Navbar.tsx` and `backend/src/index.ts`, gated AI Status behind explicit `SHOW_AI_STATUS === 'true'` (disabled by default). Created `backend/test/test-routes.ts` using in-memory request invocation against the Express application, validating all primary endpoints (`/api/health`, `/api/sample`, `/api/sample/:scenario`, `/api/report/:id`, `/api/discover`) with zero sandbox socket dependencies.

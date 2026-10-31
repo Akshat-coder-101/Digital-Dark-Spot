@@ -39,15 +39,16 @@ export const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const showAiStatus = (import.meta as any).env?.VITE_SHOW_AI_STATUS === 'true' || (import.meta as any).env?.DEV;
+  const showAiStatus = (import.meta as any).env?.VITE_SHOW_AI_STATUS === 'true';
 
   const baseNavLinks = [
     { to: '/', label: 'Investigate', icon: Search },
     { to: '/how-it-works', label: 'How it Works', icon: HelpCircle },
-    { to: '/settings/ai', label: 'AI Status', icon: Sparkles },
   ];
 
-  const navLinks = showAiStatus ? baseNavLinks : baseNavLinks.filter(l => l.to !== '/settings/ai');
+  const navLinks = showAiStatus
+    ? [...baseNavLinks, { to: '/settings/ai', label: 'AI Status', icon: Sparkles }]
+    : baseNavLinks;
 
   return (
     <header
