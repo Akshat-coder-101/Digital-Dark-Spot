@@ -1,7 +1,8 @@
 # Digital Dark Spot — Hackathon Submission Summary
 > **Shinchan Online Hackathon 2026** — *Problem Statement: Digital Dark Spot*  
 > **Team:** Devengers  
-> **Repository:** [Digital Dark Spot](https://github.com/example/digital-dark-spot)
+> **Repository:** [Digital Dark Spot](https://github.com/example/digital-dark-spot)  
+> **Verification Status:** 14/14 Automated Gates Passing cleanly via `npm run verify`  
 
 ---
 
@@ -37,6 +38,10 @@ When individuals research critical guidelines, public initiatives, clean energy 
    - Coverage Map cross-examines expected parameters across all reviewed sources using unambiguous status tags (`Found`, `Conflict`, `Single source`, `Gap`, `Stale`) with accompanying icons (never color alone).
    - Evidence Drawer provides raw document excerpts showing the verbatim quote highlighted with 120 characters of surrounding authentic context.
    - Generates a prioritized, actionable verification checklist with Markdown export.
+6. **"Black, Cobalt and Acid lime" Palette System:**
+   - Strict CSS token architecture replacing all old green values across CSS, Tailwind, SVGs, favicon, and components.
+   - All contrast pairs exceed WCAG AA requirements (4.5:1 text/status, 3.0:1 focus rings).
+   - Exactly 1 faint radial glow behind hero and report header (no other decorative glows).
 
 ---
 
@@ -44,13 +49,13 @@ When individuals research critical guidelines, public initiatives, clean energy 
 
 | Decision | Summary |
 | :--- | :--- |
-| **Monorepo Verification Harness (`scripts/verify.ts`)** | Single command (`npm run verify`) running 11 automated verification checks across unit tests, evaluation benchmarks, secrets scanner, ban-list compliance, route integration, and frontend builds. |
+| **Monorepo Verification Harness (`scripts/verify.ts`)** | Single command (`npm run verify`) running 14 automated verification checks across unit tests, evaluation benchmarks, secrets scanner, ban-list compliance, route integration, palette tokens, edge cases, failover, and frontend builds. |
 | **Deterministic Evaluation Protocol** | All automated tests and evaluations run with zero external network dependencies and deterministic mock fixtures, guaranteeing repeatable accuracy scores without API rate-limit flakes. |
 | **No Source Fabrication Policy** | If web discovery APIs are unavailable, the platform never invents fake URLs, domains, or government notices. It gracefully falls back to user-provided URLs, pasted text, or clearly labeled offline sample data (`.example` domains). |
 | **Topic-Independent Normalization** | Replaced domain-specific hardcoded synonym tables with deterministic typed normalizers and qualifier-aware comparisons. |
 | **Automated Vocabulary Ban-List Scanner** | Automatically verifies 97+ non-fixture source files to ensure no domain-specific words leak into engine code or UI copy. |
 | **Traceable Evidence Context Viewer** | Built a slide-over evidence inspection panel displaying verbatim substring matches in a 120-character surrounding context window, explanation metadata ("Why this was flagged"), and cross-source comparisons. |
-| **Accessible Watermelon UI & Reduced Motion** | High contrast WCAG AA compliant color tokens across dark/light themes, with `<MotionConfig reducedMotion="user">` global enforcement. Status is always conveyed by icon plus text. |
+| **Objective UI Gate & Accessibility** | 40 full-page screenshots captured at 1440px, 1024px, 768px, and 390px in dark and light themes (`docs/screens/`). Verified zero horizontal overflow, zero console errors, and full keyboard navigation with focus return. |
 
 ---
 
@@ -61,14 +66,15 @@ Run the complete verification harness:
 npm run verify
 ```
 
-All 11 automated test checks pass cleanly with 0 failures:
+All 14 automated test checks pass cleanly with 0 failures:
 - Core hackathon scenarios (5/5 PASS)
 - Engine normalization and qualifier separation (PASS)
 - Topic-tailored search discovery and graceful fallback (PASS)
 - Deterministic multi-scenario fixture validator (PASS)
 - Automated secrets leak audit (0 leaks)
 - Automated domain vocabulary ban-list scan (97+ files clean)
-- In-memory HTTP route integration suite (8/8 PASS)
-- Phase 5 report structure and 120-char context window suite (3/3 scenarios PASS)
-- Full frontend TypeScript and Vite production bundle build (PASS)
-
+- Palette tokens and WCAG AA contrast verification (PASS)
+- Safety and robustness: 7 edge-case tests (PASS)
+- Mock provider failover and 60s cooldown tests (PASS)
+- Production frontend build & typecheck (PASS)
+- Objective UI Gate: 40 screenshots in `docs/screens/` (PASS)

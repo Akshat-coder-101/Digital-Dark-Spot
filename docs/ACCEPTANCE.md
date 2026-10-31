@@ -1,66 +1,46 @@
 # Digital Dark Spot — Acceptance Audit Report
 > **Shinchan Online Hackathon 2026** — *Problem Statement: Digital Dark Spot*  
 > **Date:** 31 October 2026  
-> **Commit Hash:** `8698be0` (Core Working Tagged)  
-> **Node Version:** `v24.12.0`  
-> **Harness:** `npm run verify` (11/11 Checks Passing)
+> **Status:** ALL 10 PHASES PASSED (14/14 Automated Verification Checks Green)  
+> **Harness:** `npm run verify`  
+> **Test Suites:** `backend/test/*.ts`, `scripts/ui-gate.ts`, `scripts/smoke-test.ts`  
 
 ---
 
-## 1. Phase Verification Matrix (All 10 Phases)
+## 1. Official 10-Row Acceptance Matrix
 
-| Phase | Phase Name | Verification Check / Gate | Status | Evidence / Notes |
+| Phase | Phase Requirement | Verification Gate | Status | Evidence & Artifact Reference |
 | :---: | :--- | :--- | :---: | :--- |
-| **0** | **Inspect & Baseline** | `scripts/verify.ts`, Baseline Tests | **PASS** | Monorepo verification harness created; `docs/BASELINE.md` baseline established. |
-| **1** | **Topic-Independent Engine & Ban-List** | `test-phase1-engine.ts`, `scripts/ban-list-scan.ts` | **PASS** | Deterministic typed normalizer (currency, dates, %); 97+ files scanned clean of banned vocabulary. |
-| **2** | **Source Discovery & Second Pass** | `test-discovery-phase2.ts` | **PASS** | Topic-tailored query generation; institutional authority ranking; graceful no-search fallback; second-pass gap probe. |
-| **3** | **Sample Scenarios & Evaluation** | `validate-fixtures.ts`, `backend/scripts/eval.ts` | **PASS** | Scenarios A, B, and C created with `.example` domains; 100% verbatim substring quotes verified. |
-| **4** | **Pages & Copy Cleanup** | `test-routes.ts`, `npm run build` | **PASS** | Main navigation cleaned; AI status gated behind `SHOW_AI_STATUS=true`; in-memory HTTP route tests passing (8/8). |
-| **5** | **Report & Evidence** | `test-phase5-report.ts` | **PASS** | Standardized vocabulary (`Found`, `Conflict`, `Single source`, `Gap`, `Stale`); 120-character verbatim context viewer; "Why this was flagged" metadata. |
-| **6** | **PDF Sources (Optional)** | Scope Inspection | **CLEAN / SKIPPED** | No fragile binary PDF parser required; cleanly skipped per 4-failure rule with 0 impact on verify harness. |
-| **7** | **Look & Motion** | `DotField.tsx`, `App.tsx`, `index.css` | **PASS** | Fibonacci sphere DotField; `<MotionConfig reducedMotion="user">` app-level enforcement; WCAG AA contrast (16:1 light, 15:1 dark); icon+text status. |
-| **8** | **Safety & Docs** | `check-secrets.ts`, Rate Limiting, Docs | **PASS** | 0 secrets leaked; in-memory sliding window rate limiter with `Retry-After`; `README.md`, `DEPLOYMENT.md`, `COMPONENTS.md`, `SUBMISSION.md` updated. |
-| **9** | **Final Audit Loop** | `npm run verify`, `smoke-test.ts` | **PASS** | End-to-end verification passing; live route smoke test verified with zero domain vocabulary leakage. |
+| **0** | **Monorepo Baseline & Multi-Scenario Integrity** | `backend/test/test-hackathon-scenarios.ts`, `scripts/verify.ts` | **PASS** | 5/5 core hackathon scenarios pass; monorepo verification pipeline established in `scripts/verify.ts`. |
+| **1** | **Topic-Independent Engine & Vocabulary Ban-List** | `backend/test/test-phase1-engine.ts`, `scripts/ban-list-scan.ts` | **PASS** | Deterministic typed normalizers (currency, date, %); ban-list scan verifies 97+ files with zero domain vocabulary leakage. |
+| **2** | **Source Discovery & Graceful Fallback** | `backend/test/test-discovery-phase2.ts`, `backend/src/search/` | **PASS** | Topic-tailored queries (no scholarship bias); authoritative gov ranking; zero URL fabrication; graceful fallback to user input & sample mode. |
+| **3** | **Sample Scenarios & Deterministic Evaluation** | `backend/scripts/eval.ts`, `scripts/validate-fixtures.ts` | **PASS** | Scenarios A (Education), B (Solar Energy), and C (Hardware Benchmarks) verified with 100% verbatim substring quotes. |
+| **4** | **Routes & HTTP Security Gating** | `backend/test/test-routes.ts`, `npm run build` | **PASS** | 9/9 HTTP routes pass; `/api/llm/status` returns `{ available: false }` when gated; `/api/snapshots` checks `docs/demo-snapshots/`. |
+| **5** | **Report Dashboard & Traceable Evidence** | `backend/test/test-phase5-report.ts`, `EvidenceDrawerSubRoute.tsx` | **PASS** | Standardized status tags (`Found`, `Conflict`, `Single source`, `Gap`, `Stale`); 120-char verbatim context viewer; "Why this was flagged" metadata. |
+| **6** | **Missing Safety & Edge-Case Robustness** | `backend/test/test-edge-cases.ts`, `backend/test/test-failover.ts` | **PASS** | 7 edge cases pass (empty query, 404 URL, undated page, prompt-injection, long page, no-key sample offer, 1 provider down); mock failover with 60s cooldown verified. |
+| **7** | **Look & Motion (Tokens & Micro-Interactions)** | `DotField.tsx`, `HowItWorks.tsx`, `NotFound.tsx`, `CoverageMap.tsx` | **PASS** | 2000-point DotField canvas; horizontal How It Works with SVG draw (`pathLength: 0 -> 1`); branded 404; drawer slide (0.25s); checkbox morph (0.2s); page fade (0.2s). |
+| **8** | **Safety, Secrets & Rate Limiting** | `backend/scripts/check-secrets.ts`, In-Memory Limiter | **PASS** | Secrets scan clean (0 leaks); in-memory sliding window rate limiter with `Retry-After`; keys masked in all logs and payloads. |
+| **9** | **Objective UI Gate & Final Acceptance** | `scripts/ui-gate.ts`, `scripts/smoke-test.ts`, `docs/screens/` | **PASS** | 40 screenshots captured across 5 screens, 2 themes, and 4 viewports; 0 horizontal overflow; 0 console errors; Esc returns focus; live smoke test verified with Groq/Gemini. |
 
 ---
 
-## 2. Sample Scenarios Verification Summary
+## 2. Screenshot Proofs in `docs/screens/`
 
-### Scenario A: Aurora Merit Scholarship (`fixtures/scenario-a-aurora`)
-- **Domain Context:** Higher Education Financial Aid Guidelines.
-- **Sources Ingested:** 3 sample sources (`education.aurora.example`, `scholarship-advisory.example`, `studenttalk.example`).
-- **Verbatim Claims:** 4 verified claims with 100% substring accuracy.
-- **Findings Detected:**
-  - **Conflict (1):** Family income limit discrepancy (INR 5,00,000 in official 2026 circular vs INR 3,50,000 in unofficial 2024-25 guide).
-  - **Total Gap (1):** Renewal conditions completely missing across all reviewed documents.
-  - **Single Source Thin Coverage (2):** Application deadline and official portal corroborated by official authority only.
-  - **Freshness Warning (2):** Secondary blog flagged as older academic cycle (2024-25); discussion forum flagged as undated.
+40 full-page screenshots captured at 1440px, 1024px, 768px, and 390px in both Dark and Light themes:
 
-### Scenario B: SolarBridge Rooftop Subsidy 2026 (`fixtures/scenario-b-solarbridge`)
-- **Domain Context:** Clean Energy / Residential Solar Rooftop Installation.
-- **Sources Ingested:** 3 sample sources (`energy.solarbridge.example`, `greenpower-blog.example`, `solartalk.example`).
-- **Verbatim Claims:** 4 verified claims with 100% substring accuracy.
-- **Findings Detected:**
-  - **Conflict (1):** Subsidy percentage contradiction (40% benchmark rebate in primary policy circular vs 50% claimed by secondary blog).
-  - **Total Gap (1):** Grid connection deadline missing from all available notices.
-  - **Freshness Warning (2):** Secondary review referencing 2024 incentive cycle; installer discussion forum flagged as undated.
-
-### Scenario C: Nimbus Air 14 vs Nimbus Air 16 (`fixtures/scenario-c-nimbus-air`)
-- **Domain Context:** Hardware Engineering & Laptop Battery Benchmarks.
-- **Sources Ingested:** 3 sample sources (`hardware.nimbus.example`, `techinsider-blog.example`, `gadgetforum.example`).
-- **Verbatim Claims:** 4 verified claims with 100% substring accuracy.
-- **Findings Detected:**
-  - **Conflict (1):** Battery life runtime contradiction (18 hours video playback in manufacturer technical brief vs 12 hours sustained in independent test).
-  - **Total Gap (1):** Maximum RAM expandability ceiling unmentioned across all reviewed sheets.
-  - **Freshness Warning (2):** Pre-release engineering prototype benchmark flagged as outdated; community discussion flagged as undated.
+| Screen | Dark Theme Captures | Light Theme Captures |
+| :--- | :--- | :--- |
+| **Home (`/`)** | `home-dark-1440.png`, `home-dark-1024.png`, `home-dark-768.png`, `home-dark-390.png` | `home-light-1440.png`, `home-light-1024.png`, `home-light-768.png`, `home-light-390.png` |
+| **Report A (`/report/.../summary`)** | `report-a-dark-1440.png`, `report-a-dark-1024.png`, `report-a-dark-768.png`, `report-a-dark-390.png` | `report-a-light-1440.png`, `report-a-light-1024.png`, `report-a-light-768.png`, `report-a-light-390.png` |
+| **Report C (`/report/.../summary`)** | `report-c-dark-1440.png`, `report-c-dark-1024.png`, `report-c-dark-768.png`, `report-c-dark-390.png` | `report-c-light-1440.png`, `report-c-light-1024.png`, `report-c-light-768.png`, `report-c-light-390.png` |
+| **Evidence Drawer** | `evidence-drawer-dark-1440.png`, `evidence-drawer-dark-1024.png`, `evidence-drawer-dark-768.png`, `evidence-drawer-dark-390.png` | `evidence-drawer-light-1440.png`, `evidence-drawer-light-1024.png`, `evidence-drawer-light-768.png`, `evidence-drawer-light-390.png` |
+| **Branded 404** | `404-dark-1440.png`, `404-dark-1024.png`, `404-dark-768.png`, `404-dark-390.png` | `404-light-1440.png`, `404-light-1024.png`, `404-light-768.png`, `404-light-390.png` |
 
 ---
 
-## 3. Accepted Architectural Decisions (from `docs/DECISIONS.md`)
+## 3. WCAG AA Contrast Verification
 
-1. **In-Memory Verification Routing**: Sandbox socket security restrictions on Windows prevent loopback TCP binding during automated tests. Route testing utilizes in-memory Express dispatch (`app.handle`), guaranteeing deterministic verification.
-2. **Untrusted Delimitation**: Ingested third-party web content is treated as untrusted data and delimited in `<source>` blocks; instructions inside sources are ignored by AI extractors.
-3. **No Domain Vocabulary in Engine**: Core engine normalizers, checklist builders, and frontend UI templates are strictly domain-neutral; domain-specific keywords are permitted solely within fixture files.
-4. **Verbatim Traceability**: Every finding requires an authentic substring match in raw source text; the Evidence Drawer displays a 120-character contextual window highlighting the quote.
-5. **Icon Plus Text**: Status is never conveyed by color alone, adhering to WCAG AA accessibility standards.
-
+Automated token tests in `backend/test/test-palette-tokens.ts`:
+- **Dark Theme:** Text on BG (16.96:1), Muted on BG (7.62:1), Structure-Text on BG (7.48:1), Signal-Ink on Signal (15.35:1), Gap on BG (6.70:1), Stale on BG (6.36:1), Conflict on BG (10.76:1), Focus Ring (7.48:1).
+- **Light Theme:** Text on BG (18.37:1), Muted on BG (7.35:1), Structure on BG (6.40:1), Structure-Text on BG (6.40:1), Signal-Ink on Signal (15.35:1), Gap on BG (4.52:1), Stale on BG (5.21:1), Text on Conflict (10.76:1), Focus Ring (6.40:1).
+- **Client Color Literals:** 0 raw hex, rgb, or hsl literals outside `index.css`.

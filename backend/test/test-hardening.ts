@@ -71,7 +71,7 @@ async function runHardeningTests() {
 
   // Test 4: Key Leakage Audit in Client Bundle
   console.log('\n4. Auditing Client Build Bundles for API Key Leaks...');
-  const distDir = path.resolve(process.cwd(), '../client/dist/assets');
+  const distDir = path.resolve(process.cwd(), '../frontend/dist/assets');
   if (fs.existsSync(distDir)) {
     const files = fs.readdirSync(distDir);
     let leakDetected = false;
