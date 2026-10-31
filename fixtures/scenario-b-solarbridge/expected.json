@@ -1,0 +1,48 @@
+{
+  "expectedAttributes": [
+    "maximum_capacity_rating",
+    "application_deadline",
+    "required_documents",
+    "official_portal",
+    "battery_storage_mandate"
+  ],
+  "claims": [
+    {
+      "source_id": "src-sample-solar-gazette",
+      "attribute": "maximum_capacity_rating",
+      "value": "10 kW per household",
+      "quote": "maximum supported inverter capacity rating is 10 kW per household"
+    },
+    {
+      "source_id": "src-sample-solar-gazette",
+      "attribute": "application_deadline",
+      "value": "31 December 2026",
+      "quote": "scheme closing date is 31 December 2026"
+    },
+    {
+      "source_id": "src-sample-solar-gazette",
+      "attribute": "required_documents",
+      "value": "property ownership proof and electricity billing history",
+      "quote": "Required documents include property ownership proof and electricity billing history"
+    },
+    {
+      "source_id": "src-sample-solar-gazette",
+      "attribute": "official_portal",
+      "value": "https://energy.solarbridge.example",
+      "quote": "Official portal is at https://energy.solarbridge.example."
+    },
+    {
+      "source_id": "src-sample-solar-installer",
+      "attribute": "maximum_capacity_rating",
+      "value": "5 kW for residential connections",
+      "quote": "Inverter capacity rating is capped at 5 kW for residential connections"
+    }
+  ],
+  "assertions": {
+    "minConflicts": 1,
+    "expectedConflictAttributes": ["maximum_capacity_rating"],
+    "minFreshnessWarnings": 1,
+    "expectedTotalGaps": ["battery_storage_mandate"]
+  }
+}
+

@@ -1,0 +1,48 @@
+{
+  "expectedAttributes": [
+    "application_deadline",
+    "eligibility_income_limit",
+    "required_documents",
+    "official_application_portal",
+    "renewal_conditions"
+  ],
+  "claims": [
+    {
+      "source_id": "src-sample-aurora-official",
+      "attribute": "application_deadline",
+      "value": "30 April 2026",
+      "quote": "strict closing application deadline is 30 April 2026"
+    },
+    {
+      "source_id": "src-sample-aurora-official",
+      "attribute": "eligibility_income_limit",
+      "value": "INR 5,00,000 per annum",
+      "quote": "maximum family income limit is established at INR 5,00,000 per annum"
+    },
+    {
+      "source_id": "src-sample-aurora-official",
+      "attribute": "required_documents",
+      "value": "certified academic transcripts and resident certificate",
+      "quote": "Mandatory documents include standard certified academic transcripts and resident certificate."
+    },
+    {
+      "source_id": "src-sample-aurora-official",
+      "attribute": "official_application_portal",
+      "value": "https://education.aurora.example",
+      "quote": "Applications must be submitted through the official portal at https://education.aurora.example."
+    },
+    {
+      "source_id": "src-sample-aurora-blog",
+      "attribute": "eligibility_income_limit",
+      "value": "INR 3,50,000 per annum",
+      "quote": "family income limit was established at INR 3,50,000 per annum"
+    }
+  ],
+  "assertions": {
+    "minConflicts": 1,
+    "expectedConflictAttributes": ["eligibility_income_limit"],
+    "minFreshnessWarnings": 2,
+    "expectedTotalGaps": ["renewal_conditions"]
+  }
+}
+

@@ -126,11 +126,11 @@ export const Home: React.FC = () => {
   };
 
   // Load sample dataset
-  const handleLoadSample = async () => {
+  const handleLoadSample = async (scenarioId: string = 'scenario-a-aurora') => {
     setIsLoadingSample(true);
     setError(null);
     try {
-      const data = await fetchSampleData();
+      const data = await fetchSampleData(scenarioId);
       setQuestion(data.question);
       setSources(
         data.sources.map((s: any) => ({
@@ -356,15 +356,36 @@ export const Home: React.FC = () => {
                     <span>Paste Text</span>
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={handleLoadSample}
-                    disabled={isLoadingSample}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xs border border-seed/15 text-xs font-medium text-seed hover:bg-seed/5 hover:border-seed/30 transition-colors cursor-pointer"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-crack" />
-                    <span>{isLoadingSample ? 'Loading sample...' : 'Use sample'}</span>
-                  </button>
+                  <div className="relative inline-flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => handleLoadSample('scenario-a-aurora')}
+                      disabled={isLoadingSample}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-l-xs border border-seed/15 text-xs font-medium text-seed hover:bg-seed/5 hover:border-seed/30 transition-colors cursor-pointer"
+                      title="Load Scenario A (Education Guidelines)"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-crack" />
+                      <span>{isLoadingSample ? 'Loading...' : 'Sample A'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleLoadSample('scenario-b-solarbridge')}
+                      disabled={isLoadingSample}
+                      className="inline-flex items-center px-2 py-1.5 border-t border-b border-r border-seed/15 text-xs font-medium text-seed hover:bg-seed/5 hover:border-seed/30 transition-colors cursor-pointer"
+                      title="Load Scenario B (Rooftop Clean Energy)"
+                    >
+                      <span>Sample B</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleLoadSample('scenario-c-nimbus-air')}
+                      disabled={isLoadingSample}
+                      className="inline-flex items-center px-2 py-1.5 rounded-r-xs border-t border-b border-r border-seed/15 text-xs font-medium text-seed hover:bg-seed/5 hover:border-seed/30 transition-colors cursor-pointer"
+                      title="Load Scenario C (Hardware Specifications)"
+                    >
+                      <span>Sample C</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Inline Intake Modal / Drawer */}

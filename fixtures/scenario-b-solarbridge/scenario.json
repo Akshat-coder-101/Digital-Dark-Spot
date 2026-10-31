@@ -1,0 +1,35 @@
+{
+  "id": "scenario-b-solarbridge",
+  "name": "SolarBridge Rooftop Subsidy 2026 [SAMPLE DATA]",
+  "question": "What are the rooftop solar subsidy guidelines, capacity limits, and battery requirements under the SolarBridge scheme?",
+  "sources": [
+    {
+      "id": "src-sample-solar-gazette",
+      "url": "https://energy.solarbridge.example/guidelines-2026",
+      "domain": "energy.solarbridge.example",
+      "title": "Ministry of Clean Energy - SolarBridge 2026 Guidelines [SAMPLE DATA]",
+      "cleanedText": "Notice: The SolarBridge Rooftop Subsidy for 2026 provides financial assistance for residential solar installations. Published 05 February 2026. The maximum supported inverter capacity rating is 10 kW per household. The scheme closing date is 31 December 2026. Required documents include property ownership proof and electricity billing history for 12 months. Official portal is at https://energy.solarbridge.example.",
+      "rawText": "Notice: The SolarBridge Rooftop Subsidy for 2026 provides financial assistance for residential solar installations. Published 05 February 2026. The maximum supported inverter capacity rating is 10 kW per household. The scheme closing date is 31 December 2026. Required documents include property ownership proof and electricity billing history for 12 months. Official portal is at https://energy.solarbridge.example.",
+      "sourceType": "sample"
+    },
+    {
+      "id": "src-sample-solar-installer",
+      "url": "https://greenpower-installers.example/solarbridge-guide",
+      "domain": "greenpower-installers.example",
+      "title": "SolarBridge Rooftop Scheme Technical Analysis [SAMPLE DATA]",
+      "cleanedText": "Installer advisory: Inverter capacity rating is capped at 5 kW for residential connections under standard tier. Discrepancy observed against national notice. Published 20 February 2026.",
+      "rawText": "Installer advisory: Inverter capacity rating is capped at 5 kW for residential connections under standard tier. Discrepancy observed against national notice. Published 20 February 2026.",
+      "sourceType": "sample"
+    },
+    {
+      "id": "src-sample-solar-old",
+      "url": "https://energy-archive.example/cycle-2024",
+      "domain": "energy-archive.example",
+      "title": "Historical 2024-25 Solar Program Rules [SAMPLE DATA]",
+      "cleanedText": "Historic guideline for earlier 2024-25 cycle. Max grant was 40% with mandatory district engineer inspection. Published 15 May 2024.",
+      "rawText": "Historic guideline for earlier 2024-25 cycle. Max grant was 40% with mandatory district engineer inspection. Published 15 May 2024.",
+      "sourceType": "sample"
+    }
+  ]
+}
+

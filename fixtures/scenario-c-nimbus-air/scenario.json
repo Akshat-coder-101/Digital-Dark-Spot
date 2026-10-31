@@ -1,0 +1,35 @@
+{
+  "id": "scenario-c-nimbus-air",
+  "name": "Nimbus Air 14 versus Nimbus Air 16 [SAMPLE DATA]",
+  "question": "Compare memory, display resolution, battery runtime, and port configuration between Nimbus Air 14 and Nimbus Air 16.",
+  "sources": [
+    {
+      "id": "src-sample-nimbus-official",
+      "url": "https://specs.nimbusdevices.example/air-2026",
+      "domain": "specs.nimbusdevices.example",
+      "title": "Nimbus Air Official Product Specification Matrix [SAMPLE DATA]",
+      "cleanedText": "Nimbus Devices Technical Brief: Nimbus Air 14 features a 14.2-inch OLED panel with 18 hours battery life. Nimbus Air 16 features a 16.0-inch OLED panel with 22 hours battery life. Both configurations feature 32 GB unified memory as standard. Published 10 January 2026.",
+      "rawText": "Nimbus Devices Technical Brief: Nimbus Air 14 features a 14.2-inch OLED panel with 18 hours battery life. Nimbus Air 16 features a 16.0-inch OLED panel with 22 hours battery life. Both configurations feature 32 GB unified memory as standard. Published 10 January 2026.",
+      "sourceType": "sample"
+    },
+    {
+      "id": "src-sample-nimbus-retailer",
+      "url": "https://techstore-direct.example/nimbus-review",
+      "domain": "techstore-direct.example",
+      "title": "Hardware Retailer Benchmarks: Nimbus Air Series [SAMPLE DATA]",
+      "cleanedText": "Retail specifications listing: Nimbus Air 14 base configuration includes 16 GB unified memory. Nimbus Air 16 includes 32 GB unified memory. Published 28 January 2026.",
+      "rawText": "Retail specifications listing: Nimbus Air 14 base configuration includes 16 GB unified memory. Nimbus Air 16 includes 32 GB unified memory. Published 28 January 2026.",
+      "sourceType": "sample"
+    },
+    {
+      "id": "src-sample-nimbus-leak",
+      "url": "https://deviceleaks.example/post-109",
+      "domain": "deviceleaks.example",
+      "title": "Hardware Leak Discussion Forum #109 [SAMPLE DATA]",
+      "cleanedText": "Forum post: Nobody has confirmed the Thunderbolt port count or external display limits for either device. Undated user post.",
+      "rawText": "Forum post: Nobody has confirmed the Thunderbolt port count or external display limits for either device. Undated user post.",
+      "sourceType": "sample"
+    }
+  ]
+}
+

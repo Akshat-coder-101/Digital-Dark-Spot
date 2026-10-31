@@ -1,28 +1,30 @@
 import { Router, Request, Response } from 'express';
 import {
-  generateSampleReport,
-  SAMPLE_SOURCES,
-  SAMPLE_RESEARCH_QUESTION
+  loadFixtureScenario,
+  generateSampleReport
 } from '../data/sampleData.js';
 import { analysisPipeline } from '../analysis/pipeline.js';
 
 export const sampleRouter = Router();
 
-sampleRouter.get('/', (_req: Request, res: Response): void => {
+sampleRouter.get('/:scenarioId?', (req: Request, res: Response): void => {
   try {
-    const report = generateSampleReport();
-    // Cache in analysis pipeline in-memory map so /api/report/sample-report-default works immediately
-    analysisPipeline.setReport(report);
+    const scenarioId = req.params.scenarioId || 'scenario-a-aurora';
+    const fixtureData = loadFixtureScenario(scenarioId);
+
+    // Cache in analysis pipeline in-memory map
+    analysisPipeline.setReport(fixtureData.report);
 
     res.json({
-      question: SAMPLE_RESEARCH_QUESTION,
-      sources: SAMPLE_SOURCES,
-      report,
+      question: fixtureData.question,
+      sources: fixtureData.sources,
+      report: fixtureData.report,
+      scenarioId: fixtureData.id,
+      name: fixtureData.name,
       isSample: true,
-      message: 'Sample dataset loaded for offline demonstration.'
+      message: 'Sample dataset loaded from validated fixture for offline demonstration.'
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to generate sample report' });
   }
 });
-

@@ -1,0 +1,35 @@
+{
+  "id": "scenario-a-aurora",
+  "name": "Aurora Merit Scholarship [SAMPLE DATA]",
+  "question": "What are the eligibility requirements, family income limit, and renewal rules for the Aurora Merit Scholarship?",
+  "sources": [
+    {
+      "id": "src-sample-aurora-official",
+      "url": "https://education.aurora.example/guidelines-2026",
+      "domain": "education.aurora.example",
+      "title": "Aurora State Higher Education Directorate - 2026 Official Guidelines [SAMPLE DATA]",
+      "cleanedText": "Official Circular: Applications for the Aurora Merit Scholarship for the 2026-27 academic session are now open. Published 15 January 2026. The maximum family income limit is established at INR 5,00,000 per annum verified by municipal authorities. The strict closing application deadline is 30 April 2026. Mandatory documents include standard certified academic transcripts and resident certificate. Applications must be submitted through the official portal at https://education.aurora.example.",
+      "rawText": "Official Circular: Applications for the Aurora Merit Scholarship for the 2026-27 academic session are now open. Published 15 January 2026. The maximum family income limit is established at INR 5,00,000 per annum verified by municipal authorities. The strict closing application deadline is 30 April 2026. Mandatory documents include standard certified academic transcripts and resident certificate. Applications must be submitted through the official portal at https://education.aurora.example.",
+      "sourceType": "sample"
+    },
+    {
+      "id": "src-sample-aurora-blog",
+      "url": "https://scholarship-advisory.example/aurora-review-2024",
+      "domain": "scholarship-advisory.example",
+      "title": "Student Aid Review: Unofficial Guide to Aurora Scholarships (2024-25 Cycle) [SAMPLE DATA]",
+      "cleanedText": "Guidance Note: In the 2024-25 cycle of the Aurora Merit Scholarship, the family income limit was established at INR 3,50,000 per annum. Applicants were required to submit recent bank passbooks and identity verification. Published 10 August 2024 for the 2024-25 cycle.",
+      "rawText": "Guidance Note: In the 2024-25 cycle of the Aurora Merit Scholarship, the family income limit was established at INR 3,50,000 per annum. Applicants were required to submit recent bank passbooks and identity verification. Published 10 August 2024 for the 2024-25 cycle.",
+      "sourceType": "sample"
+    },
+    {
+      "id": "src-sample-aurora-forum",
+      "url": "https://studenttalk.example/thread-aurora",
+      "domain": "studenttalk.example",
+      "title": "Community Discussion Forum Thread #412 [SAMPLE DATA]",
+      "cleanedText": "Discussion: Does anyone know if renewal requires maintaining a 3.5 GPA? Nobody has found any published renewal conditions anywhere on the portal. Undated comment.",
+      "rawText": "Discussion: Does anyone know if renewal requires maintaining a 3.5 GPA? Nobody has found any published renewal conditions anywhere on the portal. Undated comment.",
+      "sourceType": "sample"
+    }
+  ]
+}
+
