@@ -75,7 +75,7 @@ export class DiscoveryService {
       job.progressPercent = 40;
       job.message = `Executing ${queries.length} targeted search queries across official and secondary sources...`;
 
-      const searchPromises = queries.map(q => searchManager.search(q, { maxResults: 5 }));
+      const searchPromises = queries.map(q => searchManager.search(q, 5));
       const queryResults = await Promise.allSettled(searchPromises);
 
       const allResults: SearchResult[] = [];

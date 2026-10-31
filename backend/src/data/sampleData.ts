@@ -18,7 +18,19 @@ export interface FixtureScenarioData {
   report: FullAnalysisReport;
 }
 
-const FIXTURES_DIR = path.resolve(process.cwd(), 'fixtures');
+function getFixturesDir(): string {
+  const candidates = [
+    path.resolve(process.cwd(), 'fixtures'),
+    path.resolve(process.cwd(), '../fixtures'),
+    path.resolve(process.cwd(), '../../fixtures')
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(path.join(c, 'scenario-a-aurora'))) return c;
+  }
+  return path.resolve(process.cwd(), 'fixtures');
+}
+
+const FIXTURES_DIR = getFixturesDir();
 
 export function loadFixtureScenario(scenarioId: string = 'scenario-a-aurora'): FixtureScenarioData {
   let targetDir = path.join(FIXTURES_DIR, scenarioId);

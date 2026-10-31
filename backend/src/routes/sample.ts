@@ -9,7 +9,7 @@ export const sampleRouter = Router();
 
 sampleRouter.get('/:scenarioId?', (req: Request, res: Response): void => {
   try {
-    const scenarioId = req.params.scenarioId || 'scenario-a-aurora';
+    const scenarioId = typeof req.params.scenarioId === 'string' ? req.params.scenarioId : 'scenario-a-aurora';
     const fixtureData = loadFixtureScenario(scenarioId);
 
     // Cache in analysis pipeline in-memory map

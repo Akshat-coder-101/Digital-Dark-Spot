@@ -7,7 +7,19 @@ console.log('\n🍉 ========================================================');
 console.log('       DIGITAL DARK SPOT — PHASE 5 REPORT & EVIDENCE TEST  ');
 console.log('========================================================\n');
 
-const FIXTURES_DIR = path.resolve(process.cwd(), 'fixtures');
+function getFixturesDir(): string {
+  const candidates = [
+    path.resolve(process.cwd(), 'fixtures'),
+    path.resolve(process.cwd(), '../fixtures'),
+    path.resolve(process.cwd(), '../../fixtures')
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(path.join(c, 'scenario-a-aurora'))) return c;
+  }
+  return path.resolve(process.cwd(), 'fixtures');
+}
+
+const FIXTURES_DIR = getFixturesDir();
 const scenarioDirs = fs.readdirSync(FIXTURES_DIR, { withFileTypes: true })
   .filter(d => d.isDirectory())
   .map(d => path.join(FIXTURES_DIR, d.name));

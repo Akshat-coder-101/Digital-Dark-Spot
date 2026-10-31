@@ -63,3 +63,4 @@
 3. **No Domain Vocabulary in Engine**: Core engine normalizers, checklist builders, and frontend UI templates are strictly domain-neutral; domain-specific keywords are permitted solely within fixture files.
 4. **Verbatim Traceability**: Every finding requires an authentic substring match in raw source text; the Evidence Drawer displays a 120-character contextual window highlighting the quote.
 5. **Icon Plus Text**: Status is never conveyed by color alone, adhering to WCAG AA accessibility standards.
+
