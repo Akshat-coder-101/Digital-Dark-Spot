@@ -10,7 +10,7 @@ An AI-assisted platform that shows what your sources do not tell you: potential 
 
 Built for the Shinchan Online Hackathon 2026.
 
-Demo video: To be added  
+Demo video: [Watch Demo Video](https://drive.google.com/file/d/15qmUO1pBw0Ke2-NFbAVAi3VEUeSblVOb/view?usp=sharing)  
 Live demo: Run locally with `npm run dev` (sample scenarios need no API keys)
 
 ## Table of Contents
