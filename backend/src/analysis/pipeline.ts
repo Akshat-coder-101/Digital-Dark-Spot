@@ -293,7 +293,8 @@ export class AnalysisPipeline {
         claims: extractionData.verified_claims,
         conflicts,
         freshness,
-        checklist
+        checklist,
+        llmSummary: extractionData.summary
       });
 
       // Final report assembly

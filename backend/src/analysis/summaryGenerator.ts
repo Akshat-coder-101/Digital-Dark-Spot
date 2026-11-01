@@ -13,6 +13,7 @@ export interface StructuredSummaryParameterSection {
   heading: string;
   status: 'found' | 'single_source' | 'conflict' | 'gap' | 'stale';
   statusLabel: string;
+  keyValue: string;
   text: string;
   marker: number;
   sourcesCount: number;
@@ -27,7 +28,8 @@ export interface StructuredSummaryParameterSection {
 }
 
 export interface StructuredSummary {
-  badge: 'Written from verified findings';
+  badge: 'Written from verified findings' | 'Advisory Verification Blueprint';
+  directAnswer?: string;
   overview: string[];
   parameterSections: StructuredSummaryParameterSection[];
   otherDetails: Array<{
@@ -63,6 +65,7 @@ export function generateStructuredSummary(input: {
   conflicts: PossibleConflict[];
   freshness: FreshnessWarning[];
   checklist: ChecklistItem[];
+  llmSummary?: string;
 }): StructuredSummary {
   const {
     question,
@@ -71,7 +74,8 @@ export function generateStructuredSummary(input: {
     claims,
     conflicts,
     freshness,
-    checklist
+    checklist,
+    llmSummary
   } = input;
 
   const readySources = sources.filter(s => s.status === 'ready');
@@ -85,51 +89,77 @@ export function generateStructuredSummary(input: {
   const conflictParams = parameterStatuses.filter(p => p.status === 'conflict');
   const staleSourcesCount = reviewedSources.filter(s => s.isStale).length;
 
-  // 1. Overview: 4 to 6 plain sentences
+  const badge = (reviewedSources.length > 0 && coveredParams.length > 0)
+    ? 'Written from verified findings'
+    : 'Advisory Verification Blueprint';
+
+  const cleanLlmSummary = llmSummary && !llmSummary.startsWith('Summary synthesized') && !llmSummary.startsWith('No sources reviewed')
+    ? llmSummary
+    : undefined;
+
+  const directAnswer = cleanLlmSummary || (
+    reviewedSources.length === 0
+      ? `Online primary sources could not be retrieved directly for this query. Rather than generating unverified assumptions, Digital Dark Spot has established an advisory blueprint of the ${parameterStatuses.length} essential verification parameters you must check before making this decision.`
+      : undefined
+  );
+
+  // 1. Overview: 4 to 6 plain sentences (or honest advisory note when 0 sources)
   const overview: string[] = [];
 
-  // Sentence 1: Question and Sources scope
-  const lowTextText = lowTextSources.length > 0 ? `, and ${lowTextSources.length} low-text source${lowTextSources.length === 1 ? '' : 's'}` : '';
-  overview.push(
-    `This investigation analyzed evidence addressing the question "${question}" across ${reviewedSources.length} reviewed sources (${fullSources.length} full document${fullSources.length === 1 ? '' : 's'}, ${limitedSources.length} limited supporting text${limitedSources.length === 1 ? '' : 's'}${lowTextText}).`
-  );
-
-  // Sentence 2: Verified Findings scope
-  overview.push(
-    `Verified source evidence was identified for ${coveredParams.length} of the ${parameterStatuses.length} expected decision parameters, establishing ${claims.length} total verbatim claims.`
-  );
-
-  // Sentence 3: Conflicts / Contradictions
-  if (conflictParams.length > 0) {
+  if (reviewedSources.length === 0) {
     overview.push(
-      `Possible contradictions were identified across ${conflictParams.length} parameter${conflictParams.length === 1 ? '' : 's'} (${conflictParams.map(c => c.label).join(', ')}), where reviewed sources present differing values or specifications.`
+      `No online primary documents could be reached for the topic "${question}".`
+    );
+    overview.push(
+      `To protect against hallucinations and blind spots, all ${parameterStatuses.length} parameters have been preserved as unverified dark spots.`
+    );
+    overview.push(
+      `Before making a commitment, independently verify each requirement below using primary administrative, regulatory, or manufacturer portals.`
     );
   } else {
+    // Sentence 1: Question and Sources scope
+    const lowTextText = lowTextSources.length > 0 ? `, and ${lowTextSources.length} low-text source${lowTextSources.length === 1 ? '' : 's'}` : '';
     overview.push(
-      `No conflicting statements or contradicting values were identified across the reviewed sources.`
+      `This investigation analyzed evidence addressing the question "${question}" across ${reviewedSources.length} reviewed sources (${fullSources.length} full document${fullSources.length === 1 ? '' : 's'}, ${limitedSources.length} limited supporting text${limitedSources.length === 1 ? '' : 's'}${lowTextText}).`
     );
-  }
 
-  // Sentence 4: Gaps / Missing Information
-  if (gapParams.length > 0) {
+    // Sentence 2: Verified Findings scope
     overview.push(
-      `Potential information gaps remain for ${gapParams.length} parameter${gapParams.length === 1 ? '' : 's'} (${gapParams.map(g => g.label).join(', ')}), which are not documented in any of the ${reviewedSources.length} reviewed sources.`
+      `Verified source evidence was identified for ${coveredParams.length} of the ${parameterStatuses.length} expected decision parameters, establishing ${claims.length} total verbatim claims.`
     );
-  } else {
-    overview.push(
-      `All ${parameterStatuses.length} expected decision parameters were corroborated by at least one reviewed source.`
-    );
-  }
 
-  // Sentence 5: Dates & Staleness
-  if (staleSourcesCount > 0 || freshness.some(w => w.warningType === 'deadline_passed')) {
-    overview.push(
-      `Temporal warnings were flagged for ${staleSourcesCount} source${staleSourcesCount === 1 ? '' : 's'} citing superseded cycles or passed deadlines.`
-    );
-  } else {
-    overview.push(
-      `All reviewed sources contain active, unexpired information for the current decision period.`
-    );
+    // Sentence 3: Conflicts / Contradictions
+    if (conflictParams.length > 0) {
+      overview.push(
+        `Possible contradictions were identified across ${conflictParams.length} parameter${conflictParams.length === 1 ? '' : 's'} (${conflictParams.map(c => c.label).join(', ')}), where reviewed sources present differing values or specifications.`
+      );
+    } else {
+      overview.push(
+        `No conflicting statements or contradicting values were identified across the reviewed sources.`
+      );
+    }
+
+    // Sentence 4: Gaps / Missing Information
+    if (gapParams.length > 0) {
+      overview.push(
+        `Potential information gaps remain for ${gapParams.length} parameter${gapParams.length === 1 ? '' : 's'} (${gapParams.map(g => g.label).join(', ')}), which are not documented in any of the ${reviewedSources.length} reviewed sources.`
+      );
+    } else {
+      overview.push(
+        `All ${parameterStatuses.length} expected decision parameters were corroborated by at least one reviewed source.`
+      );
+    }
+
+    // Sentence 5: Dates & Staleness
+    if (staleSourcesCount > 0 || freshness.some(w => w.warningType === 'deadline_passed')) {
+      overview.push(
+        `Temporal warnings were flagged for ${staleSourcesCount} source${staleSourcesCount === 1 ? '' : 's'} citing superseded cycles or passed deadlines.`
+      );
+    } else {
+      overview.push(
+        `All reviewed sources contain active, unexpired information for the current decision period.`
+      );
+    }
   }
 
   // 2. One section per expected parameter (ALL of them, none omitted)
@@ -164,6 +194,7 @@ export function generateStructuredSummary(input: {
       heading: p.label,
       status: p.status,
       statusLabel: p.statusLabel,
+      keyValue: p.keyValue,
       text,
       marker,
       sourcesCount: p.sourcesCount,
@@ -254,7 +285,12 @@ export function generateStructuredSummary(input: {
 
   // 6. Generate Copyable Markdown
   let md = `# Research Summary: ${question}\n\n`;
-  md += `*Written from verified findings across ${readySources.length} reviewed sources*\n\n`;
+  md += `*${badge} across ${reviewedSources.length} reviewed sources*\n\n`;
+
+  if (directAnswer) {
+    md += `## Executive Findings & Direct Answer\n${directAnswer}\n\n`;
+  }
+
   md += `## Overview\n`;
   for (const p of overview) {
     md += `${p}\n\n`;
@@ -298,7 +334,8 @@ export function generateStructuredSummary(input: {
   }
 
   return {
-    badge: 'Written from verified findings',
+    badge,
+    directAnswer,
     overview,
     parameterSections,
     otherDetails,
