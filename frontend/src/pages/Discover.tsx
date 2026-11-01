@@ -414,11 +414,11 @@ export const Discover: React.FC = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => navigate('/discover/sample-default')}
-                  className="border-rind/40 text-rind hover:bg-rind/10 text-xs font-semibold gap-1.5"
+                  onClick={() => navigate('/', { state: { question } })}
+                  className="text-xs font-semibold gap-1.5"
                 >
-                  <Database className="w-3.5 h-3.5" />
-                  Load Sample Dataset (Offline Demo)
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Return to Edit Question</span>
                 </Button>
               </div>
             </div>

@@ -9,7 +9,7 @@ import { KeyFactsTable } from '@/components/visual/KeyFactsTable';
 import { KeyDatesBlock } from '@/components/visual/KeyDatesBlock';
 import { ReportContext } from './ReportContext';
 import { extractSchemeInfo } from '@/lib/scheme';
-import { RefreshCw, Sparkles, AlertCircle, AlertTriangle, ArrowLeft, FileText, Info, Copy, Check, Edit3, ArrowRight, Download, Layers } from 'lucide-react';
+import { RefreshCw, Sparkles, AlertCircle, AlertTriangle, ArrowLeft, FileText, Info, Copy, Check, Edit3, ArrowRight, Layers } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { cn } from '@/lib/utils';
 
@@ -53,8 +53,6 @@ export const DashboardLayout: React.FC = () => {
   const [selectedAttribute, setSelectedAttribute] = useState<string | null>(null);
   const [isRerunning, setIsRerunning] = useState(false);
   const [copiedChecklist, setCopiedChecklist] = useState(false);
-  const [savingSnapshot, setSavingSnapshot] = useState(false);
-  const [snapshotSaved, setSnapshotSaved] = useState<string | null>(null);
   const [isMapCollapsed, setIsMapCollapsed] = useState(false);
   const tabsNavRef = useRef<HTMLDivElement>(null);
 
@@ -156,23 +154,6 @@ export const DashboardLayout: React.FC = () => {
       setCopiedChecklist(true);
       setTimeout(() => setCopiedChecklist(false), 2000);
     });
-  };
-
-  const handleSaveSnapshot = async () => {
-    if (!report) return;
-    setSavingSnapshot(true);
-    try {
-      const res = await fetch(`/api/report/${report.id}/snapshot`, { method: 'POST' });
-      if (res.ok) {
-        const data = await res.json();
-        setSnapshotSaved(data.snapshotId);
-        setTimeout(() => setSnapshotSaved(null), 3500);
-      }
-    } catch {
-      // offline/error
-    } finally {
-      setSavingSnapshot(false);
-    }
   };
 
   // Loading Skeleton
@@ -286,48 +267,21 @@ export const DashboardLayout: React.FC = () => {
                 {reportDate}
               </span>
               <span className="text-seed-muted/40">•</span>
-              {(report.id.startsWith('demo-snapshot') || report.summary?.includes('Saved snapshot of a live run')) ? (
-                <span className="font-sans text-xs font-semibold px-2 py-0.5 rounded-xs bg-rind/15 text-rind border border-rind/25">
-                  Saved snapshot of a live run ({reportDate})
-                </span>
-              ) : (
-                <span className="text-xs text-seed-muted flex items-center gap-1 font-sans">
-                  <Sparkles className="w-3 h-3 text-structure-text" />
-                  {report.analyzedWith.provider ? (
-                    <>Analyzed with: <strong className="text-seed font-mono">{report.analyzedWith.provider}</strong></>
-                  ) : (
-                    <strong className="text-seed font-mono">Sample data</strong>
-                  )}
-                  {report.analyzedWith.cached && (
-                    <span className="text-[10px] text-seed-muted/70 font-mono">(cached)</span>
-                  )}
-                </span>
-              )}
+              <span className="text-xs text-seed-muted flex items-center gap-1 font-sans">
+                <Sparkles className="w-3 h-3 text-structure-text" />
+                {report.analyzedWith?.provider ? (
+                  <>Analyzed with: <strong className="text-seed font-mono">{report.analyzedWith.provider}</strong></>
+                ) : (
+                  <strong className="text-seed font-mono">Verified sources</strong>
+                )}
+                {report.analyzedWith?.cached && (
+                  <span className="text-[10px] text-seed-muted/70 font-mono">(cached)</span>
+                )}
+              </span>
             </div>
 
-            {/* Header Action Buttons: Save snapshot, Re-run & Copy checklist */}
+            {/* Header Action Buttons: Re-run & Copy checklist */}
             <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSaveSnapshot}
-                disabled={savingSnapshot}
-                className="text-xs cursor-pointer inline-flex items-center gap-1.5"
-                title="Save as local demo snapshot (loads offline without network or LLM calls)"
-              >
-                {snapshotSaved ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-rind" />
-                    <span>Snapshot Saved!</span>
-                  </>
-                ) : (
-                  <>
-                    <Download className={`w-3.5 h-3.5 ${savingSnapshot ? 'animate-bounce' : 'text-seed-muted'}`} />
-                    <span>Save as demo snapshot</span>
-                  </>
-                )}
-              </Button>
-
               <Button
                 variant="outline"
                 size="sm"
