@@ -7,60 +7,122 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC.svg)](https://tailwindcss.com/)
 [![Motion](https://img.shields.io/badge/Motion-v12-purple.svg)](https://motion.dev/)
 [![Deterministic Evaluation](https://img.shields.io/badge/Eval_Suite-100%25_Passing-brightgreen.svg)](docs/EVAL.md)
-[![Secrets Scanner](https://img.shields.io/badge/Secret_Audit-0_Leaks-brightgreen.svg)](#security--secret-protection)
+[![Secrets Scanner](https://img.shields.io/badge/Secret_Audit-0_Leaks-brightgreen.svg)](#5-security--secret-protection)
 
 ---
 
-## 🚀 Quick Running Guide
+## 🏆 How Judges Can Run the Website on Their Laptop
 
-Clone and run the complete application locally in under 2 minutes:
+You can clone, install, and run **Digital Dark Spot** locally on Windows, macOS, or Linux in under 2 minutes:
 
-### 1. Clone the Repository
+### 1. Prerequisites
+- **Node.js**: `v18.0.0` or higher (`v20+` LTS recommended).
+- **npm**: `v9+` or higher (installed with Node.js).
+- **Git**
+
+### 2. Clone & Install
 ```bash
+# Clone the repository
 git clone https://github.com/Akshat-coder-101/Digital-Dark-Spot.git
 cd Digital-Dark-Spot
-```
 
-### 2. Install Dependencies
-```bash
+# Install all workspace dependencies (root, backend, and frontend)
 npm install
 ```
 
-### 3. Environment Configuration
-Copy the provided environment template:
+### 3. Start the Web Platform
 ```bash
-cp .env.example .env
-cp .env.example backend/.env
-```
-> **Note:** Digital Dark Spot operates fully in **Zero-Key Offline Demo Mode** right out of the box using verified sample scenarios. For live web search and custom LLM extraction, add your API keys (e.g. `GEMINI_API_KEYS`, `TAVILY_API_KEYS`, or `GROQ_API_KEYS`) in `.env` and `backend/.env`.
-
-### 4. Run the Verification Suite
-Ensure all engine components, security checks, and deterministic evaluations pass:
-```bash
-npm run verify
-```
-
-### 5. Start the Development Server
-Starts both the Express backend API (`http://localhost:3001`) and Vite frontend (`http://localhost:5173`) concurrently:
-```bash
+# Start both Backend (port 3001) and Frontend (port 5173) concurrently:
 npm run dev
 ```
 
-Open your browser to:
+Open your browser to:  
 👉 **[http://localhost:5173](http://localhost:5173)**
+
+---
+
+### 4. Zero-Key Offline Demo (No API Keys Needed)
+
+Digital Dark Spot is built with a **100% zero-configuration offline demo mode** so judges can evaluate the platform instantly without entering any API keys:
+
+1. Open **[http://localhost:5173](http://localhost:5173)**.
+2. Under the question box on the homepage, click any of the **3 Verified Sample Scenarios**:
+   - **Sample A: Aurora Merit Scholarship** — Evaluates conflicting income eligibility rules (₹6,00,000 vs ₹2,50,000), missing disbursement timeline gaps, and expired application cycles.
+   - **Sample B: SolarBridge Rooftop Subsidy 2026** — Analyzes clean-energy solar subsidies, benchmark cost ceilings, and mandatory vendor empanelment requirements.
+   - **Sample C: Nimbus Air 14 vs Nimbus Air 16** — Compares hardware engineering specs, power limits (TGP), VRAM configurations, and thermal dissipation differences.
+3. The platform executes the complete verification engine and renders:
+   - **Executive Summary:** Bullet-based findings tied directly to verified source claims.
+   - **Key Facts Table:** Up to 12 canonical decision parameters with status chips (`Found`, `Conflict`, `Single source`, `Gap`, `Stale`). Clicking any row opens the verbatim evidence drawer.
+   - **Key Dates Timeline:** Chronological milestone and deadline tracker with `Passed` or `Upcoming` indicators.
+   - **Coverage Map:** Source × Parameter matrix showing exact source attribution.
+   - **Prioritized Checklist:** High/Medium/Low action items guiding the user on what to verify next.
+
+---
+
+### 5. Running with Live AI & Search APIs (Optional)
+
+To test live web search discovery and dynamic AI extraction on custom arbitrary topics:
+
+1. Copy the environment file template:
+   ```bash
+   cp .env.example .env
+   cp .env.example backend/.env
+   ```
+2. Add your preferred API keys in `.env` and `backend/.env`:
+   - `GEMINI_API_KEYS=...` (Google Gemini API key)
+   - `TAVILY_API_KEYS=...` (Tavily Search API key)
+   - `GROQ_API_KEYS=...` (Optional high-speed Groq fallback key)
+3. Restart the dev server (`npm run dev`).
+4. Enter any question on the home screen (e.g. *"What should I verify before buying an RTX 5060 laptop?"* or *"What are the eligibility criteria for the national scholarship portal?"*). The system automatically discovers real external sources, extracts verified claims with verbatim quotes, and audits for contradictions and gaps.
+
+---
+
+### 6. Run Automated Verification & Evaluation
+
+Run the complete 18-step test suite and deterministic benchmark:
+
+```bash
+# Run complete verification suite (typecheck, ban-list scan, secret audit, unit tests)
+npm run verify
+
+# Run deterministic evaluation benchmark
+npm run eval
+```
 
 ---
 
 ## 1. Overview & Core Philosophy
 
-Digital Dark Spot is an AI-assisted research and verification platform that cross-examines multi-source documents to detect hidden information gaps, conflicting requirements, and outdated claims. Instead of generating ungrounded summaries, it validates every finding with verbatim source quotes and delivers a prioritized checklist to guide reliable decision-making.
+When researching critical decisions—such as government schemes, subsidies, academic grants, or complex hardware purchases—public sources often contain outdated guidelines, conflicting requirements, and unmentioned exclusions.
+
+**Digital Dark Spot** is an AI-assisted research and verification engine that cross-examines multiple sources to surface:
+- **Potential Information Gaps:** Vital decision parameters that no source answers, or that rely on a single unverified source.
+- **Contradicting Claims:** Direct conflicts between sources comparing the same subject and attribute, with verbatim quotes side-by-side.
+- **Outdated vs. Undated Details:** Clear distinction between expired application cycles, passed deadlines, and undated references.
+- **Actionable Next Steps:** A prioritized checklist that tells the user exactly what to verify next before making a decision.
 
 > [!IMPORTANT]
-> **Candidate Signals, Not Definitive Truth:** Digital Dark Spot identifies information dark spots and delivers an actionable, prioritized checklist to guide human verification against primary government and institutional sources.
+> **Candidate Signals, Not Definitive Truth:** Digital Dark Spot validates every finding against verbatim substrings in the primary text. If a quote cannot be verified verbatim in the raw document, it is rejected to eliminate hallucination.
 
 ---
 
-## 2. System Architecture
+## 2. Hackathon Requirements to Implementation Mapping
+
+| Hackathon Requirement | Engine Implementation | Frontend Component | User Benefit |
+| :--- | :--- | :--- | :--- |
+| **1. Enter topic, question, or research goal** | `Home.tsx`, `Discover.tsx` | Clean input with suggestion chips | Intuitive question bar with comfortable multi-line editing. |
+| **2. Add or collect source material** | `fetcher.ts`, `discoveryService.ts` | Multi-URL & text modal intake | SSRF-safe crawling, multi-URL batch pasting, and Tavily live search. |
+| **3. Structured summary across sources** | `pipeline.ts`, `extraction.ts` | `SummaryTab.tsx`, `KeyFactsTable.tsx` | Compact Key Facts table (max 12 topics) and claim-linked summary bullets. |
+| **4. Potential information gaps & unanswered questions** | `gaps.ts`, `canonicalization.ts` | `GapsTab.tsx` | Distinguishes critical question-derived **Needs** from secondary details. |
+| **5. Possible contradictions with source references** | `conflicts.ts`, `normalization.ts` | `ConflictsTab.tsx` | Subject-aware comparison preventing false conflicts; side-by-side quotes. |
+| **6. Warnings for outdated or undated details** | `freshness.ts`, `metadata.ts` | `FreshnessTab.tsx`, `CoverageMap.tsx` | Cycle detection, publication date auditing, and synchronized map counters. |
+| **7. Prioritized checklist of items to verify next** | `checklist.ts` | `ChecklistTab.tsx` | High/Med/Low verification checklist with Markdown export. |
+| **8. Distinguish sourced data from AI uncertainty** | `types.ts`, `StatusTag.tsx` | `StatusTag.tsx` | Clear visual badges: `Sourced` (green), `AI-suggested` (purple), `Uncertain` (amber). |
+| **9. Verbatim evidence tracing** | `verifier.ts` | `EvidenceDrawerSubRoute.tsx` | Sliding drawer displaying the exact quote highlighted within 120-character context. |
+
+---
+
+## 3. System Architecture
 
 ```mermaid
 graph TD
@@ -96,110 +158,29 @@ graph TD
 
 ---
 
-## 3. Hackathon Requirements to Implementation Mapping
+## 4. Multi-Provider LLM & Search Resilience
 
-| Hackathon Requirement | Engine Implementation | Frontend Component | Verification Evidence |
-| :--- | :--- | :--- | :--- |
-| **Structured Multi-Source Summary** | `AnalysisPipeline.run()`, `extraction.ts` | `SummaryTab.tsx`, `DashboardLayout.tsx` | Verbatim quote extraction across multiple documents. |
-| **Potential Gaps Identification** | `detectGaps()` in `gaps.ts` | `GapsTab.tsx` | Flags both total gaps and thin single-source parameters. |
-| **Possible Conflicts & Contradictions** | `detectConflicts()` in `conflicts.ts`, `normalization.ts` | `ConflictsTab.tsx` | Compares matching qualifiers; typed differences yield `Sourced` conflicts, wording differences yield `Uncertain`. |
-| **Outdated & Undated Warnings** | `auditFreshness()` in `freshness.ts`, `metadata.ts` | `FreshnessTab.tsx` | Distinguishes publication dates from deadlines; flags items older than 18 months or earlier cycles. |
-| **Prioritized Verification Checklist** | `buildPrioritizedChecklist()` in `checklist.ts` | `ChecklistTab.tsx` | High/Medium/Low prioritized checklist with actionable advice and Markdown export. |
-| **Sourced vs AI-Suggested vs Uncertain** | `types.ts` signalTag model | `StatusTag.tsx` | Unambiguous badges: `Sourced`, `AI-suggested`, `Uncertain` with icon plus text. |
-| **Verbatim Evidence Tracing** | `verifyClaimsVerbatim()` in `verifier.js` | `EvidenceDrawerSubRoute.tsx` | Verbatim substring match in raw document excerpt with 120-character context window. |
-| **Topic Independence & Anti-Hallucination** | Typed normalizers in `normalization.ts`, ban-list scanner | Topic-tailored UI inputs without hardcoded domain jargon | 97+ files clean in `scripts/ban-list-scan.ts`; 3 varied sample scenarios. |
-| **Coverage Parameter Matrix** | `buildCoverageMatrix()` in `matrix.ts` | `CoverageMap.tsx` | Interactive matrix displaying `Found`, `Conflict`, `Single source`, `Gap`, and `Stale` with icons. |
-| **No Source Fabrication** | `discoveryService.ts` fallback | `Discover.tsx`, `Home.tsx` | Gracefully falls back to user URL/paste/sample data with clear origin labels (`REAL SOURCE`, `USER-PROVIDED`, `SAMPLE DATA`). |
+The platform features automated failover, key round-robin rotation, and exponential backoff:
 
----
-
-## 4. Quickstart (3 Commands)
-
-You can clone, install, and run Digital Dark Spot immediately:
-
-```bash
-# 1. Install dependencies
-npm install
-
-# 2. Run complete 11-step verification suite (zero API keys needed)
-npm run verify
-
-# 3. Start development server (Frontend + Backend)
-npm run dev
-```
-
-Open **`http://localhost:5173`** in your browser.
-
----
-
-## 5. Zero-Key Offline Demo Mode
-
-Digital Dark Spot does **not** require any API keys to be evaluated or demonstrated:
-1. Open `http://localhost:5173`.
-2. Choose one of the 3 verified sample scenarios on the home screen:
-   - **Sample A: Aurora Merit Scholarship** (Education & financial aid guidelines)
-   - **Sample B: SolarBridge Rooftop Subsidy 2026** (Clean energy rooftop installation incentives)
-   - **Sample C: Nimbus Air 14 vs Nimbus Air 16** (Hardware and engineering benchmarks)
-3. The platform instantly loads the verified reference dataset and executes the complete deterministic analysis pipeline.
-4. If live search API keys are unavailable during custom search queries, the system cleanly prompts the user to explore offline datasets or provide their own URLs/notes without fabricating fake sources.
-
----
-
-## 5. Verified LLM & Search Providers
-
-The platform features built-in multi-provider failover, key round-robin rotation, and automatic cooldowns:
-
-| Provider | Verified Models | Key Rotation | 2-Consecutive Failure Cooldown |
+| Provider | Supported Models | Key Rotation | Cooldown & Failover |
 | :--- | :--- | :---: | :---: |
-| **Google Gemini** | `gemini-1.5-flash`, `gemini-2.0-flash`, `gemini-3-flash-preview` | Yes (comma-separated) | 5-minute provider cooldown & failover |
-| **Groq** | `qwen/qwen3.8-27b`, `llama-3.3-70b-versatile` | Yes (comma-separated) | 5-minute provider cooldown & failover |
-| **OpenAI** | `gpt-4o-mini`, `gpt-4o` | Yes (comma-separated) | 5-minute provider cooldown & failover |
-| **Anthropic** | `claude-3-5-haiku-20241022` | Yes (comma-separated) | 5-minute provider cooldown & failover |
-| **Tavily Search** | Official Tavily Search API | Yes (comma-separated) | Auto-discovery query aggregation |
-| **Brave Search** | Official Brave Search API | Yes (comma-separated) | Auto-discovery query aggregation |
-
-Configure these keys in your `.env` file (see [DEPLOYMENT.md](DEPLOYMENT.md) for details).
+| **Google Gemini** | `gemini-3-flash-preview`, `gemini-3.8-flash` | Yes (comma-separated keys) | Automatic failover to secondary key/model |
+| **Groq** | `qwen/qwen3.8-27b`, `llama-3.3-70b-versatile` | Yes (comma-separated keys) | Ultra-fast fallback provider |
+| **OpenAI** | `gpt-4o-mini`, `gpt-4o` | Yes (comma-separated keys) | Standard fallback |
+| **Anthropic** | `claude-3-5-haiku-20241022` | Yes (comma-separated keys) | Haiku tier fallback |
+| **Tavily Search** | Official Tavily Search API | Yes (comma-separated keys) | Context-rich web discovery |
 
 ---
 
-## 6. Evaluation Matrix & Accuracy Suite
+## 5. Security & Secret Protection
 
-Digital Dark Spot includes a comprehensive deterministic evaluation runner tested against realistic ground-truth scenarios:
-
-```bash
-npm run eval
-```
-
-See [docs/EVAL.md](docs/EVAL.md) for the generated benchmark report covering:
-1. **Scenario 1 (Conflicting Income Limits & Stale Cycle):** Surfaced Rs 6,00,000 vs Rs 2,50,000 conflict with original quotes preserved; flagged stale cycle 2024-25.
-2. **Scenario 2 (Missing Disbursement Parameter):** Merged `Rs 25 lakh` with `Rs 25,00,000` to avoid false conflict, flagged `disbursement_timeline` as unmentioned Total Gap.
-3. **Scenario 3 (Harmonious Multi-Source Consensus):** Synonym matching reconciled `stipend` with `award_amount` and reordered document checklists with 0 false conflicts.
+- **Automated Secret Leak Scanner (`npm run check:secrets`):** Scans all files and git staging areas for Google AI, Groq, OpenAI, Anthropic, Tavily, and Brave API key patterns.
+- **SSRF Ingestion Protection:** Blocks private subnets (RFC 1918, RFC 4193), loopback (`127.0.0.1`, `::1`), link-local metadata endpoints (`169.254.169.254`), and enforces strict fetch timeouts.
+- **Zero API Key Leak Guarantee:** No secrets or private credentials are ever committed to version control.
 
 ---
 
-## 7. Security & Secret Protection
-
-- **Automated Secret Leak Scanner:**
-  ```bash
-  npm run check:secrets
-  ```
-  Scans all tracked files and commit history for Google AI, Groq, OpenAI, Anthropic, Tavily, and Brave API key signatures.
-- **SSRF Ingestion Protection:** Blocks private subnets (RFC 1918, RFC 4193), loopback (`127.0.0.1`, `::1`), link-local metadata endpoints (`169.254.169.254`), and enforces a strict 12-second abort timeout.
-- **Production AI Status Gating:** `/settings/ai` and `/api/llm/status` are disabled in production unless `SHOW_AI_STATUS=true` is explicitly enabled.
-- **IP Rate Limiting:** In-memory sliding window protects backend capacity (5 analyses/hr per IP) with graceful sample dataset fallback.
-
----
-
-## 8. Known Limitations
-
-- **Paywalled & Restricted Content:** Subscription articles, password-protected portals, and CAPTCHA-protected services cannot be crawled.
-- **Client-Side Heavy SPAs:** Portals requiring complex JavaScript hydration without server-rendered HTML may yield limited text snippets.
-- **Scanned Non-Text PDFs:** Image-only scanned PDFs without embedded OCR streams cannot be parsed verbatim by the standard text extractor.
-- **Unindexed Circulars:** Newly released physical gazettes or intranet administrative orders not indexed by search engines remain outside the discovery scope.
-
----
-
-## 9. Credits & Inspirations
+## 6. Credits & Inspirations
 
 - **[Watermelon UI](https://ui.watermelon.sh):** Component design tokens and layout primitives.
 - **[Motion](https://motion.dev):** GPU-accelerated spring animations and accessible reduced-motion support.
