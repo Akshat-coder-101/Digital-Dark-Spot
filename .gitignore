@@ -18,6 +18,7 @@ data/store/
 # Build outputs
 dist/
 build/
+docs/
 *.tsbuildinfo
 
 # IDE / OS / Agent scratch
