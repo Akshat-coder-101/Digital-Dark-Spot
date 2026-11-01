@@ -388,7 +388,7 @@ export const Home: React.FC = () => {
                   onBlur={() => setIsQuestionFocused(false)}
                   placeholder="What should I verify before making a decision on this topic?"
                   rows={4}
-                  className="w-full min-h-[110px] resize-y bg-transparent font-sans text-sm sm:text-base font-normal text-text placeholder:text-text-muted/50 outline-none leading-relaxed border-none focus:ring-0 p-0 transition-colors"
+                  className="w-full min-h-28 resize-y bg-transparent font-sans text-sm sm:text-base font-normal text-text placeholder:text-text-muted/50 outline-none leading-relaxed border-none focus:ring-0 p-0 transition-colors"
                 />
 
                 {/* Baseline underline with lime accent on focus */}
