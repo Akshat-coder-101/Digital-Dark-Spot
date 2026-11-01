@@ -1,4 +1,4 @@
-# Digital Dark Spot 🍉
+# Digital Dark Spot 
 > **AI-Assisted Information Gap & Contradiction Detection Platform**  
 > *Built for the Shinchan Online Hackathon 2026 (Devengers)*
 

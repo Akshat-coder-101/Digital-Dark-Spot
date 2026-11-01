@@ -209,7 +209,9 @@ ${attrInstruction}`;
     console.log(`[Extraction] Running chunked extraction across ${readySources.length} sources (total length: ${totalLength} chars)`);
 
     for (const source of readySources) {
-      const chunks = chunkSourceText(source.cleanedText, 12000, 600);
+      // Chunk up to 3 chunks per source to prevent quota exhaustion
+      const allChunks = chunkSourceText(source.cleanedText, 12000, 600);
+      const chunks = allChunks.slice(0, 3);
       for (let cIdx = 0; cIdx < chunks.length; cIdx++) {
         const chunkText = chunks[cIdx];
         const userPrompt = `Research Question / Topic:
@@ -256,6 +258,9 @@ Provide exact verbatim quotes from the source chunk. Do not paraphrase.`;
         } catch (chunkErr: any) {
           console.warn(`[Extraction] Chunk ${cIdx + 1}/${chunks.length} of source ${source.id} failed:`, chunkErr.message);
         }
+
+        // Throttle briefly between chunk calls to respect free-tier rate limits
+        await new Promise(resolve => setTimeout(resolve, 600));
       }
     }
   }

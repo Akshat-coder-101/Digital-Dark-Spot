@@ -123,8 +123,12 @@ export class LLMManager {
       // Disable key for the entire session
       keyState.disabled = true;
       console.warn(`[LLM] Key ${keyState.maskedKey} for ${provider} disabled for session (Auth Error ${status}).`);
+    } else if (status === 503) {
+      // 503: Temporary high demand spike - brief 15s cooldown
+      keyState.cooldownUntil = now + 15_000;
+      console.warn(`[LLM] Key ${keyState.maskedKey} for ${provider} placed in 15s cooldown (Temporary spike 503).`);
     } else {
-      // 429, 5xx, timeout, or network: cooldown for 60s
+      // 429, timeout, or network: cooldown for 60s
       keyState.cooldownUntil = now + 60_000;
       console.warn(`[LLM] Key ${keyState.maskedKey} for ${provider} placed in 60s cooldown (Error ${status || 'timeout/network'}).`);
     }

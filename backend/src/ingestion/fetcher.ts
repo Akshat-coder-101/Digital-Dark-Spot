@@ -442,8 +442,12 @@ export async function processSource(input: SourceInput, index: number): Promise<
       ? 'NEEDS_ATTENTION'
       : (textCharacterCount < 50 ? 'NEEDS_ATTENTION' : 'READY');
 
+    // Cap single web page length to 25,000 characters to prevent forum/dump flood
+    const MAX_CLEANED_CHARS = 25000;
+    const finalCleanedText = cleaned.length > MAX_CLEANED_CHARS ? cleaned.slice(0, MAX_CLEANED_CHARS) : cleaned;
+
     // Detect temporal metadata
-    const temporal = detectTemporalMetadata(cleaned, finalTitle);
+    const temporal = detectTemporalMetadata(finalCleanedText, finalTitle);
 
     return {
       id,
@@ -452,9 +456,9 @@ export async function processSource(input: SourceInput, index: number): Promise<
       domain,
       title: finalTitle,
       rawText: bodyText,
-      cleanedText: cleaned,
+      cleanedText: finalCleanedText,
       wordCount,
-      textCharacterCount,
+      textCharacterCount: finalCleanedText.length,
       claimsExtracted: 0,
       claimsDiscarded: 0,
       usefulnessStatus,

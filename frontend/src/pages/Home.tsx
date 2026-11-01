@@ -378,7 +378,7 @@ export const Home: React.FC = () => {
                 </div>
               </div>
 
-              {/* Large, transparent command input with responsive focus baseline */}
+              {/* Spacious command input with comfortable font size and height */}
               <div className="relative pt-1">
                 <textarea
                   id="question-input"
@@ -387,8 +387,8 @@ export const Home: React.FC = () => {
                   onFocus={() => setIsQuestionFocused(true)}
                   onBlur={() => setIsQuestionFocused(false)}
                   placeholder="What should I verify before making a decision on this topic?"
-                  rows={3}
-                  className="w-full min-h-[84px] resize-none bg-transparent font-sans text-sm sm:text-base font-normal text-text placeholder:text-text-muted/50 outline-none leading-relaxed border-none focus:ring-0 p-0 transition-colors"
+                  rows={4}
+                  className="w-full min-h-[110px] resize-y bg-transparent font-sans text-sm sm:text-base font-normal text-text placeholder:text-text-muted/50 outline-none leading-relaxed border-none focus:ring-0 p-0 transition-colors"
                 />
 
                 {/* Baseline underline with lime accent on focus */}
