@@ -11,12 +11,12 @@ An AI-assisted platform that shows what your sources do not tell you: potential 
 Built for the Shinchan Online Hackathon 2026.
 
 Demo video: To be added  
-Live demo: Not deployed
+Live demo: Run locally with `npm run dev` (sample scenarios need no API keys)
 
 ## Table of Contents
 
-- [Quick Start](#quick-start)
-- [Try It](#try-it)
+- [Quick Start & Setup Guide](#quick-start)
+- [What You'll See](#what-youll-see)
 - [What It Does](#what-it-does)
 - [Major Features](#major-features)
 - [How It Works](#how-it-works)
@@ -28,21 +28,45 @@ Live demo: Not deployed
 
 ## Quick Start
 
+### 1. Prerequisites
+Ensure you have **Node.js (v18.0.0 or higher)** and `npm` installed on your machine.
+
+### 2. Clone and Install
 ```bash
+git clone https://github.com/Akshat-coder-101/Digital-Dark-Spot.git
+cd Digital-Dark-Spot
 npm install
+```
+
+### 3. Run Locally (Zero-Config Offline Mode)
+```bash
 npm run dev
 ```
 
-Open `http://localhost:5173`.
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-No API key is required for the sample scenarios. Select a sample scenario to explore the report.
+> **No API keys are required to test the application.** You can immediately explore all platform capabilities using the pre-computed, verified sample scenarios available on the home screen.
 
-Live search and AI features require the configured provider keys. API keys belong in `backend/.env`; `.env.example` contains placeholders only. Without a search provider key, the application falls back to manual source input or verified sample scenarios.
+### 4. Optional: Configure Live Search & AI Keys
+To run custom live internet searches and dynamic claim extraction:
+1. Create a `backend/.env` file (copying from `backend/.env.example`).
+2. Add your provider API keys:
+   ```env
+   # Search Provider (Tavily recommended)
+   TAVILY_API_KEY=your_tavily_api_key_here
 
-## Try It
+   # LLM Providers (Automatic failover between Gemini and Groq)
+   GEMINI_API_KEY=your_gemini_api_key_here
+   GROQ_API_KEY=your_groq_api_key_here
+   ```
+Without external API keys, the application gracefully falls back to offline sample scenarios and manual source analysis.
+
+## What You'll See
+
+> **Recommended first look**: Start by clicking **Scenario 1 (Merit Scholarship)** on the home screen — it demonstrates contradictory income limits across sources, an earlier-cycle warning, and a prioritized checklist out of the box with zero setup required.
 
 | Capability | Description |
-| :--- | :--- |
+|---|---|
 | **Potential Gaps** | Uncovered critical parameters across reviewed sources. |
 | **Possible Conflicts** | Contradictory statements showing both source quotes side by side. |
 | **Freshness Warnings** | Earlier-cycle or undated information flagged with warnings. |
@@ -60,13 +84,17 @@ Live search and AI features require the configured provider keys. API keys belon
 
 ## Major Features
 
-- **Topic-Independent Analysis**: Dynamic decision parameter discovery applicable across technology purchasing, educational programs, public benefits, and complex regulatory questions without hardcoded domain vocabulary.
+- **Question-Only Workflow**: Enter a natural research question or inquiry without needing pre-existing links or bookmarks; the engine formulates targeted queries to discover relevant documentation automatically.
+- **User-Provided URLs & Pasted Excerpts**: Supplement or bypass automated search by inputting direct web URLs or raw text passages for local ingestion.
+- **Editable Expected Information**: Review and dynamically customize expected target parameters prior to extraction, ensuring analysis focuses specifically on what matters to your decision.
+- **Offline Sample Scenarios**: Explore fully verified benchmark scenarios out of the box with zero external API dependencies or keys.
 - **Single Source of Truth Matrix**: Deterministic computation engine providing unified parameter status (corroborated, single source, conflict, gap, or stale) across dashboard metrics, coverage map, executive summary, and action items.
 - **Verbatim Evidence Verification**: Exact substring matching rejects non-verbatim claims and hallucinations, maintaining provenance back to the original source text.
 - **Low-Text Source Filtering**: Automatic detection and exclusion of video platforms, social media, and login-walled pages from primary review counts.
 - **Prioritized Verify-Next Checklist**: Action items prioritized by risk severity (High priority for conflicts, passed deadlines, and critical gaps; Medium priority for single sources and undated documents).
 - **Executive Finding & Synthesis**: Short, concise point-by-point takeaways answering the user's inquiry directly alongside structured decision cards.
 - **Interactive Evidence Drawer**: Sub-route drawer for deep-diving into verbatim citations, character offsets, and source metadata without losing dashboard context.
+- **Domain-Agnostic Engine**: Dynamic decision parameter discovery applicable across technology purchasing, educational programs, public benefits, and complex regulatory questions with minimal hardcoded domain vocabulary.
 
 ## How It Works
 
@@ -105,14 +133,16 @@ Findings are potential signals, not verified facts.
 npm run verify
 npm run eval
 npm run check:secrets
+npm run ban-list-scan
 ```
 
 - **Verification**: 17 passed, 1 skipped (optional PDF test), 0 failed (`npm run verify`)
 - **Evaluation**: 3/3 deterministic fixture tests passed (`npm run eval`)
 - **Secret scan**: 0 secret leaks detected across tracked files (`npm run check:secrets`)
+- **Domain ban-list scan**: 104/104 non-fixture source files clean of domain vocabulary (`npm run ban-list-scan`)
 
 | Scenario | Status | Gaps | Conflicts | Stale Warnings | Claims |
-| :--- | :--- | :--- | :--- | :--- | :--- |
+|---|---|---|---|---|---|
 | `scenario-1` (Merit Scholarship) | PASSED | 0 | 2 | 1 | 6 |
 | `scenario-2` (Clean Energy Scheme) | PASSED | 1 | 0 | 0 | 5 |
 | `scenario-3` (Global Fellowship) | PASSED | 0 | 0 | 0 | 8 |

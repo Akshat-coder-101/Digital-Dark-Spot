@@ -14,6 +14,7 @@
     "test:llm": "npm run test:llm --workspace=backend",
     "eval": "npm run eval --workspace=backend",
     "check:secrets": "npm run check:secrets --workspace=backend",
+    "ban-list-scan": "tsx scripts/ban-list-scan.ts",
     "backend": "npm run dev --workspace=backend",
     "frontend": "npm run dev --workspace=frontend"
   },
