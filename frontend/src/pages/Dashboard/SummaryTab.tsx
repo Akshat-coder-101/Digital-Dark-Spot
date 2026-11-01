@@ -94,6 +94,29 @@ export const SummaryTab: React.FC = () => {
     }
   };
 
+  // Parse concise bullet points from directAnswer, stripping any stray markdown hashes or full document artifacts
+  const bulletPoints = useMemo(() => {
+    if (!summary.directAnswer) return [];
+    let text = summary.directAnswer;
+    if (text.includes('# Research Summary')) {
+      const match = text.match(/## Executive Findings & Direct Answer\n([\s\S]*?)(?=\n## |$)/);
+      if (match && match[1]) {
+        text = match[1].trim();
+      } else {
+        const overviewMatch = text.match(/## Overview\n([\s\S]*?)(?=\n## |$)/);
+        text = overviewMatch && overviewMatch[1] ? overviewMatch[1].trim() : text;
+      }
+    }
+    // Clean markdown headings
+    text = text.replace(/^#{1,4}\s+.*$/gm, '').trim();
+
+    return text
+      .split(/\n+/)
+      .map(line => line.trim())
+      .filter(line => line.length > 0 && !line.startsWith('*Written from') && !line.startsWith('##'))
+      .map(line => line.replace(/^[•\-\*]\s*/, ''));
+  }, [summary.directAnswer]);
+
   const corroboratedCount = summary.parameterSections.filter(
     p => p.status === 'found' || p.status === 'single_source'
   ).length;
@@ -101,7 +124,7 @@ export const SummaryTab: React.FC = () => {
   const gapCount = summary.parameterSections.filter(p => p.status === 'gap').length;
 
   return (
-    <div className="space-y-6 max-w-[78ch]">
+    <div className="w-full space-y-6">
       {/* 1. Header with Badge & Copy Action */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-seed/10">
         <div className="flex items-center gap-2">
@@ -135,27 +158,28 @@ export const SummaryTab: React.FC = () => {
         </Button>
       </div>
 
-      {/* 2. Direct Executive Finding / Synthesis Card */}
-      {summary.directAnswer && (
-        <section className="p-4 sm:p-5 rounded-sm border border-rind/30 bg-rind/5 relative overflow-hidden space-y-2.5">
+      {/* 2. Short, Concise Point-by-Point Executive Findings Card */}
+      {bulletPoints.length > 0 && (
+        <section className="p-4 sm:p-5 rounded-sm border border-rind/30 bg-rind/5 relative overflow-hidden space-y-3">
           <div className="flex items-center gap-2 text-rind">
             <Sparkles className="w-4 h-4 shrink-0" />
-            <h3 className="font-heading font-extrabold text-sm sm:text-base tracking-tight">
-              Executive Finding & Synthesis
+            <h3 className="font-heading font-extrabold text-sm sm:text-base tracking-tight uppercase">
+              Key Findings & Executive Takeaways
             </h3>
           </div>
-          <div className="text-sm text-seed/90 leading-relaxed font-sans whitespace-pre-line space-y-2">
-            {summary.directAnswer.split('\n\n').map((para, i) => (
-              <p key={i} className="leading-relaxed">
-                {para}
-              </p>
+          <div className="space-y-2 text-sm text-seed/90 leading-relaxed font-sans">
+            {bulletPoints.map((point, i) => (
+              <div key={i} className="flex items-start gap-2.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-rind shrink-0 mt-2" />
+                <p className="leading-relaxed flex-1">{point}</p>
+              </div>
             ))}
           </div>
         </section>
       )}
 
-      {/* 3. High-Level Stat Pills */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+      {/* 3. High-Level Stat Pills (Spanning full width) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-3 rounded-sm border border-seed/10 bg-seed/2 flex items-center justify-between">
           <div className="space-y-0.5">
             <span className="text-[10px] font-mono text-seed-muted uppercase tracking-wider block">Corroborated</span>
@@ -194,7 +218,152 @@ export const SummaryTab: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. Executive Overview: Plain synthesized sentences */}
+      {/* 4. Decision Parameters (Responsive 2-Column Grid eliminating empty side space) */}
+      <section className="space-y-3.5">
+        <div className="flex items-center justify-between">
+          <h3 className="font-heading font-extrabold text-base sm:text-lg text-seed tracking-tight">
+            Decision Parameters ({summary.parameterSections.length})
+          </h3>
+          <span className="text-xs font-mono text-seed-muted">
+            Click Inspect to view verbatim quotes
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {summary.parameterSections.map((sec) => (
+            <div
+              key={sec.parameter}
+              className={cn(
+                "p-4 rounded-sm border transition-colors space-y-3 flex flex-col justify-between",
+                sec.status === 'conflict'
+                  ? "bg-crack/5 border-crack/30"
+                  : sec.status === 'gap'
+                    ? "bg-seed/2 border-seed/15"
+                    : sec.status === 'single_source'
+                      ? "bg-pith border-seed/15"
+                      : "bg-pith border-seed/10"
+              )}
+            >
+              <div className="space-y-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-bold text-rind px-1.5 py-0.2 rounded-2xs bg-rind/10 border border-rind/20">
+                      [{sec.marker}]
+                    </span>
+                    <h4 className="font-heading font-bold text-sm text-seed">
+                      {sec.heading}
+                    </h4>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {sec.status === 'conflict' && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded-2xs bg-crack/15 text-crack border border-crack/30">
+                        <CrackIcon className="w-3 h-3 text-crack" />
+                        <span>Conflict</span>
+                      </span>
+                    )}
+                    {sec.status === 'gap' && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded-2xs bg-flesh/10 text-flesh border border-flesh/20">
+                        <SeedIcon className="w-3 h-3 text-flesh" />
+                        <span>Dark Spot (0 sources)</span>
+                      </span>
+                    )}
+                    {sec.status === 'single_source' && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded-2xs bg-seed/5 text-seed-muted border border-seed/15">
+                        <AlertCircle className="w-3 h-3 text-seed-muted" />
+                        <span>Single source</span>
+                      </span>
+                    )}
+                    {sec.status === 'found' && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded-2xs bg-rind/10 text-rind border border-rind/25">
+                        <VerifiedCheckIcon className="w-3 h-3 text-rind" />
+                        <span>Corroborated ({sec.sourcesCount})</span>
+                      </span>
+                    )}
+                    {sec.status === 'stale' && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded-2xs bg-wilt/15 text-wilt border border-wilt/30">
+                        <WiltIcon className="w-3 h-3 text-wilt" />
+                        <span>Stale</span>
+                      </span>
+                    )}
+
+                    {sec.inspectClaimId && (
+                      <button
+                        type="button"
+                        onClick={() => handleInspect(sec.inspectClaimId, sec.parameter)}
+                        className="inline-flex items-center gap-1 text-xs text-rind hover:underline font-mono cursor-pointer ml-1"
+                      >
+                        <span>Inspect</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Primary Extracted Key Value Highlight */}
+                {sec.keyValue && sec.keyValue !== 'Not found in the sources reviewed' && (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-xs font-mono text-seed-muted">Extracted value:</span>
+                    <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded-xs bg-seed/5 text-seed border border-seed/15 max-w-full truncate">
+                      {sec.keyValue}
+                    </span>
+                  </div>
+                )}
+
+                {/* Conflict Side-by-side comparison */}
+                {sec.status === 'conflict' && sec.claims.length >= 2 && (
+                  <div className="p-2.5 rounded-xs bg-crack/10 border border-crack/25 text-xs text-seed space-y-1.5">
+                    <div className="font-semibold text-crack flex items-center gap-1 font-mono text-[11px]">
+                      <CrackIcon className="w-3 h-3 text-crack shrink-0" />
+                      <span>Discrepancy identified across sources:</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                      {sec.claims.slice(0, 2).map((c, i) => (
+                        <div key={i} className="p-2 bg-pith/90 rounded-2xs border border-crack/20 space-y-0.5">
+                          <span className="font-mono font-bold text-seed block truncate">{c.sourceDomain}</span>
+                          <p className="text-seed/80 font-sans italic">&ldquo;{c.value}&rdquo;</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Gap Notice */}
+                {sec.status === 'gap' && (
+                  <div className="p-2.5 rounded-xs bg-seed/5 border border-seed/15 text-xs text-seed-muted flex items-start gap-1.5">
+                    <span className="font-mono font-semibold text-flesh text-[11px] uppercase shrink-0">Dark spot:</span>
+                    <span className="text-seed/80">No verified evidence found in reviewed sources. Primary documentation or official inquiry needed.</span>
+                  </div>
+                )}
+
+                {/* Description / Summary text */}
+                <p className="text-xs sm:text-sm text-seed/80 leading-relaxed font-sans">
+                  {sec.text}
+                </p>
+              </div>
+
+              {/* Citations Footer */}
+              {sec.claims.length > 0 && (
+                <div className="pt-2 border-t border-seed/5 flex flex-wrap gap-2 text-[11px] text-seed-muted font-mono mt-2">
+                  {sec.claims.map((cl) => (
+                    <button
+                      key={cl.id}
+                      type="button"
+                      onClick={() => handleInspect(cl.id)}
+                      className="hover:text-rind hover:underline inline-flex items-center gap-1 cursor-pointer truncate max-w-full"
+                      title={cl.quote}
+                    >
+                      <span>• {cl.sourceDomain}: &ldquo;{cl.value}&rdquo;</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 5. Audit Methodology & Scope */}
       <section className="space-y-2.5">
         <h3 className="font-heading font-extrabold text-base sm:text-lg text-seed tracking-tight">
           Audit Scope & Methodology
@@ -208,149 +377,7 @@ export const SummaryTab: React.FC = () => {
         </div>
       </section>
 
-      {/* 5. Decision Parameters: All parameters, none omitted */}
-      <section className="space-y-3.5">
-        <div className="flex items-center justify-between">
-          <h3 className="font-heading font-extrabold text-base sm:text-lg text-seed tracking-tight">
-            Decision Parameters ({summary.parameterSections.length})
-          </h3>
-          <span className="text-xs font-mono text-seed-muted">
-            Click Inspect to view verbatim quotes
-          </span>
-        </div>
-
-        <div className="space-y-3">
-          {summary.parameterSections.map((sec) => (
-            <div
-              key={sec.parameter}
-              className={cn(
-                "p-3.5 rounded-sm border transition-colors space-y-2.5",
-                sec.status === 'conflict'
-                  ? "bg-crack/5 border-crack/30"
-                  : sec.status === 'gap'
-                    ? "bg-seed/2 border-seed/15"
-                    : sec.status === 'single_source'
-                      ? "bg-pith border-seed/15"
-                      : "bg-pith border-seed/10"
-              )}
-            >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold text-rind px-1.5 py-0.2 rounded-2xs bg-rind/10 border border-rind/20">
-                    [{sec.marker}]
-                  </span>
-                  <h4 className="font-heading font-bold text-sm text-seed">
-                    {sec.heading}
-                  </h4>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {sec.status === 'conflict' && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded-2xs bg-crack/15 text-crack border border-crack/30">
-                      <CrackIcon className="w-3 h-3 text-crack" />
-                      <span>Conflict</span>
-                    </span>
-                  )}
-                  {sec.status === 'gap' && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded-2xs bg-flesh/10 text-flesh border border-flesh/20">
-                      <SeedIcon className="w-3 h-3 text-flesh" />
-                      <span>Dark Spot (0 sources)</span>
-                    </span>
-                  )}
-                  {sec.status === 'single_source' && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded-2xs bg-seed/5 text-seed-muted border border-seed/15">
-                      <AlertCircle className="w-3 h-3 text-seed-muted" />
-                      <span>Single source</span>
-                    </span>
-                  )}
-                  {sec.status === 'found' && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded-2xs bg-rind/10 text-rind border border-rind/25">
-                      <VerifiedCheckIcon className="w-3 h-3 text-rind" />
-                      <span>Corroborated ({sec.sourcesCount} sources)</span>
-                    </span>
-                  )}
-                  {sec.status === 'stale' && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded-2xs bg-wilt/15 text-wilt border border-wilt/30">
-                      <WiltIcon className="w-3 h-3 text-wilt" />
-                      <span>Stale</span>
-                    </span>
-                  )}
-
-                  {sec.inspectClaimId && (
-                    <button
-                      type="button"
-                      onClick={() => handleInspect(sec.inspectClaimId, sec.parameter)}
-                      className="inline-flex items-center gap-1 text-xs text-rind hover:underline font-mono cursor-pointer ml-1"
-                    >
-                      <span>Inspect</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Primary Extracted Key Value Highlight */}
-              {sec.keyValue && sec.keyValue !== 'Not found in the sources reviewed' && (
-                <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                  <span className="text-xs font-mono text-seed-muted">Extracted value:</span>
-                  <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded-xs bg-seed/5 text-seed border border-seed/15">
-                    {sec.keyValue}
-                  </span>
-                </div>
-              )}
-
-              {/* Conflict Side-by-side comparison */}
-              {sec.status === 'conflict' && sec.claims.length >= 2 && (
-                <div className="p-2 rounded-xs bg-crack/10 border border-crack/25 text-xs text-seed space-y-1.5">
-                  <div className="font-semibold text-crack flex items-center gap-1 font-mono text-[11px]">
-                    <CrackIcon className="w-3 h-3 text-crack shrink-0" />
-                    <span>Contradicting assertions identified across sources:</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-                    {sec.claims.slice(0, 2).map((c, i) => (
-                      <div key={i} className="p-2 bg-pith/90 rounded-2xs border border-crack/20 space-y-0.5">
-                        <span className="font-mono font-bold text-seed block">{c.sourceDomain}</span>
-                        <p className="text-seed/80 font-sans italic">&ldquo;{c.value}&rdquo;</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Gap Notice */}
-              {sec.status === 'gap' && (
-                <div className="p-2 rounded-xs bg-seed/5 border border-seed/15 text-xs text-seed-muted flex items-start gap-1.5">
-                  <span className="font-mono font-semibold text-flesh text-[11px] uppercase shrink-0">Dark spot:</span>
-                  <span className="text-seed/80">No verified evidence documented in reviewed sources. Consult primary governing or manufacturer documentation.</span>
-                </div>
-              )}
-
-              {/* Description / Summary text */}
-              <p className="text-xs sm:text-sm text-seed/90 leading-relaxed font-sans">
-                {sec.text}
-              </p>
-
-              {sec.claims.length > 0 && (
-                <div className="pt-1.5 border-t border-seed/5 flex flex-wrap gap-2 text-[11px] text-seed-muted font-mono">
-                  {sec.claims.map((cl) => (
-                    <button
-                      key={cl.id}
-                      type="button"
-                      onClick={() => handleInspect(cl.id)}
-                      className="hover:text-rind hover:underline inline-flex items-center gap-1 cursor-pointer"
-                      title={cl.quote}
-                    >
-                      <span>• {cl.sourceDomain}: &ldquo;{cl.value}&rdquo;</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 6. Other Details: All verified claims that did not map to a parameter */}
+      {/* 6. Other Details (Grid layout) */}
       {summary.otherDetails.length > 0 && (
         <section className="space-y-3">
           <div className="flex items-center gap-2">
@@ -360,9 +387,9 @@ export const SummaryTab: React.FC = () => {
             </h3>
           </div>
 
-          <div className="p-3.5 rounded-sm border border-seed/10 bg-pith space-y-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
             {summary.otherDetails.map((group) => (
-              <div key={group.theme} className="space-y-1.5">
+              <div key={group.theme} className="p-3.5 rounded-sm border border-seed/10 bg-pith space-y-2">
                 <span className="text-xs font-mono font-semibold uppercase tracking-wider text-seed-muted block">
                   {group.theme}
                 </span>
@@ -443,7 +470,7 @@ export const SummaryTab: React.FC = () => {
         </section>
       )}
 
-      {/* 8. What to Verify Next: Top items with link to full checklist */}
+      {/* 8. What to Verify Next (2-Column Grid) */}
       {summary.verifyNext.length > 0 && (
         <section className="space-y-3">
           <div className="flex items-center justify-between">
@@ -462,11 +489,11 @@ export const SummaryTab: React.FC = () => {
             </button>
           </div>
 
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {summary.verifyNext.map((item) => (
               <div
                 key={item.id}
-                className="p-3 rounded-sm border border-seed/10 bg-pith flex items-start gap-3"
+                className="p-3.5 rounded-sm border border-seed/10 bg-pith flex items-start gap-3"
               >
                 <span
                   className={cn(

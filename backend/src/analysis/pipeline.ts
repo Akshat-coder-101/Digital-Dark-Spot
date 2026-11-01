@@ -302,7 +302,7 @@ export class AnalysisPipeline {
       let report: FullAnalysisReport = {
         id: reportId,
         question: question.trim(),
-        summary: structuredSummary.copyableMarkdown || extractionData.summary || 'Summary synthesized from reviewed sources.',
+        summary: extractionData.summary || 'Summary synthesized from reviewed sources.',
         analyzedWith: {
           provider: usedProvider,
           model: usedModel,

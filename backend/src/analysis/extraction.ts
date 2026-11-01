@@ -154,7 +154,7 @@ export async function extractClaimsAndAttributes(
       },
       summary: {
         type: 'string',
-        description: 'A detailed, clear, and user-friendly executive answer (2-3 paragraphs) answering the research question directly based on verified evidence found in the sources. Include key specifications, requirements, notable consensus or contradictions across sources, and critical missing details.'
+        description: 'Concise executive summary answering the question directly in 3-5 punchy bullet points (starting with •). Highlight core specs/facts verified, any contradictions, and critical dark spots.'
       }
     },
     required: ['expected_attributes', 'claims', 'open_questions']
@@ -192,7 +192,7 @@ ${sourcesDelimited}
 
 ${attrInstruction}
 
-Carefully cross-examine the sources to answer the user question directly. In the "summary" field, write an articulate, informative 2-3 paragraph executive answer detailing the core findings, specific figures/terms found, any contradictions, and key information gaps.`;
+Carefully cross-examine the sources to answer the user question directly. In the "summary" field, write a concise, point-by-point executive answer (3-5 punchy bullet points starting with •) highlighting: 1) Core verified figures/specifications found, 2) Any contradictions across sources, 3) Critical missing dark spots.`;
 
   try {
     const llmRes = await llmManager.complete<RawLLMExtraction>({
@@ -263,14 +263,14 @@ Carefully cross-examine the sources to answer the user question directly. In the
     }
 
     if (!summaryText && rawClaims.length > 0) {
-      summaryText = `Direct evidence synthesis for "${question}" based on ${readySources.length} reviewed primary documents. Key specifications, criteria, and terms have been extracted directly from the text and verified as outlined below.`;
+      summaryText = `• Verified source evidence identified across ${readySources.length} reviewed documents.\n• Corroborated key parameters with verbatim citations detailed below.\n• Note any conflicting specifications or dark spots before committing.`;
     }
   }
 
   if (!summaryText) {
     summaryText = readySources.length > 0
-      ? `Evidence analyzed across ${readySources.length} reviewed sources for "${question}".`
-      : `No online sources could be retrieved for "${question}".`;
+      ? `• Evidence analyzed across ${readySources.length} reviewed sources for "${question}".\n• Key parameters extracted and verified against verbatim source text.`
+      : `• No online sources could be reached for "${question}".\n• Essential parameters preserved as dark spots for manual verification.`;
   }
 
   // Deduplicate raw claims across chunks and sources

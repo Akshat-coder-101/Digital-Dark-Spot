@@ -93,14 +93,31 @@ export function generateStructuredSummary(input: {
     ? 'Written from verified findings'
     : 'Advisory Verification Blueprint';
 
-  const cleanLlmSummary = llmSummary && !llmSummary.startsWith('Summary synthesized') && !llmSummary.startsWith('No sources reviewed')
-    ? llmSummary
-    : undefined;
+  let cleanLlmSummary: string | undefined = undefined;
+  if (llmSummary) {
+    let s = llmSummary.trim();
+    if (s.startsWith('# Research Summary') || s.startsWith('# ')) {
+      const match = s.match(/## Executive Findings & Direct Answer\n([\s\S]*?)(?=\n## |$)/);
+      if (match && match[1]) {
+        s = match[1].trim();
+      } else {
+        s = '';
+      }
+    }
+    s = s.replace(/^#{1,4}\s+.*$/gm, '').trim();
+    if (s && !s.startsWith('Summary synthesized') && !s.startsWith('No sources reviewed')) {
+      cleanLlmSummary = s;
+    }
+  }
 
   const directAnswer = cleanLlmSummary || (
     reviewedSources.length === 0
-      ? `Online primary sources could not be retrieved directly for this query. Rather than generating unverified assumptions, Digital Dark Spot has established an advisory blueprint of the ${parameterStatuses.length} essential verification parameters you must check before making this decision.`
-      : undefined
+      ? `• Online primary sources could not be reached directly for "${question}".\n• Rather than generating unverified assumptions, all ${parameterStatuses.length} decision parameters are flagged as dark spots.\n• Independently verify requirements via primary regulatory or manufacturer documentation.`
+      : (
+        coveredParams.length > 0
+          ? `• Corroborated ${coveredParams.length} of ${parameterStatuses.length} decision parameters across ${reviewedSources.length} reviewed sources (${claims.length} verified verbatim claims).\n• ${conflictParams.length > 0 ? `Identified ${conflictParams.length} conflicting specification(s): ${conflictParams.map(c => c.label).join(', ')}.` : 'No conflicting claims identified across reviewed sources.'}\n• ${gapParams.length > 0 ? `Information gaps remain for ${gapParams.length} parameter(s): ${gapParams.map(g => g.label).join(', ')}.` : 'All expected parameters were covered by source documentation.'}`
+          : undefined
+      )
   );
 
   // 1. Overview: 4 to 6 plain sentences (or honest advisory note when 0 sources)
