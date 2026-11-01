@@ -102,9 +102,9 @@ export const DashboardLayout: React.FC = () => {
     el.focus({ preventScroll: true });
   };
 
-  // Tab change: Smoothly bring tabs section into view
+  // Tab change: Smoothly bring tabs section into view without polluting browser history
   const handleTabChange = (val: string) => {
-    navigate(`/report/${id}/${val}`, { preventScrollReset: true });
+    navigate(`/report/${id}/${val}`, { replace: true, preventScrollReset: true });
     setTimeout(() => {
       if (tabsNavRef.current) {
         smoothScrollToTarget(tabsNavRef.current);
@@ -112,9 +112,9 @@ export const DashboardLayout: React.FC = () => {
     }, 50);
   };
 
-  // Signal strip counter click: smoothly scroll down to the tabs section and move focus
+  // Signal strip counter click: smoothly scroll down to the tabs section and move focus without polluting history
   const handleSignalStripClick = (val: string) => {
-    navigate(`/report/${id}/${val}`, { preventScrollReset: true });
+    navigate(`/report/${id}/${val}`, { replace: true, preventScrollReset: true });
     setTimeout(() => {
       if (tabsNavRef.current) {
         smoothScrollToTarget(tabsNavRef.current);
@@ -252,6 +252,19 @@ export const DashboardLayout: React.FC = () => {
       }}
     >
       <div className="max-w-275 mx-auto px-4 sm:px-6 py-5 sm:py-6 space-y-6 sm:space-y-7 pb-16 overflow-x-clip">
+        {/* Top return arrow navigation */}
+        <div className="flex items-center justify-between pb-1">
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="inline-flex items-center gap-1.5 text-xs text-seed-muted hover:text-rind transition-colors cursor-pointer group"
+            title="Return to Home / New Investigation"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+            <span>Back to Home</span>
+          </button>
+        </div>
+
         {/* 1. HEADER (question, session ID, date, "Analyzed with" or "Sample data", Re-run, Copy checklist) */}
         <div className="radial-structure-glow space-y-3 border-b border-seed/10 pb-5 p-4 rounded-xl">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -280,8 +293,19 @@ export const DashboardLayout: React.FC = () => {
               </span>
             </div>
 
-            {/* Header Action Buttons: Re-run & Copy checklist */}
+            {/* Header Action Buttons: New Investigation, Copy checklist, Re-run */}
             <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/')}
+                className="text-xs cursor-pointer inline-flex items-center gap-1.5 hover:text-rind border-seed/20"
+                title="Return to Home to start a new investigation"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>New Investigation</span>
+              </Button>
+
               <Button
                 variant="outline"
                 size="sm"

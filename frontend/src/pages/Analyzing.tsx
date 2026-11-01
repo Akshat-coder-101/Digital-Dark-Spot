@@ -94,7 +94,7 @@ export const Analyzing: React.FC = () => {
         } else {
           clearInterval(interval);
           fetchSampleData().finally(() => {
-            navigate('/report/sample-report-default/summary');
+            navigate('/report/sample-report-default/summary', { replace: true });
           });
         }
       }, 500);
@@ -151,7 +151,7 @@ export const Analyzing: React.FC = () => {
           const targetReportId = progress.reportId || id;
           setReportId(targetReportId);
           setTimeout(() => {
-            navigate(`/report/${targetReportId}/summary`);
+            navigate(`/report/${targetReportId}/summary`, { replace: true });
           }, 350);
         }
       } catch (pollErr: any) {
