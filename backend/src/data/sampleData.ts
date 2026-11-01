@@ -6,6 +6,7 @@ import { verifyClaimsVerbatim } from '../analysis/verifier.js';
 import { detectGaps } from '../analysis/gaps.js';
 import { detectConflicts } from '../analysis/conflicts.js';
 import { auditFreshness } from '../analysis/freshness.js';
+import { computeParameterStatuses } from '../analysis/parameterStatus.js';
 import { buildCoverageMatrix } from '../analysis/matrix.js';
 import { buildPrioritizedChecklist } from '../analysis/checklist.js';
 import { detectTemporalMetadata } from '../ingestion/metadata.js';
@@ -83,11 +84,18 @@ export function loadFixtureScenario(scenarioId: string = 'scenario-a-aurora'): F
   });
 
   const verification = verifyClaimsVerbatim(expected.claims, ingestedSources);
-  const gaps = detectGaps(expected.expectedAttributes, verification.verifiedClaims, ingestedSources.length);
   const conflicts = detectConflicts(verification.verifiedClaims, ingestedSources);
-  const freshnessWarnings = auditFreshness(ingestedSources);
-  const coverageMatrix = buildCoverageMatrix(expected.expectedAttributes, ingestedSources, verification.verifiedClaims, conflicts);
-  const checklist = buildPrioritizedChecklist(gaps, conflicts, freshnessWarnings, expected.openQuestions || []);
+  const freshnessWarnings = auditFreshness(ingestedSources, verification.verifiedClaims);
+  const parameterStatuses = computeParameterStatuses(
+    expected.expectedAttributes,
+    verification.verifiedClaims,
+    conflicts,
+    freshnessWarnings,
+    ingestedSources
+  );
+  const gaps = detectGaps(expected.expectedAttributes, verification.verifiedClaims, ingestedSources.length, undefined, parameterStatuses);
+  const coverageMatrix = buildCoverageMatrix(expected.expectedAttributes, ingestedSources, verification.verifiedClaims, conflicts, parameterStatuses);
+  const checklist = buildPrioritizedChecklist(gaps, conflicts, freshnessWarnings, expected.openQuestions || [], parameterStatuses);
 
   const report: FullAnalysisReport = {
     id: `sample-${scenario.id}`,
@@ -109,6 +117,7 @@ export function loadFixtureScenario(scenarioId: string = 'scenario-a-aurora'): F
     expectedAttributes: expected.expectedAttributes,
     sources: ingestedSources,
     claims: verification.verifiedClaims,
+    parameterStatuses,
     gaps,
     conflicts,
     freshnessWarnings,

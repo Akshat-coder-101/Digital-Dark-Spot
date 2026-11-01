@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { AnimatedCheckbox } from '@/components/ui/animated-checkbox';
+import { isLowTextSource } from '@/lib/lowText';
 import { getDiscoveryJob, startAnalysis, startDiscovery, SourcePayload, DiscoveredSource } from '@/lib/api';
 import {
   Search,
@@ -90,8 +91,13 @@ export const Discover: React.FC = () => {
         if (job.status === 'ready') {
           const found = job.sourcesFound || [];
           setSources(found);
-          // By default, select all discovered sources
-          setSelectedUrls(new Set(found.map((s: any) => s.url)));
+          // By default, select all discovered sources EXCEPT low-text sources (social media, video, login walls, under threshold)
+          const initialSelected = new Set<string>(
+            found
+              .filter((s: any) => !isLowTextSource(s))
+              .map((s: any) => String(s.url))
+          );
+          setSelectedUrls(initialSelected);
           setLoading(false);
         } else if (job.status === 'error') {
           setError(job.error || 'Source discovery failed');
@@ -453,6 +459,7 @@ export const Discover: React.FC = () => {
                   const isSelected = selectedUrls.has(source.url);
                   const isSample = source.url.startsWith('sample://') || id?.includes('sample');
                   const isPasted = source.url.startsWith('text://');
+                  const isLowText = isLowTextSource(source);
 
                   return (
                     <div
@@ -497,11 +504,15 @@ export const Discover: React.FC = () => {
                                   <span>REAL SOURCE</span>
                                 </span>
                               )}
-                              {source.limited && (
+                              {isLowText ? (
+                                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-xs bg-seed/10 text-seed-muted border border-seed/20">
+                                  Low text
+                                </span>
+                              ) : source.limited ? (
                                 <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-xs bg-crack/10 text-crack border border-crack/20">
                                   Limited (supporting text only)
                                 </span>
-                              )}
+                              ) : null}
                               {source.unavailable && (
                                 <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-xs bg-gap/10 text-gap border border-gap/20">
                                   Unavailable

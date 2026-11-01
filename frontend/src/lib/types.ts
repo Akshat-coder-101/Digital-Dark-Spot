@@ -13,9 +13,10 @@ export interface IngestedSource {
   isUndated: boolean;
   status: 'ready' | 'error';
   isLimited?: boolean;
+  isLowText?: boolean;
   errorMessage?: string;
   fetchedAt: string;
-  sourceType?: 'real' | 'user_url' | 'user_text' | 'sample' | 'limited' | 'unavailable';
+  sourceType?: 'real' | 'user_url' | 'user_text' | 'sample' | 'limited' | 'unavailable' | 'low_text';
 }
 
 export interface ExtractedClaim {
@@ -116,6 +117,21 @@ export interface ChecklistItem {
   checked?: boolean;
 }
 
+export interface ParameterStatus {
+  parameter: string;
+  label: string;
+  status: 'found' | 'single_source' | 'conflict' | 'gap' | 'stale';
+  statusLabel: string; // "Found" | "Single source" | "Conflict" | "Gap" | "Stale"
+  claims: ExtractedClaim[];
+  sourcesCount: number;
+  sourceIds: string[];
+  conflict?: PossibleConflict;
+  isStale?: boolean;
+  keyValue: string;
+  gapSuggestedAction?: string;
+  sortRank: number; // 1: conflict, 2: gap, 3: stale, 4: single_source, 5: found
+}
+
 export interface FullAnalysisReport {
   id: string;
   question: string;
@@ -142,6 +158,7 @@ export interface FullAnalysisReport {
   cycleNotice?: string;
   sources: IngestedSource[];
   claims: ExtractedClaim[];
+  parameterStatuses?: ParameterStatus[];
   gaps: PotentialGap[];
   conflicts: PossibleConflict[];
   freshnessWarnings: FreshnessWarning[];

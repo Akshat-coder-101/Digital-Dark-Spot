@@ -53,7 +53,7 @@ export const DashboardLayout: React.FC = () => {
   const [selectedAttribute, setSelectedAttribute] = useState<string | null>(null);
   const [isRerunning, setIsRerunning] = useState(false);
   const [copiedChecklist, setCopiedChecklist] = useState(false);
-  const [isMapCollapsed, setIsMapCollapsed] = useState(false);
+  const [isMapCollapsed, setIsMapCollapsed] = useState(true);
   const tabsNavRef = useRef<HTMLDivElement>(null);
 
   // Extract current tab from pathname e.g. /report/123/conflicts -> 'conflicts'
@@ -222,8 +222,9 @@ export const DashboardLayout: React.FC = () => {
     .sort((a, b) => (priorityRank[a.priority] || 4) - (priorityRank[b.priority] || 4))
     .slice(0, 5);
 
-  const fullSourcesCount = report.sources.filter(s => s.status === 'ready' && !s.isLimited && s.sourceType !== 'limited').length;
-  const limitedSourcesCount = report.sources.filter(s => s.isLimited || s.sourceType === 'limited').length;
+  const readySources = report.sources.filter(s => s.status === 'ready' && !s.isLowText && s.sourceType !== 'low_text');
+  const fullSourcesCount = readySources.filter(s => !s.isLimited && s.sourceType !== 'limited').length;
+  const limitedSourcesCount = readySources.filter(s => s.isLimited || s.sourceType === 'limited').length;
 
   const schemeInfo = extractSchemeInfo(report);
 
@@ -435,7 +436,7 @@ export const DashboardLayout: React.FC = () => {
                       {item.signalTag}
                     </span>
                   </div>
-                  <h4 className="font-heading font-bold text-xs text-seed line-clamp-1 group-hover:text-rind transition-colors">
+                  <h4 className="font-heading font-bold text-xs text-seed leading-snug break-words group-hover:text-rind transition-colors">
                     {item.title}
                   </h4>
                   <p className="text-[11px] text-seed-muted line-clamp-2 leading-relaxed">
@@ -471,7 +472,7 @@ export const DashboardLayout: React.FC = () => {
               <VerifiedCheckIcon className="w-3.5 h-3.5 text-rind" />
             </div>
             <div className="font-mono text-2xl font-bold text-seed mt-1">
-              <CounterNumber value={report.metrics.sourcesCount} />
+              <CounterNumber value={readySources.length} />
             </div>
             <div className="text-[11px] text-seed-muted mt-0.5 space-y-0.5">
               <span className="block font-medium text-seed">
@@ -583,7 +584,7 @@ export const DashboardLayout: React.FC = () => {
               onClick={() => setIsMapCollapsed(!isMapCollapsed)}
               className="text-xs font-mono text-rind hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
-              {isMapCollapsed ? 'Expand Coverage Map ▼' : 'Collapse Coverage Map ▲'}
+              {isMapCollapsed ? 'Show coverage map ▼' : 'Hide coverage map ▲'}
             </button>
           </div>
 

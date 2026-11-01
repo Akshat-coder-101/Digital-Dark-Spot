@@ -43,7 +43,18 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
   const navigate = useNavigate();
   const [showAllRows, setShowAllRows] = useState(false);
   const readySources = sources.filter((s) => s.status === 'ready');
-  const showCoverageStatus = readySources.length > 1;
+  // Identify sources that yielded >= 1 claim across any parameter in the matrix
+  const activeSources = readySources.filter((s) =>
+    matrix.some((row) => row.cells[s.id] && row.cells[s.id].claimId)
+  );
+  // Zero-claim sources (e.g. social media, video, or empty pages that provided no usable text)
+  const zeroClaimSources = readySources.filter(
+    (s) => !matrix.some((row) => row.cells[s.id] && row.cells[s.id].claimId)
+  );
+
+  // If there are active sources with claims, collapse zero-claim sources into a single row
+  const columnSources = activeSources.length > 0 ? activeSources : readySources;
+  const showCoverageStatus = columnSources.length > 1;
 
   // Max 12 rows by default
   const visibleRows = showAllRows ? matrix : matrix.slice(0, 12);
@@ -70,7 +81,8 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
         </div>
         <div className="flex items-center gap-3">
           <span className="text-[11px] font-mono text-seed-muted">
-            {matrix.length} parameters × {readySources.length} source{readySources.length === 1 ? '' : 's'}
+            {matrix.length} parameters × {columnSources.length} source{columnSources.length === 1 ? '' : 's'}
+            {zeroClaimSources.length > 0 && ` (${zeroClaimSources.length} gave no usable text)`}
           </span>
           {hasMoreRows && (
             <button
@@ -108,7 +120,7 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
               )}
 
               {/* Sticky Source Column Headers: domain or first 18 chars with date-status icon */}
-              {readySources.map((source, idx) => {
+              {columnSources.map((source, idx) => {
                 const shortDomain = source.domain.length > 18 ? `${source.domain.slice(0, 17)}…` : source.domain;
 
                 return (
@@ -213,7 +225,7 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
                   )}
 
                   {/* Per-Source Cells: Icon + value of at most 14 characters */}
-                  {readySources.map((source) => {
+                  {columnSources.map((source) => {
                     const cell = row.cells[source.id];
                     if (!cell) {
                       return (
@@ -269,6 +281,24 @@ export const CoverageMap: React.FC<CoverageMapProps> = ({
                 </tr>
               );
             })}
+
+            {/* Zero-claim sources collapsed into one row */}
+            {zeroClaimSources.length > 0 && activeSources.length > 0 && (
+              <tr className="bg-seed/2 text-seed-muted border-t border-seed/10">
+                <td
+                  colSpan={1 + (showCoverageStatus ? 1 : 0) + columnSources.length}
+                  className="py-2.5 px-3 text-xs italic text-seed-muted/90"
+                >
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-3.5 h-3.5 text-seed-muted shrink-0" />
+                    <span>
+                      <strong className="font-semibold text-seed">{zeroClaimSources.length} source{zeroClaimSources.length === 1 ? '' : 's'} gave no usable text:</strong>
+                      {' '}{zeroClaimSources.map((s) => s.domain || s.title).join(', ')}
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

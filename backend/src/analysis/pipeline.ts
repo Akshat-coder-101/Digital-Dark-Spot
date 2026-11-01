@@ -4,10 +4,12 @@ import { extractClaimsAndAttributes, deriveExpectedAttributesForQuestion } from 
 import { formatAttributeLabel, detectGaps } from './gaps.js';
 import { detectConflicts } from './conflicts.js';
 import { auditFreshness } from './freshness.js';
+import { computeParameterStatuses } from './parameterStatus.js';
 import { buildCoverageMatrix } from './matrix.js';
 import { buildPrioritizedChecklist } from './checklist.js';
+import { generateStructuredSummary } from './summaryGenerator.js';
 import { runSecondPassTargetedGapSearch } from '../search/secondPass.js';
-import { FullAnalysisReport, JobProgress, AnalysisStage, PotentialGap, ChecklistItem } from './types.js';
+import { FullAnalysisReport, JobProgress, AnalysisStage, PotentialGap, ChecklistItem, ExtractedClaim } from './types.js';
 import { LLMCache, llmCache } from '../llm/cache.js';
 import { normalizeAttributeName, areAttributesMatching } from './canonicalization.js';
 import { isOfficialDomain } from '../search/adapters/tavily.js';
@@ -215,18 +217,6 @@ export class AnalysisPipeline {
         onProgress
       );
 
-      const gaps = detectGaps(
-        extractionData.expected_attributes,
-        extractionData.verified_claims,
-        readySources.length,
-        extractionData.question_derived_needs
-      );
-
-      const conflicts = detectConflicts(
-        extractionData.verified_claims,
-        readySources
-      );
-
       // STAGE 4: Checking dates (Temporal & Freshness Audit)
       this.updateProgress(
         jobId,
@@ -238,13 +228,35 @@ export class AnalysisPipeline {
         onProgress
       );
 
+      const conflicts = detectConflicts(
+        extractionData.verified_claims,
+        readySources
+      );
+
       const freshness = auditFreshness(readySources, extractionData.verified_claims);
       const sourceOutdatedCount = readySources.filter(s => s.isStale).length;
       const sourceUndatedCount = readySources.filter(s => s.isUndated).length;
-      const deadlinePassedClaims = extractionData.verified_claims.filter(c => c.isDeadlinePassed).length;
+      const deadlinePassedClaims = extractionData.verified_claims.filter((c: ExtractedClaim) => c.isDeadlinePassed).length;
 
       const outdatedCount = sourceOutdatedCount + deadlinePassedClaims;
       const undatedCount = sourceUndatedCount;
+
+      // SINGLE SOURCE OF TRUTH: Compute authoritative parameter statuses
+      const parameterStatuses = computeParameterStatuses(
+        extractionData.expected_attributes,
+        extractionData.verified_claims,
+        conflicts,
+        freshness,
+        readySources
+      );
+
+      const gaps = detectGaps(
+        extractionData.expected_attributes,
+        extractionData.verified_claims,
+        readySources.length,
+        extractionData.question_derived_needs,
+        parameterStatuses
+      );
 
       // STAGE 5: Building checklist (Matrix & Prioritized Action Items)
       this.updateProgress(
@@ -261,22 +273,35 @@ export class AnalysisPipeline {
         extractionData.expected_attributes,
         readySources,
         extractionData.verified_claims,
-        conflicts
+        conflicts,
+        parameterStatuses
       );
 
       const checklist = buildPrioritizedChecklist(
         gaps,
         conflicts,
         freshness,
-        extractionData.open_questions || []
+        extractionData.open_questions || [],
+        parameterStatuses,
+        readySources
       );
+
+      const structuredSummary = generateStructuredSummary({
+        question: question.trim(),
+        sources: readySources,
+        parameterStatuses,
+        claims: extractionData.verified_claims,
+        conflicts,
+        freshness,
+        checklist
+      });
 
       // Final report assembly
       const reportId = `rep-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
       let report: FullAnalysisReport = {
         id: reportId,
         question: question.trim(),
-        summary: extractionData.summary || 'Summary synthesized from reviewed sources.',
+        summary: structuredSummary.copyableMarkdown || extractionData.summary || 'Summary synthesized from reviewed sources.',
         analyzedWith: {
           provider: usedProvider,
           model: usedModel,
@@ -301,6 +326,7 @@ export class AnalysisPipeline {
           : undefined,
         sources: ingestedSources,
         claims: extractionData.verified_claims,
+        parameterStatuses,
         gaps,
         conflicts,
         freshnessWarnings: freshness,

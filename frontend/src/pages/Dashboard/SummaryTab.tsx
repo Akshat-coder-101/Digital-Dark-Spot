@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useReport } from './ReportContext';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -8,351 +8,384 @@ import {
   WiltIcon
 } from '@/components/common/Icons';
 import {
-  AlertTriangle,
-  Clock,
   AlertCircle,
+  Check,
+  Clock,
+  Copy,
   ExternalLink,
-  HelpCircle,
-  Calendar
+  Layers,
+  ListChecks,
+  ShieldCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { areAttributesMatching } from '@/lib/canonicalization';
-import { IngestedSource, ExtractedClaim, FreshnessWarning, PotentialGap } from '@/lib/types';
-
-function formatSentenceCase(str: string): string {
-  if (!str) return '';
-  const clean = str.replace(/_/g, ' ').trim();
-  return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
-}
-
-interface SummaryBullet {
-  id: string;
-  category: 'cycle' | 'conflict' | 'date' | 'gap' | 'single_source' | 'confirmed';
-  icon: React.ComponentType<{ className?: string }>;
-  text: string;
-  valueOrDate?: string;
-  sourceCountText?: string;
-  targetLink?: string;
-  claimId?: string;
-}
+import { generateStructuredSummary } from '@/lib/summaryGenerator';
+import { Button } from '@/components/ui/button';
 
 export const SummaryTab: React.FC = () => {
   const { report } = useReport();
   const navigate = useNavigate();
+  const [copied, setCopied] = useState(false);
 
-  const fullSourcesCount = report.sources.filter((s: IngestedSource) => s.status === 'ready' && !s.isLimited && s.sourceType !== 'limited').length;
-  const limitedSourcesCount = report.sources.filter((s: IngestedSource) => s.isLimited || s.sourceType === 'limited').length;
-
-  const todayIso = new Date().toISOString().split('T')[0];
-
-  // Deterministically construct 5 to 7 finding-grounded summary bullets
-  const summaryBullets = useMemo<SummaryBullet[]>(() => {
-    const bullets: SummaryBullet[] = [];
-
-    // 1. Cycle notice if any
-    const cycleWarning = report.freshnessWarnings?.find((w: FreshnessWarning) => w.warningType === 'earlier_cycle');
-    const cycle = report.cycleNotice || cycleWarning?.detectedCycle;
-    if (cycle) {
-      bullets.push({
-        id: 'bullet-cycle',
-        category: 'cycle',
-        icon: WiltIcon,
-        text: typeof cycle === 'string' && cycle.includes('The reviewed sources refer to')
-          ? cycle
-          : `The reviewed sources refer to the "${cycle}" cycle, which precedes the current decision period. Treat dates and values as potentially outdated.`,
-        sourceCountText: `${report.sources.length} sources`,
-        targetLink: `/report/${report.id}/freshness`
-      });
+  // Compute parameter statuses fallback if not attached
+  const parameterStatuses = useMemo(() => {
+    if (report.parameterStatuses && report.parameterStatuses.length > 0) {
+      return report.parameterStatuses;
     }
-
-    // 2. Conflicts (up to 2)
-    for (const cf of (report.conflicts || []).slice(0, 2)) {
-      const v1 = cf.sourceA?.value || 'Option A';
-      const v2 = cf.sourceB?.value || 'Option B';
-      const s1 = cf.sourceA?.source_domain || 'Source 1';
-      const s2 = cf.sourceB?.source_domain || 'Source 2';
-      const claim = (report.claims || []).find((c: ExtractedClaim) => c.source_id === cf.sourceA?.source_id);
-      bullets.push({
-        id: `bullet-conflict-${cf.id}`,
-        category: 'conflict',
-        icon: CrackIcon,
-        text: `Contradiction on ${formatSentenceCase(cf.attribute)}: ${s1} states "${v1}", while ${s2} states "${v2}".`,
-        valueOrDate: `${v1} vs ${v2}`,
-        sourceCountText: '2 sources',
-        claimId: claim?.id,
-        targetLink: `/report/${report.id}/conflicts`
-      });
-    }
-
-    // 3. Passed or imminent dates
-    const passedDeadlineClaim = (report.claims || []).find((c: ExtractedClaim) => c.isDeadlinePassed);
-    if (passedDeadlineClaim) {
-      bullets.push({
-        id: `bullet-date-${passedDeadlineClaim.id}`,
-        category: 'date',
-        icon: Clock,
-        text: `Application or submission deadline has passed: ${formatSentenceCase(passedDeadlineClaim.attribute)} was "${passedDeadlineClaim.value}".`,
-        valueOrDate: passedDeadlineClaim.value,
-        sourceCountText: `via ${passedDeadlineClaim.source_domain}`,
-        claimId: passedDeadlineClaim.id
-      });
-    } else {
-      // Check for any upcoming date
-      const upcomingClaim = (report.claims || []).find((c: ExtractedClaim) => {
-        if (!c.value) return false;
-        const dateMatch = c.value.match(/\b\d{4}-\d{2}-\d{2}\b/);
-        return Boolean(dateMatch && dateMatch[0] >= todayIso);
-      });
-      if (upcomingClaim) {
-        bullets.push({
-          id: `bullet-date-${upcomingClaim.id}`,
-          category: 'date',
-          icon: Calendar,
-          text: `Key upcoming date for ${formatSentenceCase(upcomingClaim.attribute)}: "${upcomingClaim.value}".`,
-          valueOrDate: upcomingClaim.value,
-          sourceCountText: `via ${upcomingClaim.source_domain}`,
-          claimId: upcomingClaim.id
-        });
+    // Fallback: derive from coverageMatrix
+    return (report.coverageMatrix || []).map(row => {
+      const claims = (report.claims || []).filter(c => c.attribute === row.attribute);
+      const uniqueSourceIds = Array.from(new Set(claims.map(c => c.source_id)));
+      let status: 'found' | 'single_source' | 'conflict' | 'gap' | 'stale' = 'found';
+      let statusLabel = 'Found';
+      if (row.overallStatus === 'conflict') {
+        status = 'conflict';
+        statusLabel = 'Conflict';
+      } else if (claims.length === 0) {
+        status = 'gap';
+        statusLabel = 'Gap';
+      } else if (uniqueSourceIds.length === 1) {
+        status = 'single_source';
+        statusLabel = 'Single source';
+      } else if (row.overallStatus === 'thin') {
+        status = 'single_source';
+        statusLabel = 'Single source';
       }
-    }
 
-    // 4. Gaps (needs only)
-    const questionNeedsGaps = (report.gaps || []).filter((g: PotentialGap) => g.type === 'total_gap');
-    for (const g of questionNeedsGaps.slice(0, 2)) {
-      bullets.push({
-        id: `bullet-gap-${g.id}`,
-        category: 'gap',
-        icon: SeedIcon,
-        text: `Unaddressed requirement: "${formatSentenceCase(g.attribute)}" is not documented in any of the ${report.sources.length} reviewed sources.`,
-        sourceCountText: '0 sources',
-        targetLink: `/report/${report.id}/gaps`
-      });
-    }
-
-    // 5. Single-source highlights
-    const singleSourceClaim = (report.claims || []).find((c: ExtractedClaim) => {
-      const matchingClaims = (report.claims || []).filter((other: ExtractedClaim) => areAttributesMatching(other.attribute, c.attribute));
-      const uniqueSources = new Set(matchingClaims.map((m: ExtractedClaim) => m.source_id));
-      return uniqueSources.size === 1;
+      return {
+        parameter: row.attribute,
+        label: row.attributeLabel || row.attribute,
+        status,
+        statusLabel,
+        claims,
+        sourcesCount: uniqueSourceIds.length,
+        sourceIds: uniqueSourceIds,
+        keyValue: claims[0]?.value || 'Not found in the sources reviewed',
+        sortRank: status === 'conflict' ? 1 : (status === 'gap' ? 2 : (status === 'single_source' ? 4 : 5))
+      };
     });
-    if (singleSourceClaim && bullets.length < 6) {
-      bullets.push({
-        id: `bullet-single-${singleSourceClaim.id}`,
-        category: 'single_source',
-        icon: AlertCircle,
-        text: `${formatSentenceCase(singleSourceClaim.attribute)} is stated as "${singleSourceClaim.value}" by only 1 source (${singleSourceClaim.source_domain}) and unconfirmed by others.`,
-        valueOrDate: singleSourceClaim.value,
-        sourceCountText: '1 source',
-        claimId: singleSourceClaim.id
-      });
-    }
+  }, [report]);
 
-    // 6. Confirmed items (one or two where multiple sources agree)
-    const confirmedParams: string[] = [];
-    for (const c of report.claims || []) {
-      if (confirmedParams.length >= 2 || bullets.length >= 7) break;
-      const matchingClaims = (report.claims || []).filter((other: ExtractedClaim) => areAttributesMatching(other.attribute, c.attribute));
-      const uniqueSources = new Set(matchingClaims.map((m: ExtractedClaim) => m.source_id));
-      if (uniqueSources.size >= 2 && !confirmedParams.includes(c.attribute)) {
-        confirmedParams.push(c.attribute);
-        bullets.push({
-          id: `bullet-confirmed-${c.id}`,
-          category: 'confirmed',
-          icon: VerifiedCheckIcon,
-          text: `${formatSentenceCase(c.attribute)} is confirmed as "${c.value}" across ${uniqueSources.size} reviewed sources.`,
-          valueOrDate: c.value,
-          sourceCountText: `${uniqueSources.size} sources`,
-          claimId: c.id
-        });
-      }
-    }
+  const summary = useMemo(() => {
+    return generateStructuredSummary({
+      question: report.question,
+      sources: report.sources || [],
+      parameterStatuses,
+      claims: report.claims || [],
+      conflicts: report.conflicts || [],
+      freshness: report.freshnessWarnings || [],
+      checklist: report.checklist || []
+    });
+  }, [report, parameterStatuses]);
 
-    // Ensure 5 to 7 bullets
-    return bullets.slice(0, 7);
-  }, [report, todayIso]);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(summary.copyableMarkdown).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
-  const handleEvidenceClick = (bullet: SummaryBullet) => {
-    if (bullet.claimId) {
-      navigate(`/report/${report.id}/evidence/${encodeURIComponent(bullet.claimId)}`);
-    } else if (bullet.targetLink) {
-      navigate(bullet.targetLink);
+  const handleInspect = (claimId?: string, param?: string) => {
+    if (claimId) {
+      navigate(`/report/${report.id}/evidence/${encodeURIComponent(claimId)}`);
+    } else if (param) {
+      navigate(`/report/${report.id}/evidence/${encodeURIComponent(param)}`);
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top 3 Signal Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        {/* Conflicts */}
-        <div
-          onClick={() => navigate(`/report/${report.id}/conflicts`)}
-          className={cn(
-            "p-3.5 rounded-sm border transition-colors cursor-pointer space-y-1.5",
-            report.conflicts.length > 0
-              ? "bg-crack/5 border-crack/20 hover:border-crack/40"
-              : "bg-pith border-seed/10"
-          )}
-        >
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-heading font-bold text-seed flex items-center gap-1.5">
-              <AlertTriangle className={cn("w-3.5 h-3.5", report.conflicts.length > 0 ? "text-crack" : "text-seed-muted")} />
-              Possible Conflicts
-            </span>
-            <span className="font-mono font-bold text-xs text-crack">{report.conflicts.length}</span>
-          </div>
-          <p className="text-[11px] text-seed-muted leading-relaxed">
-            {report.conflicts.length > 0
-              ? `${report.conflicts.length} discrepancy across source values requires verification.`
-              : 'Zero contradictions found across reviewed sources.'}
-          </p>
-        </div>
-
-        {/* Outdated / Freshness */}
-        <div
-          onClick={() => navigate(`/report/${report.id}/freshness`)}
-          className={cn(
-            "p-3.5 rounded-sm border transition-colors cursor-pointer space-y-1.5",
-            report.freshnessWarnings.length > 0
-              ? "bg-wilt/5 border-wilt/20 hover:border-wilt/40"
-              : "bg-pith border-seed/10"
-          )}
-        >
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-heading font-bold text-seed flex items-center gap-1.5">
-              <Clock className={cn("w-3.5 h-3.5", report.freshnessWarnings.length > 0 ? "text-wilt" : "text-seed-muted")} />
-              Outdated & Temporal
-            </span>
-            <span className="font-mono font-bold text-xs text-wilt">{report.freshnessWarnings.length}</span>
-          </div>
-          <p className="text-[11px] text-seed-muted leading-relaxed">
-            {report.freshnessWarnings.length > 0
-              ? `${report.freshnessWarnings.length} notice with passed deadlines, stale dates, or unversioned text.`
-              : 'All reviewed sources are dated and current.'}
-          </p>
-        </div>
-
-        {/* Potential Gaps */}
-        <div
-          onClick={() => navigate(`/report/${report.id}/gaps`)}
-          className={cn(
-            "p-3.5 rounded-sm border transition-colors cursor-pointer space-y-1.5",
-            report.gaps.length > 0
-              ? "bg-seed/2 border-seed/15 hover:border-rind/30"
-              : "bg-pith border-seed/10"
-          )}
-        >
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-heading font-bold text-seed flex items-center gap-1.5">
-              <AlertCircle className="w-3.5 h-3.5 text-rind" />
-              Potential Gaps
-            </span>
-            <span className="font-mono font-bold text-xs text-seed">{report.gaps.length}</span>
-          </div>
-          <p className="text-[11px] text-seed-muted leading-relaxed">
-            {report.gaps.length > 0
-              ? `${report.gaps.length} parameter missing from the reviewed sources.`
-              : 'All expected decision parameters are covered.'}
-          </p>
-        </div>
-      </div>
-
-      {/* SUMMARY BLOCK: Structured Findings Bullets */}
-      <div className="p-5 sm:p-6 rounded-sm border border-seed/10 bg-pith space-y-4 shadow-2xs">
-        <div className="flex items-center justify-between border-b border-seed/10 pb-3">
-          <div className="space-y-0.5">
-            <h3 className="font-heading font-bold text-base sm:text-lg text-seed">
-              Summary
-            </h3>
-            <p className="text-xs text-seed-muted">
-              Based on {report.sources.length} reviewed sources ({fullSourcesCount} full, {limitedSourcesCount} limited)
-            </p>
-          </div>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs bg-seed/5 text-seed-muted text-[11px] font-sans font-medium border border-seed/15">
-            AI-suggested
+    <div className="space-y-7 max-w-[76ch]">
+      {/* 1. Header with Badge & Copy Action */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-seed/10">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xs bg-rind/10 text-rind border border-rind/25 text-xs font-semibold font-mono">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>{summary.badge}</span>
+          </span>
+          <span className="text-xs text-seed-muted">
+            • Verified evidence synthesis
           </span>
         </div>
 
-        {/* 5 to 7 Finding Bullets */}
-        <ul className="space-y-3 pt-1" role="list">
-          {summaryBullets.map((bullet) => {
-            const IconComp = bullet.icon;
-            return (
-              <li
-                key={bullet.id}
-                onClick={() => handleEvidenceClick(bullet)}
-                className="flex items-start justify-between gap-3 p-3 rounded-xs border border-seed/10 bg-seed/1 hover:bg-seed/2 transition-colors cursor-pointer group"
-              >
-                <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                  <IconComp className={cn(
-                    "w-4 h-4 shrink-0 mt-0.5",
-                    bullet.category === 'conflict' ? "text-crack" :
-                    bullet.category === 'cycle' || bullet.category === 'date' ? "text-wilt" :
-                    bullet.category === 'gap' ? "text-flesh" :
-                    bullet.category === 'confirmed' ? "text-rind" :
-                    "text-seed-muted"
-                  )} />
-                  <div className="space-y-1 min-w-0">
-                    <p className="text-xs sm:text-sm text-seed leading-relaxed font-sans group-hover:text-seed">
-                      {bullet.text}
-                    </p>
-                    {bullet.sourceCountText && (
-                      <span className="text-[10px] font-mono text-seed-muted">
-                        Evidence: {bullet.sourceCountText}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  className="shrink-0 text-rind hover:underline inline-flex items-center gap-1 text-xs font-mono font-medium pt-0.5"
-                  title="Inspect finding in evidence drawer"
-                >
-                  <span>Inspect</span>
-                  <ExternalLink className="w-3 h-3" />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleCopy}
+          className="text-xs cursor-pointer inline-flex items-center gap-1.5"
+          title="Copy full summary as formatted Markdown"
+        >
+          {copied ? (
+            <>
+              <Check className="w-3.5 h-3.5 text-rind" />
+              <span>Copied summary!</span>
+            </>
+          ) : (
+            <>
+              <Copy className="w-3.5 h-3.5 text-seed-muted" />
+              <span>Copy summary</span>
+            </>
+          )}
+        </Button>
       </div>
 
-      {/* Open Questions (if any) */}
-      {report.openQuestions.length > 0 && (
-        <div className="p-5 sm:p-6 rounded-sm border border-seed/10 bg-pith space-y-4 shadow-2xs">
-          <div className="flex items-center justify-between border-b border-seed/10 pb-3">
-            <div className="flex items-center gap-2">
-              <HelpCircle className="w-4 h-4 text-crack" />
-              <h3 className="font-heading font-bold text-base text-seed">
-                Open Questions to Resolve
-              </h3>
+      {/* 2. Overview: 4 to 6 plain sentences */}
+      <section className="space-y-3">
+        <h3 className="font-heading font-extrabold text-base sm:text-lg text-seed tracking-tight">
+          Executive Overview
+        </h3>
+        <div className="p-4 rounded-sm border border-seed/10 bg-seed/2 text-sm leading-relaxed text-seed space-y-2.5">
+          {summary.overview.map((sentence, idx) => (
+            <p key={idx} className="leading-relaxed">
+              {sentence}
+            </p>
+          ))}
+        </div>
+      </section>
+
+      {/* 3. Decision Parameters: All parameters, none omitted */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-heading font-extrabold text-base sm:text-lg text-seed tracking-tight">
+            Decision Parameters ({summary.parameterSections.length})
+          </h3>
+          <span className="text-xs font-mono text-seed-muted">
+            Click Inspect to view verbatim quotes
+          </span>
+        </div>
+
+        <div className="space-y-3">
+          {summary.parameterSections.map((sec) => (
+            <div
+              key={sec.parameter}
+              className={cn(
+                "p-3.5 rounded-sm border transition-colors space-y-2",
+                sec.status === 'conflict'
+                  ? "bg-crack/5 border-crack/30"
+                  : sec.status === 'gap'
+                    ? "bg-seed/2 border-seed/15"
+                    : sec.status === 'single_source'
+                      ? "bg-pith border-seed/15"
+                      : "bg-pith border-seed/10"
+              )}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs font-bold text-rind px-1.5 py-0.2 rounded-2xs bg-rind/10 border border-rind/20">
+                    [{sec.marker}]
+                  </span>
+                  <h4 className="font-heading font-bold text-sm text-seed">
+                    {sec.heading}
+                  </h4>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {sec.status === 'conflict' && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded-2xs bg-crack/15 text-crack border border-crack/30">
+                      <CrackIcon className="w-3 h-3 text-crack" />
+                      <span>Conflict</span>
+                    </span>
+                  )}
+                  {sec.status === 'gap' && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded-2xs bg-flesh/10 text-flesh border border-flesh/20">
+                      <SeedIcon className="w-3 h-3 text-flesh" />
+                      <span>Gap (0 sources)</span>
+                    </span>
+                  )}
+                  {sec.status === 'single_source' && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded-2xs bg-seed/5 text-seed-muted border border-seed/15">
+                      <AlertCircle className="w-3 h-3 text-seed-muted" />
+                      <span>Single source</span>
+                    </span>
+                  )}
+                  {sec.status === 'found' && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded-2xs bg-rind/10 text-rind border border-rind/25">
+                      <VerifiedCheckIcon className="w-3 h-3 text-rind" />
+                      <span>Found ({sec.sourcesCount} sources)</span>
+                    </span>
+                  )}
+                  {sec.status === 'stale' && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded-2xs bg-wilt/15 text-wilt border border-wilt/30">
+                      <WiltIcon className="w-3 h-3 text-wilt" />
+                      <span>Stale</span>
+                    </span>
+                  )}
+
+                  {sec.inspectClaimId && (
+                    <button
+                      type="button"
+                      onClick={() => handleInspect(sec.inspectClaimId, sec.parameter)}
+                      className="inline-flex items-center gap-1 text-xs text-rind hover:underline font-mono cursor-pointer ml-1"
+                    >
+                      <span>Inspect</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <p className="text-xs sm:text-sm text-seed/90 leading-relaxed font-sans">
+                {sec.text}
+              </p>
+
+              {sec.claims.length > 0 && (
+                <div className="pt-1.5 border-t border-seed/5 flex flex-wrap gap-2 text-[11px] text-seed-muted font-mono">
+                  {sec.claims.map((cl) => (
+                    <button
+                      key={cl.id}
+                      type="button"
+                      onClick={() => handleInspect(cl.id)}
+                      className="hover:text-rind hover:underline inline-flex items-center gap-1 cursor-pointer"
+                      title={cl.quote}
+                    >
+                      <span>• {cl.sourceDomain}: &ldquo;{cl.value}&rdquo;</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            <span className="text-xs text-seed-muted font-mono">
-              {report.openQuestions.length} pending
-            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* 4. Other Details: All verified claims that did not map to a parameter */}
+      {summary.otherDetails.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Layers className="w-4 h-4 text-rind" />
+            <h3 className="font-heading font-extrabold text-base sm:text-lg text-seed tracking-tight">
+              Other Verified Details ({summary.otherDetails.reduce((sum, g) => sum + g.claims.length, 0)})
+            </h3>
           </div>
 
-          <ul className="space-y-2">
-            {report.openQuestions.map((q: string, idx: number) => (
-              <li
-                key={idx}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-xs border border-seed/10 bg-seed/1.5"
-              >
-                <div className="flex items-start gap-2.5 min-w-0">
-                  <span className="w-4 h-4 rounded-full bg-crack/10 text-crack flex items-center justify-center text-[10px] font-mono font-bold shrink-0 mt-0.5">
-                    {idx + 1}
-                  </span>
-                  <span className="text-xs text-seed font-sans leading-relaxed">
-                    {q}
-                  </span>
-                </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-xs bg-seed/5 text-seed-muted border border-seed/10 shrink-0 self-start sm:self-auto">
-                  AI-suggested
+          <div className="p-3.5 rounded-sm border border-seed/10 bg-pith space-y-3">
+            {summary.otherDetails.map((group) => (
+              <div key={group.theme} className="space-y-1.5">
+                <span className="text-xs font-mono font-semibold uppercase tracking-wider text-seed-muted block">
+                  {group.theme}
                 </span>
-              </li>
+                <ul className="space-y-1.5 text-xs text-seed">
+                  {group.claims.map((cl) => (
+                    <li key={cl.id} className="flex items-start justify-between gap-3">
+                      <span className="leading-relaxed">
+                        • {cl.value}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleInspect(cl.id)}
+                        className="text-[11px] font-mono text-rind hover:underline shrink-0 cursor-pointer"
+                      >
+                        {cl.sourceDomain} →
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
-        </div>
+          </div>
+        </section>
+      )}
+
+      {/* 5. Dates and Freshness */}
+      {(summary.datesAndFreshness.passedDeadlines.length > 0 ||
+        summary.datesAndFreshness.upcomingDates.length > 0 ||
+        summary.datesAndFreshness.cycleWarnings.length > 0 ||
+        summary.datesAndFreshness.undatedWarnings.length > 0) && (
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-wilt" />
+            <h3 className="font-heading font-extrabold text-base sm:text-lg text-seed tracking-tight">
+              Dates & Freshness
+            </h3>
+          </div>
+
+          <div className="p-3.5 rounded-sm border border-seed/10 bg-pith space-y-2 text-xs">
+            {summary.datesAndFreshness.passedDeadlines.map((pd, idx) => (
+              <div key={idx} className="flex items-start justify-between gap-2 text-gap">
+                <span>⚠️ <strong>Passed Deadline:</strong> {pd.label} was &ldquo;{pd.date}&rdquo;</span>
+                <button
+                  type="button"
+                  onClick={() => handleInspect(pd.claimId)}
+                  className="text-[11px] font-mono text-rind hover:underline shrink-0"
+                >
+                  {pd.sourceDomain} →
+                </button>
+              </div>
+            ))}
+
+            {summary.datesAndFreshness.upcomingDates.map((ud, idx) => (
+              <div key={idx} className="flex items-start justify-between gap-2 text-seed">
+                <span>📅 <strong>Upcoming Milestone:</strong> {ud.label} is &ldquo;{ud.date}&rdquo;</span>
+                <button
+                  type="button"
+                  onClick={() => handleInspect(ud.claimId)}
+                  className="text-[11px] font-mono text-rind hover:underline shrink-0"
+                >
+                  {ud.sourceDomain} →
+                </button>
+              </div>
+            ))}
+
+            {summary.datesAndFreshness.cycleWarnings.map((cw, idx) => (
+              <div key={idx} className="text-wilt">
+                ⏳ <strong>Cycle Notice:</strong> {cw.text}
+              </div>
+            ))}
+
+            {summary.datesAndFreshness.undatedWarnings.length > 0 && (
+              <div className="text-seed-muted">
+                ℹ️ {summary.datesAndFreshness.undatedWarnings.length} reviewed source(s) provide no detected publication date or cycle tag.
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* 6. What to Verify Next: Top items with link to full checklist */}
+      {summary.verifyNext.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ListChecks className="w-4 h-4 text-rind" />
+              <h3 className="font-heading font-extrabold text-base sm:text-lg text-seed tracking-tight">
+                What to Verify Next
+              </h3>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate(`/report/${report.id}/checklist`)}
+              className="text-xs font-mono text-rind hover:underline inline-flex items-center gap-1 cursor-pointer"
+            >
+              <span>View full checklist ({report.checklist?.length || 0}) →</span>
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            {summary.verifyNext.map((item) => (
+              <div
+                key={item.id}
+                className="p-3 rounded-sm border border-seed/10 bg-pith flex items-start gap-3"
+              >
+                <span
+                  className={cn(
+                    "text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-2xs uppercase shrink-0 mt-0.5",
+                    item.priority === 'High'
+                      ? "bg-crack/20 text-crack border border-crack/30"
+                      : "bg-rind/15 text-rind border border-rind/25"
+                  )}
+                >
+                  {item.priority}
+                </span>
+                <div className="space-y-0.5">
+                  <h5 className="font-heading font-bold text-xs text-seed">
+                    {item.title}
+                  </h5>
+                  <p className="text-xs text-seed-muted leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
     </div>
   );

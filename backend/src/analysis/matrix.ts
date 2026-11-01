@@ -2,51 +2,52 @@ import {
   CoverageMatrixRow,
   ExtractedClaim,
   PossibleConflict,
-  MatrixCellStatus
+  MatrixCellStatus,
+  ParameterStatus
 } from './types.js';
 import { IngestedSource } from '../ingestion/types.js';
 import { formatAttributeLabel } from './gaps.js';
 import { areAttributesMatching } from './canonicalization.js';
 import { isOfficialDomain } from '../search/adapters/tavily.js';
+import { computeParameterStatuses } from './parameterStatus.js';
 
 export function buildCoverageMatrix(
-  expectedAttributes: string[],
+  expectedAttributes: string[] | ParameterStatus[],
   sources: IngestedSource[],
-  claims: ExtractedClaim[],
-  conflicts: PossibleConflict[]
+  claims: ExtractedClaim[] = [],
+  conflicts: PossibleConflict[] = [],
+  explicitStatuses?: ParameterStatus[]
 ): CoverageMatrixRow[] {
   const readySources = sources.filter(s => s.status === 'ready');
   const matrix: CoverageMatrixRow[] = [];
 
-  for (const attr of expectedAttributes) {
-    const attrClaims = claims.filter(c => areAttributesMatching(c.attribute, attr));
-    const hasConflict = conflicts.some(c => areAttributesMatching(c.attribute, attr));
+  const isParamStatusArray = Array.isArray(expectedAttributes) &&
+    expectedAttributes.length > 0 &&
+    typeof expectedAttributes[0] === 'object' &&
+    'parameter' in (expectedAttributes[0] as any);
 
-    const isPortalAttr = attr.includes('portal') || attr.includes('website') || attr.includes('official_link');
-    const coveredSources = readySources.filter(s => {
-      if (attrClaims.some(c => c.source_id === s.id)) return true;
-      if (isPortalAttr && (
-        isOfficialDomain(s.domain) ||
-        s.domain.endsWith('.gov') || s.domain.includes('.gov.') || s.domain.endsWith('.nic.in') ||
-        attrClaims.some(c => c.value.toLowerCase().includes(s.domain.toLowerCase()))
-      )) return true;
-      return false;
-    });
+  const statuses: ParameterStatus[] = explicitStatuses ||
+    (isParamStatusArray
+      ? (expectedAttributes as ParameterStatus[])
+      : computeParameterStatuses(expectedAttributes as string[], claims, conflicts, [], sources));
 
-    const coveredSourcesCount = coveredSources.length;
-    const allCoveredAreStale = coveredSourcesCount > 0 && coveredSources.every(s => s.isStale);
+  for (const pStatus of statuses) {
+    const attr = pStatus.parameter;
+    const attrClaims = pStatus.claims;
+    const hasConflict = pStatus.status === 'conflict';
 
-    // Status precedence: Conflict > Gap > Stale > Single source (thin) > Found (covered)
+    // Status mapping from ParameterStatus
     let overallStatus: 'covered' | 'gap' | 'conflict' | 'thin' = 'covered';
-    if (hasConflict) {
+    if (pStatus.status === 'conflict') {
       overallStatus = 'conflict';
-    } else if (coveredSourcesCount === 0) {
+    } else if (pStatus.status === 'gap') {
       overallStatus = 'gap';
-    } else if (allCoveredAreStale) {
-      // If all covered sources are stale, it's flagged as thin or stale context
-      overallStatus = coveredSourcesCount === 1 ? 'thin' : 'covered';
-    } else if (coveredSourcesCount === 1 && readySources.length > 1) {
+    } else if (pStatus.status === 'single_source') {
       overallStatus = 'thin';
+    } else if (pStatus.status === 'stale') {
+      overallStatus = pStatus.sourcesCount === 1 ? 'thin' : 'covered';
+    } else {
+      overallStatus = 'covered';
     }
 
     const cells: CoverageMatrixRow['cells'] = {};
@@ -58,25 +59,12 @@ export function buildCoverageMatrix(
       let claimId: string | undefined = undefined;
       let val: string | undefined = undefined;
 
-      const isGov = isOfficialDomain(source.domain) ||
-                    source.domain.endsWith('.gov') ||
-                    source.domain.includes('.gov.') ||
-                    source.domain.endsWith('.nic.in') ||
-                    source.domain.includes('.nic.');
-      const isNamedPortal = attrClaims.some(c =>
-        c.value.toLowerCase().includes(source.domain.toLowerCase()) ||
-        (source.url && c.value.toLowerCase().includes(source.url.toLowerCase()))
-      );
-
-      if (!sourceClaim && isPortalAttr && (isGov || isNamedPortal)) {
-        cellStatus = 'found';
-        val = `Official portal: ${source.domain}`;
-      } else if (sourceClaim) {
+      if (sourceClaim) {
         claimId = sourceClaim.id;
         val = sourceClaim.value;
         if (hasConflict) {
           cellStatus = 'conflict';
-        } else if (source.isStale) {
+        } else if (source.isStale || sourceClaim.isDeadlinePassed) {
           cellStatus = 'stale';
         } else {
           cellStatus = 'found';
@@ -93,7 +81,7 @@ export function buildCoverageMatrix(
 
     matrix.push({
       attribute: attr,
-      attributeLabel: formatAttributeLabel(attr),
+      attributeLabel: pStatus.label || formatAttributeLabel(attr),
       overallStatus,
       cells
     });

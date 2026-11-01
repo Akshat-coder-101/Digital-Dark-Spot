@@ -1,5 +1,6 @@
-import { ExtractedClaim, PotentialGap } from './types.js';
+import { ExtractedClaim, PotentialGap, ParameterStatus } from './types.js';
 import { areAttributesMatching } from './canonicalization.js';
+import { computeParameterStatuses } from './parameterStatus.js';
 
 export function formatAttributeLabel(attr: string): string {
   return attr
@@ -9,20 +10,30 @@ export function formatAttributeLabel(attr: string): string {
 }
 
 export function detectGaps(
-  expectedAttributes: string[],
-  verifiedClaims: ExtractedClaim[],
-  totalSourceCount: number,
-  questionNeeds?: string[]
+  expectedAttributes: string[] | ParameterStatus[],
+  verifiedClaims: ExtractedClaim[] = [],
+  totalSourceCount: number = 0,
+  questionNeeds?: string[],
+  explicitStatuses?: ParameterStatus[]
 ): PotentialGap[] {
   const gaps: PotentialGap[] = [];
-  const needsToAudit = questionNeeds && questionNeeds.length > 0 ? questionNeeds : expectedAttributes;
 
-  for (const attr of needsToAudit) {
-    const matchingClaims = verifiedClaims.filter(c => areAttributesMatching(c.attribute, attr));
-    const label = formatAttributeLabel(attr);
+  const isParamStatusArray = Array.isArray(expectedAttributes) &&
+    expectedAttributes.length > 0 &&
+    typeof expectedAttributes[0] === 'object' &&
+    'parameter' in (expectedAttributes[0] as any);
 
-    if (matchingClaims.length === 0) {
-      // Total gap: 0 verified claims found across all reviewed sources
+  const statuses: ParameterStatus[] = explicitStatuses ||
+    (isParamStatusArray
+      ? (expectedAttributes as ParameterStatus[])
+      : computeParameterStatuses(expectedAttributes as string[], verifiedClaims));
+
+  // ABSOLUTE RULE: Only parameters with status === 'gap' (0 verified claims) are gaps
+  for (const pStatus of statuses) {
+    if (pStatus.status === 'gap') {
+      const attr = pStatus.parameter;
+      const label = pStatus.label || formatAttributeLabel(attr);
+
       gaps.push({
         id: `gap-${attr}`,
         attribute: attr,
@@ -31,24 +42,9 @@ export function detectGaps(
         type: 'total_gap',
         sourceCount: 0,
         supportingSourceIds: [],
-        suggestedAction: `Check official guidance or application materials specifically for "${label}".`,
+        suggestedAction: pStatus.gapSuggestedAction || `Check official guidance or documentation specifically for "${label}".`,
         statusLabel: 'Potential gap',
         signalTag: 'AI-suggested'
-      });
-    } else if (matchingClaims.length === 1 && totalSourceCount >= 2) {
-      // Thin single-source coverage
-      const source = matchingClaims[0];
-      gaps.push({
-        id: `thin-${attr}`,
-        attribute: attr,
-        title: `Potential gap: ${label} covered by single source only`,
-        description: `"${label}" was referenced only by "${source.source_title}" without independent cross-verification from other sources reviewed.`,
-        type: 'thin_coverage',
-        sourceCount: 1,
-        supportingSourceIds: [source.source_id],
-        suggestedAction: `Verify whether "${label}" is corroborated by primary official notices.`,
-        statusLabel: 'Potential gap',
-        signalTag: 'Uncertain'
       });
     }
   }

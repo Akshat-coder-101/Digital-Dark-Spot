@@ -2,8 +2,10 @@ import {
   ChecklistItem,
   PotentialGap,
   PossibleConflict,
-  FreshnessWarning
+  FreshnessWarning,
+  ParameterStatus
 } from './types.js';
+import { IngestedSource } from '../ingestion/types.js';
 import { formatAttributeLabel } from './gaps.js';
 
 /**
@@ -47,7 +49,9 @@ export function buildPrioritizedChecklist(
   gaps: PotentialGap[],
   conflicts: PossibleConflict[],
   freshness: FreshnessWarning[],
-  openQuestions: string[] = []
+  openQuestions: string[] = [],
+  parameterStatuses?: ParameterStatus[],
+  sources?: IngestedSource[]
 ): ChecklistItem[] {
   const items: ChecklistItem[] = [];
   const seenKeys = new Set<string>();
@@ -65,8 +69,8 @@ export function buildPrioritizedChecklist(
     items.push({
       id: `check-${itemCounter++}`,
       priority: 'High',
-      title: `Resolve conflicting ${label} specifications`,
-      description: `Discrepancy: "${conf.sourceA.source_title}" (${conf.sourceA.source_domain}) states "${conf.sourceA.value}", while "${conf.sourceB.source_title}" (${conf.sourceB.source_domain}) states "${conf.sourceB.value}".`,
+      title: `Resolve conflicting details: ${label}`,
+      description: `Discrepancy: ${conf.sourceA.source_domain || 'Source A'} states "${conf.sourceA.value}", while ${conf.sourceB.source_domain || 'Source B'} states "${conf.sourceB.value}".`,
       relatedAttribute: conf.attribute,
       suggestedOfficialSource: sType,
       signalTag: 'Sourced',
@@ -84,8 +88,8 @@ export function buildPrioritizedChecklist(
       items.push({
         id: `check-${itemCounter++}`,
         priority: 'High',
-        title: `Re-verify passed deadline (${fresh.detectedDate})`,
-        description: `Source "${fresh.source_title}" (${fresh.source_domain}) specifies a deadline that passed on ${fresh.detectedDate}. Verify if amendments or current cycles apply.`,
+        title: `Confirm current cycle dates: Passed deadline (${fresh.detectedDate})`,
+        description: `Source "${fresh.source_title}" (${fresh.source_domain}) specifies a deadline that passed on ${fresh.detectedDate}. Verify if current cycles or extensions apply.`,
         suggestedOfficialSource: 'Official notification & gazette bulletin',
         signalTag: 'Sourced',
         checked: false
@@ -93,51 +97,102 @@ export function buildPrioritizedChecklist(
     }
   }
 
-  // 3. HIGH PRIORITY: Missing items that the question explicitly needs (Total Gaps)
-  for (const gap of gaps) {
-    if (gap.type === 'total_gap') {
-      if (gap.attribute === 'other_details') continue;
-      const key = `gap-${gap.attribute}`;
-      if (seenKeys.has(key)) continue;
-      seenKeys.add(key);
+  // 3. HIGH PRIORITY: True Gaps (0 claims found)
+  // If parameterStatuses is provided, filter ONLY real gaps (status === 'gap')
+  const trueGaps = parameterStatuses
+    ? parameterStatuses.filter(p => p.status === 'gap')
+    : gaps.filter(g => g.type === 'total_gap');
 
-      const label = formatAttributeLabel(gap.attribute);
-      const sType = deriveSourceTypeForAttribute(gap.attribute);
+  for (const gap of trueGaps) {
+    const attr = 'parameter' in gap ? gap.parameter : gap.attribute;
+    if (attr === 'other_details') continue;
+    const key = `gap-${attr}`;
+    if (seenKeys.has(key)) continue;
+    seenKeys.add(key);
 
-      items.push({
-        id: `check-${itemCounter++}`,
-        priority: 'High',
-        title: `Obtain verified specifications for ${label}`,
-        description: `None of the reviewed sources provide verified details for "${label}". Must be confirmed before decision.`,
-        relatedAttribute: gap.attribute,
-        suggestedOfficialSource: sType,
-        signalTag: 'AI-suggested',
-        checked: false
-      });
+    const label = 'label' in gap ? gap.label : formatAttributeLabel(attr);
+    const sType = deriveSourceTypeForAttribute(attr);
+
+    items.push({
+      id: `check-${itemCounter++}`,
+      priority: 'High',
+      title: `Find a source for: ${label}`,
+      description: `Not documented in any of the reviewed sources. Check official documentation specifically for "${label}".`,
+      relatedAttribute: attr,
+      suggestedOfficialSource: sType,
+      signalTag: 'AI-suggested',
+      checked: false
+    });
+  }
+
+  // 4. MEDIUM PRIORITY: Single-source parameters
+  const singleSources = parameterStatuses
+    ? parameterStatuses.filter(p => p.status === 'single_source')
+    : [];
+
+  for (const p of singleSources) {
+    const key = `single-${p.parameter}`;
+    if (seenKeys.has(key)) continue;
+    seenKeys.add(key);
+
+    const sType = deriveSourceTypeForAttribute(p.parameter);
+    const firstClaim = p.claims[0];
+    const domain = firstClaim?.source_domain || 'single source';
+
+    items.push({
+      id: `check-${itemCounter++}`,
+      priority: 'Medium',
+      title: `Confirm with the official source: ${p.label} (single source)`,
+      description: `Stated as "${p.keyValue}" by only 1 source (${domain}) and uncorroborated by other reviewed sources.`,
+      relatedAttribute: p.parameter,
+      suggestedOfficialSource: sType,
+      signalTag: 'Uncertain',
+      checked: false
+    });
+  }
+  if (!parameterStatuses) {
+    for (const gap of gaps) {
+      if (gap.type === 'thin_coverage') {
+        if (gap.attribute === 'other_details') continue;
+        const key = `thin-${gap.attribute}`;
+        if (seenKeys.has(key)) continue;
+        seenKeys.add(key);
+
+        const label = formatAttributeLabel(gap.attribute);
+        const sType = deriveSourceTypeForAttribute(gap.attribute);
+
+        items.push({
+          id: `check-${itemCounter++}`,
+          priority: 'Medium',
+          title: `Corroborate single-source claim for ${label}`,
+          description: `"${label}" was referenced by only one source without independent corroboration.`,
+          relatedAttribute: gap.attribute,
+          suggestedOfficialSource: sType,
+          signalTag: 'Uncertain',
+          checked: false
+        });
+      }
     }
   }
 
-  // 4. MEDIUM PRIORITY: Thin single-source coverage
-  for (const gap of gaps) {
-    if (gap.type === 'thin_coverage') {
-      if (gap.attribute === 'other_details') continue;
-      const key = `thin-${gap.attribute}`;
-      if (seenKeys.has(key)) continue;
-      seenKeys.add(key);
+  // 5. MEDIUM PRIORITY: Limited text sources
+  if (sources) {
+    for (const src of sources) {
+      if ((src.isLimited || src.sourceType === 'limited') && src.status === 'ready' && !src.isLowText && src.sourceType !== 'low_text') {
+        const key = `limited-${src.id}`;
+        if (seenKeys.has(key)) continue;
+        seenKeys.add(key);
 
-      const label = formatAttributeLabel(gap.attribute);
-      const sType = deriveSourceTypeForAttribute(gap.attribute);
-
-      items.push({
-        id: `check-${itemCounter++}`,
-        priority: 'Medium',
-        title: `Corroborate single-source claim for ${label}`,
-        description: `"${label}" was referenced by only one source without independent corroboration.`,
-        relatedAttribute: gap.attribute,
-        suggestedOfficialSource: sType,
-        signalTag: 'Uncertain',
-        checked: false
-      });
+        items.push({
+          id: `check-${itemCounter++}`,
+          priority: 'Medium',
+          title: `Audit claims from limited source: ${src.title.slice(0, 45)}`,
+          description: `Source "${src.title}" (${src.domain}) provided only limited supporting text. Confirm findings directly against the full document.`,
+          suggestedOfficialSource: 'Full primary document portal',
+          signalTag: 'Uncertain',
+          checked: false
+        });
+      }
     }
   }
 

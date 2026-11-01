@@ -4,6 +4,7 @@ import { generateDiverseSearchQueries } from './queryGenerator.js';
 import { rankAndDedupeSearchResults } from './ranker.js';
 import { processSource } from '../ingestion/fetcher.js';
 import { IngestedSource } from '../ingestion/types.js';
+import { isLowTextDomain, isLoginWall, isLowTextSource } from '../ingestion/lowText.js';
 import { SAMPLE_DISCOVERY_RESULTS } from '../data/sampleData.js';
 import { persistentStore } from '../store/persistentStore.js';
 import { deriveExpectedAttributesForQuestion, NEUTRAL_FALLBACK_ATTRIBUTES } from '../analysis/extraction.js';
@@ -200,17 +201,23 @@ export class DiscoveryService {
             if (processed.status === 'ready') {
               const hasFullPageText = Boolean((processed.cleanedText && processed.cleanedText.length >= 300) || (src.rawContent && src.rawContent.length >= 300));
               const isLimited = (processed.sourceType === 'limited' || processed.usefulnessStatus === 'NEEDS_ATTENTION') && !hasFullPageText;
+              const isLow = isLowTextDomain(src.url) || isLowTextDomain(src.domain) || isLoginWall(src.url, src.title, src.snippet) || processed.isLowText || isLimited;
               return {
                 ...src,
                 limited: isLimited,
                 unavailable: false,
+                isLowText: Boolean(isLow),
+                sourceType: isLow ? 'low_text' : (isLimited ? 'limited' : src.sourceType),
                 rawContent: processed.cleanedText || src.rawContent || src.snippet
               };
             } else if (src.rawContent && src.rawContent.trim().length >= 300) {
+              const isLow = isLowTextDomain(src.url) || isLowTextDomain(src.domain) || isLoginWall(src.url, src.title, src.snippet);
               return {
                 ...src,
                 limited: false,
                 unavailable: false,
+                isLowText: Boolean(isLow),
+                sourceType: isLow ? 'low_text' : src.sourceType,
                 rawContent: src.rawContent
               };
             } else if ((src.rawContent && src.rawContent.trim().length >= 25) || (src.snippet && src.snippet.trim().length >= 25)) {
@@ -218,22 +225,29 @@ export class DiscoveryService {
                 ...src,
                 limited: true,
                 unavailable: false,
+                isLowText: true,
+                sourceType: 'low_text',
                 rawContent: src.rawContent || src.snippet
               };
             } else {
               return {
                 ...src,
                 limited: false,
-                unavailable: true
+                unavailable: true,
+                isLowText: true,
+                sourceType: 'unavailable'
               };
             }
           } catch {
             const hasFullText = Boolean(src.rawContent && src.rawContent.trim().length >= 300);
             const hasSnippet = Boolean((src.rawContent && src.rawContent.length >= 25) || (src.snippet && src.snippet.length >= 25));
+            const isLow = isLowTextDomain(src.url) || isLowTextDomain(src.domain) || !hasFullText;
             return {
               ...src,
               limited: !hasFullText && hasSnippet,
               unavailable: !hasFullText && !hasSnippet,
+              isLowText: Boolean(isLow),
+              sourceType: isLow ? 'low_text' : (!hasFullText && hasSnippet ? 'limited' : 'unavailable'),
               rawContent: src.rawContent || src.snippet
             };
           }

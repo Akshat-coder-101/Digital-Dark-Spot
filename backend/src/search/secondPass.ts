@@ -5,6 +5,7 @@ import { extractClaimsAndAttributes } from '../analysis/extraction.js';
 import { verifyClaimsVerbatim } from '../analysis/verifier.js';
 import { detectGaps } from '../analysis/gaps.js';
 import { detectConflicts } from '../analysis/conflicts.js';
+import { computeParameterStatuses } from '../analysis/parameterStatus.js';
 import { buildCoverageMatrix } from '../analysis/matrix.js';
 import { buildPrioritizedChecklist } from '../analysis/checklist.js';
 import { auditFreshness } from '../analysis/freshness.js';
@@ -64,31 +65,42 @@ export async function runSecondPassTargetedGapSearch(
   }
 
   // Re-run deterministic analysis with the new findings
+  const updatedConflicts = detectConflicts(allVerifiedClaims, newlyIngestedSources);
+  const updatedFreshness = auditFreshness(newlyIngestedSources, allVerifiedClaims);
+  const updatedStatuses = computeParameterStatuses(
+    report.expectedAttributes,
+    allVerifiedClaims,
+    updatedConflicts,
+    updatedFreshness,
+    newlyIngestedSources
+  );
   const updatedGaps = detectGaps(
     report.expectedAttributes,
     allVerifiedClaims,
-    newlyIngestedSources.length
+    newlyIngestedSources.length,
+    undefined,
+    updatedStatuses
   );
-
-  const updatedConflicts = detectConflicts(allVerifiedClaims, newlyIngestedSources);
-  const updatedFreshness = auditFreshness(newlyIngestedSources);
   const updatedMatrix = buildCoverageMatrix(
     report.expectedAttributes,
     newlyIngestedSources,
     allVerifiedClaims,
-    updatedConflicts
+    updatedConflicts,
+    updatedStatuses
   );
   const updatedChecklist = buildPrioritizedChecklist(
     updatedGaps,
     updatedConflicts,
     updatedFreshness,
-    report.openQuestions
+    report.openQuestions,
+    updatedStatuses
   );
 
   return {
     ...report,
     sources: newlyIngestedSources,
     claims: allVerifiedClaims,
+    parameterStatuses: updatedStatuses,
     gaps: updatedGaps,
     conflicts: updatedConflicts,
     freshnessWarnings: updatedFreshness,

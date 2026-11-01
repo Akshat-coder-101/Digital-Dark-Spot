@@ -53,23 +53,23 @@ export const KeyFactsTable: React.FC<KeyFactsTableProps> = ({
     : (report.coverageMatrix || []).map(r => r.attribute).slice(0, 12);
 
   const buildRow = (param: string): FactRow => {
+    // 1. If parameterStatuses exists from backend single source of truth, use it directly
+    const pStatus = report.parameterStatuses?.find(
+      p => p.parameter === param || areAttributesMatching(p.parameter, param)
+    );
+
     const topic = formatSentenceCase(
-      report.coverageMatrix?.find(r => r.attribute === param)?.attributeLabel || param
+      pStatus?.label || report.coverageMatrix?.find(r => r.attribute === param)?.attributeLabel || param
     );
 
     // Claims for this parameter
-    const claims = (report.claims || []).filter(
+    const claims = pStatus?.claims || (report.claims || []).filter(
       c => c.attribute === param || (c as any).original_attribute === param || areAttributesMatching(c.attribute, param)
     );
 
     // Check conflict
-    const conflict = (report.conflicts || []).find(
+    const conflict = pStatus?.conflict || (report.conflicts || []).find(
       cf => cf.attribute === param || areAttributesMatching(cf.attribute, param)
-    );
-
-    // Check gap
-    const gap = (report.gaps || []).find(
-      g => g.attribute === param || areAttributesMatching(g.attribute, param)
     );
 
     // Check stale / deadline passed
@@ -81,19 +81,22 @@ export const KeyFactsTable: React.FC<KeyFactsTableProps> = ({
 
     // Count unique sources
     const uniqueSourceIds = new Set(claims.map(c => c.source_id));
-    const sourcesCount = uniqueSourceIds.size;
+    const sourcesCount = pStatus?.sourcesCount ?? uniqueSourceIds.size;
 
-    // Status & Sort Rank determination
-    // 1: conflict, 2: gap, 3: stale, 4: single source, 5: found
+    // Status & Sort Rank determination from single source of truth
     let status: 'conflict' | 'gap' | 'stale' | 'single_source' | 'found';
     let statusLabel: string;
     let sortRank: number;
 
-    if (conflict) {
+    if (pStatus) {
+      status = pStatus.status;
+      statusLabel = pStatus.statusLabel;
+      sortRank = pStatus.sortRank;
+    } else if (conflict) {
       status = 'conflict';
       statusLabel = 'Conflict';
       sortRank = 1;
-    } else if (gap && sourcesCount === 0) {
+    } else if (claims.length === 0) {
       status = 'gap';
       statusLabel = 'Gap';
       sortRank = 2;
@@ -105,35 +108,30 @@ export const KeyFactsTable: React.FC<KeyFactsTableProps> = ({
       status = 'single_source';
       statusLabel = 'Single source';
       sortRank = 4;
-    } else if (sourcesCount > 1) {
+    } else {
       status = 'found';
       statusLabel = 'Found';
       sortRank = 5;
-    } else {
-      status = 'gap';
-      statusLabel = 'Gap';
-      sortRank = 2;
     }
 
     // Key value calculation
-    let keyValue = 'Not found in the sources reviewed';
-    if (status === 'conflict' && conflict) {
-      const v1 = conflict.sourceA?.value || 'Option A';
-      const v2 = conflict.sourceB?.value || 'Option B';
-      keyValue = `Sources disagree: ${v1} / ${v2}`;
-    } else if (status === 'gap') {
-      keyValue = 'Not found in the sources reviewed';
-    } else if (claims.length > 0) {
-      // Find most frequent / consensus value
-      const valCounts: Record<string, number> = {};
-      for (const c of claims) {
-        const valNorm = (c.value || '').trim();
-        if (valNorm) {
-          valCounts[valNorm] = (valCounts[valNorm] || 0) + 1;
+    let keyValue = pStatus?.keyValue || 'Not found in the sources reviewed';
+    if (!pStatus) {
+      if (status === 'conflict' && conflict) {
+        const v1 = conflict.sourceA?.value || 'Option A';
+        const v2 = conflict.sourceB?.value || 'Option B';
+        keyValue = `Sources disagree: ${v1} / ${v2}`;
+      } else if (status === 'gap') {
+        keyValue = 'Not found in the sources reviewed';
+      } else if (claims.length > 0) {
+        const valCounts: Record<string, number> = {};
+        for (const c of claims) {
+          const valNorm = (c.value || '').trim();
+          if (valNorm) valCounts[valNorm] = (valCounts[valNorm] || 0) + 1;
         }
+        const sortedVals = Object.entries(valCounts).sort((a, b) => b[1] - a[1]);
+        keyValue = sortedVals[0]?.[0] || claims[0].value;
       }
-      const sortedVals = Object.entries(valCounts).sort((a, b) => b[1] - a[1]);
-      keyValue = sortedVals[0]?.[0] || claims[0]?.value || 'Verified';
     }
 
     // Date & Date Chip

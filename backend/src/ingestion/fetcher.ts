@@ -3,6 +3,7 @@ import zlib from 'zlib';
 import { SourceInput, IngestedSource, CredibilityHint, UsefulnessStatus } from './types.js';
 import { validateUrlForSSRF } from './ssrf.js';
 import { detectTemporalMetadata } from './metadata.js';
+import { isLowTextDomain, isLoginWall, isLowTextSource } from './lowText.js';
 import crypto from 'crypto';
 
 export function extractTextFromPdfBuffer(buf: Buffer): string {
@@ -177,9 +178,15 @@ export async function processSource(input: SourceInput, index: number): Promise<
     const textCharacterCount = cleaned.length;
     // Mark source Limited if usable text is under ~1,500 characters or junk page detected
     const isLimited = textCharacterCount < 1500 || isJunk;
-    const usefulnessStatus: UsefulnessStatus = isLimited
+    const isLowText = isLowTextDomain(defaultDomain) || isLoginWall(input.value, title, cleaned) || (isLimited && textCharacterCount < 300) || input.sourceType === 'low_text';
+    const usefulnessStatus: UsefulnessStatus = isLowText || isLimited
       ? 'NEEDS_ATTENTION'
       : (textCharacterCount < 50 ? 'NEEDS_ATTENTION' : 'READY');
+
+    const isLowTextDomainMatch = isLowTextDomain(defaultDomain) || isLoginWall(input.value, title, cleaned);
+    const derivedSourceType = input.sourceType || (isSample
+      ? 'sample'
+      : (isLowTextDomainMatch ? 'low_text' : (isLimited ? 'limited' : (input.type === 'text' ? 'user_text' : 'user_url'))));
 
     return {
       id,
@@ -201,7 +208,8 @@ export async function processSource(input: SourceInput, index: number): Promise<
       isUndated: temporal.isUndated,
       status: 'ready',
       isLimited,
-      sourceType: input.sourceType || (isSample ? 'sample' : (isLimited ? 'limited' : (input.type === 'text' ? 'user_text' : 'user_url'))),
+      isLowText,
+      sourceType: derivedSourceType,
       fetchedAt: nowIso
     };
   }
@@ -438,7 +446,8 @@ export async function processSource(input: SourceInput, index: number): Promise<
 
     // Mark source Limited if usable text is under ~1,500 characters or junk page detected
     const isLimited = textCharacterCount < 1500 || isJunk;
-    const usefulnessStatus: UsefulnessStatus = isLimited
+    const isLowText = isLowTextDomain(domain) || isLoginWall(rawUrl, finalTitle, cleaned) || (isLimited && textCharacterCount < 300) || input.sourceType === 'low_text';
+    const usefulnessStatus: UsefulnessStatus = isLowText || isLimited
       ? 'NEEDS_ATTENTION'
       : (textCharacterCount < 50 ? 'NEEDS_ATTENTION' : 'READY');
 
@@ -448,6 +457,9 @@ export async function processSource(input: SourceInput, index: number): Promise<
 
     // Detect temporal metadata
     const temporal = detectTemporalMetadata(finalCleanedText, finalTitle);
+
+    const isLowTextDomainMatch = isLowTextDomain(domain) || isLoginWall(rawUrl, finalTitle, cleaned);
+    const derivedSourceType = input.sourceType || (isLowTextDomainMatch ? 'low_text' : (isLimited ? 'limited' : 'real'));
 
     return {
       id,
@@ -469,7 +481,8 @@ export async function processSource(input: SourceInput, index: number): Promise<
       isUndated: temporal.isUndated,
       status: 'ready',
       isLimited,
-      sourceType: input.sourceType || (isLimited ? 'limited' : 'real'),
+      isLowText,
+      sourceType: derivedSourceType,
       fetchedAt: nowIso
     };
   } catch (fetchErr: any) {

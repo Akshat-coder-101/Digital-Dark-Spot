@@ -1,4 +1,4 @@
-export type SourceOriginType = 'real' | 'user_url' | 'user_text' | 'sample' | 'limited' | 'unavailable';
+export type SourceOriginType = 'real' | 'user_url' | 'user_text' | 'sample' | 'limited' | 'unavailable' | 'low_text';
 
 export type UsefulnessStatus = 'READY' | 'NEEDS_ATTENTION' | 'FAILED';
 export type CredibilityHint = 'institutional' | 'general';
@@ -36,6 +36,7 @@ export interface IngestedSource {
   status: 'ready' | 'error';
   isLimited?: boolean;
   isUnavailable?: boolean;
+  isLowText?: boolean;
   errorMessage?: string;
   fetchedAt: string;
   sourceType?: SourceOriginType;

@@ -11,6 +11,7 @@ export interface SearchResult {
   score?: number;
   limited?: boolean; // true if page fetch failed and snippet fallback used
   unavailable?: boolean; // true if retrieval completely failed
+  isLowText?: boolean; // true if source is unlikely to hold extractable structured text
   rawContent?: string;
   sourceType?: string;
   relevanceHint?: string;
